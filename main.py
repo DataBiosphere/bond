@@ -101,13 +101,17 @@ class BondApi(remote.Service):
     def service_account_accesstoken(self, request):
         return ServiceAccountAccessTokenResponse(token="fake SA token " + str(request.scopes))
 
+
+@endpoints.api(name='status', version='v1', base_path="/api/")
+class BondStatusApi(remote.Service):
+
     @endpoints.method(
         message_types.VoidMessage,
         StatusResponse,
-        path='status',
+        path='/',
         http_method='GET',
         name='status')
     def status(self, request):
         return StatusResponse(ok=True, memcache=SubSystemStatusResponse(ok=True), datastore=SubSystemStatusResponse(ok=True), fence=SubSystemStatusResponse(ok=True))
 
-api = endpoints.api_server([BondApi])
+api = endpoints.api_server([BondApi, BondStatusApi])
