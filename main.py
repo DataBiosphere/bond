@@ -3,7 +3,7 @@ from protorpc import message_types
 from protorpc import messages
 from protorpc import remote
 from datetime import datetime
-import json
+import authentication
 
 
 class JsonField(messages.StringField):
@@ -54,6 +54,7 @@ class BondApi(remote.Service):
         http_method='POST',
         name='fence/oauthcode')
     def oauthcode(self, request):
+        user_info = authentication.require_user_info(self.request_state)
         return LinkInfoResponse(expires=datetime.now(), username=request.oauthcode)
 
     @endpoints.method(
@@ -63,6 +64,7 @@ class BondApi(remote.Service):
         http_method='GET',
         name='fence link info')
     def link_info(self, request):
+        user_info = authentication.require_user_info(self.request_state)
         return LinkInfoResponse(expires=datetime.now(), username="foo")
 
     @endpoints.method(
@@ -72,6 +74,7 @@ class BondApi(remote.Service):
         http_method='DELETE',
         name='delete fence link')
     def delete_link(self, request):
+        user_info = authentication.require_user_info(self.request_state)
         return message_types.VoidMessage()
 
     @endpoints.method(
@@ -81,6 +84,7 @@ class BondApi(remote.Service):
         http_method='GET',
         name='get fence accesstoken')
     def accesstoken(self, request):
+        user_info = authentication.require_user_info(self.request_state)
         return AccessTokenResponse(token="fake token")
 
     @endpoints.method(
@@ -90,6 +94,7 @@ class BondApi(remote.Service):
         http_method='GET',
         name='get fence service account key')
     def service_account_key(self, request):
+        user_info = authentication.require_user_info(self.request_state)
         return ServiceAccountKeyResponse(data={"foo": "bar"})
 
     @endpoints.method(
@@ -99,6 +104,7 @@ class BondApi(remote.Service):
         http_method='GET',
         name='get fence service account access token')
     def service_account_accesstoken(self, request):
+        user_info = authentication.require_user_info(self.request_state)
         return ServiceAccountAccessTokenResponse(token="fake SA token " + str(request.scopes))
 
 
