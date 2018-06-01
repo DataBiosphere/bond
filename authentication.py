@@ -59,7 +59,7 @@ class Authentication:
 
         :param request_state: self.request_state from a class extending protorpc.remote.Service
         :param token_info_fn: function to get token info, defaults to google http request, override for testing one
-        parameter, the token string, returns UserInfo
+        parameter, the token string, returns json token info (see https://www.googleapis.com/oauth2/v1/tokeninfo)
         :return: UserInfo instance
         """
         auth_header = request_state.headers.get('Authorization')
