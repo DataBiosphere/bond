@@ -196,6 +196,31 @@ class AuthenticationTestCase(unittest.TestCase):
         }
         self._unauthorized_test(token_data)
 
+    def test_missing_expires_in(self):
+        token_data = {
+            "audience": "32555940559.apps.googleusercontent.com",
+            "user_id": "193481341723041",
+            "email": "foo@bar.com",
+            "verified_email": True
+        }
+        self._unauthorized_test(token_data)
 
+    def test_unacceptable_expires_in_1(self):
+        token_data = {
+            "audience": "32555940559.apps.googleusercontent.com",
+            "user_id": "193481341723041",
+            "expires_in": -1,
+            "email": "foo@bar.com",
+            "verified_email": True
+        }
+        self._unauthorized_test(token_data)
 
-        #cache hit
+    def test_unacceptable_expires_in_2(self):
+        token_data = {
+            "audience": "32555940559.apps.googleusercontent.com",
+            "user_id": "193481341723041",
+            "expires_in": "asdf",
+            "email": "foo@bar.com",
+            "verified_email": True
+        }
+        self._unauthorized_test(token_data)
