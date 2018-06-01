@@ -32,6 +32,8 @@ class UserInfo:
 def _token_info(token):
     result = urlfetch.fetch(
         '{}?{}'.format(_TOKENINFO_URL, urllib.urlencode({'access_token': token})))
+    if result.status_code == 400:
+        raise endpoints.UnauthorizedException("Invalid authorization token")
     if result.status_code != 200:
         raise endpoints.InternalServerErrorException(message='Token info endpoint returned status {}: {}'.format(result.status_code, result.content))
     return result.content
