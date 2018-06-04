@@ -1,0 +1,28 @@
+# Python CircleCI 2.0 configuration file
+#
+# Check https://circleci.com/docs/2.0/language-python/ for more details
+#
+version: 2
+jobs:
+  test:
+    docker:
+      - image: mbemis/bond:python2.7_gcloud
+      
+    environment:
+      - PYTHONPATH: /usr/local/google_appengine
+      
+    steps:
+      - checkout
+      - run: # install and activate virtual environment with pip
+          command: |
+            python2.7 -m virtualenv virtualenv
+            . virtualenv/bin/activate
+            pip install -t lib/ -r requirements.txt
+            pip install nose nosegae nose-exclude
+            nosetests --with-gae --gae-lib-root=`gcloud info --format="value(installation.sdk_root)"`/platform/google_appengine --exclude-dir=lib
+          
+workflows:
+  version: 2
+  build:
+    jobs:
+      - test
