@@ -1,9 +1,18 @@
+from datetime import datetime
+
 import endpoints
+import os
 from protorpc import message_types
 from protorpc import messages
 from protorpc import remote
-from datetime import datetime
+from requests.auth import HTTPBasicAuth
+from requests_oauthlib import OAuth2Session
+from requests_toolbelt.adapters import appengine
+
 import authentication
+
+# https://toolbelt.readthedocs.io/en/latest/adapters.html#appengineadapter
+appengine.monkeypatch()
 
 
 class JsonField(messages.StringField):
@@ -43,6 +52,14 @@ OAUTH_CODE_RESOURCE = endpoints.ResourceContainer(oauthcode=messages.StringField
 
 SCOPES_RESOURCE = endpoints.ResourceContainer(scopes=messages.StringField(1, repeated=True))
 
+client_id = os.environ['FENCE_CLIENT_ID']
+client_secret = os.environ['FENCE_CLIENT_SECRET']
+redirect_uri = os.environ['FENCE_REDIRECT_URI']
+fence_token_url = os.environ['FENCE_TOKEN_URL']
+
+# For debugging/testing, you can get a token dict from the oauthcode endpoint and past it in below
+# token = {"token_type": "Bearer", "refresh_token": "xxxxxxxx", "access_token": "xxxxxxxxx", "id_token": "xxxxxxxxx", "expires_in": 1200, "expires_at": 1528214759.476306}
+
 
 @endpoints.api(name='link', version='v1', base_path="/api/")
 class BondApi(remote.Service):
@@ -51,13 +68,16 @@ class BondApi(remote.Service):
 
     @endpoints.method(
         OAUTH_CODE_RESOURCE,
-        LinkInfoResponse,
+        AccessTokenResponse,
         path='fence/oauthcode',
         http_method='POST',
         name='fence/oauthcode')
     def oauthcode(self, request):
         user_info = self.auth.require_user_info(self.request_state)
-        return LinkInfoResponse(expires=datetime.now(), username=request.oauthcode)
+        oauth = OAuth2Session(client_id, redirect_uri=redirect_uri)
+        auth = HTTPBasicAuth(client_id, client_secret)
+        token_response = oauth.fetch_token(fence_token_url, code=request.oauthcode, auth=auth)
+        return AccessTokenResponse(token=token_response.get('access_token'))
 
     @endpoints.method(
         message_types.VoidMessage,
@@ -87,7 +107,11 @@ class BondApi(remote.Service):
         name='get fence accesstoken')
     def accesstoken(self, request):
         user_info = self.auth.require_user_info(self.request_state)
-        return AccessTokenResponse(token="fake token")
+        # TODO: Token needs to be retrieved from memcache
+        oauth = OAuth2Session(client_id, token=token)
+        auth = HTTPBasicAuth(client_id, client_secret)
+        token_response = oauth.refresh_token(fence_token_url, auth=auth, verify=False)
+        return AccessTokenResponse(token=token_response.get("access_token"))
 
     @endpoints.method(
         message_types.VoidMessage,
