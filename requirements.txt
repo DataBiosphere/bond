@@ -1,3 +1,4 @@
+protorpc
 google-endpoints==3.0.0
 google-endpoints-api-management==1.5.1
 requests==2.18.4
