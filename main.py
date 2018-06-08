@@ -1,9 +1,7 @@
 import ConfigParser
-import json
 from datetime import datetime
 
 import endpoints
-from google.appengine.ext import ndb
 from protorpc import message_types
 from protorpc import messages
 from protorpc import remote
@@ -12,7 +10,7 @@ from requests_oauthlib import OAuth2Session
 from requests_toolbelt.adapters import appengine
 
 import authentication
-from bond_token import BondToken
+from token_store import TokenStore
 
 # https://toolbelt.readthedocs.io/en/latest/adapters.html#appengineadapter
 appengine.monkeypatch()
@@ -83,8 +81,7 @@ class BondApi(remote.Service):
         oauth = OAuth2Session(client_id, redirect_uri=redirect_uri)
         auth = HTTPBasicAuth(client_id, client_secret)
         token_response = oauth.fetch_token(token_url, code=request.oauthcode, auth=auth)
-        token_entity = BondToken(token_dict=json.dumps(token_response), id=user_info.email)
-        token_entity.put()
+        TokenStore.save(user_info.email, token_response)
         return AccessTokenResponse(token=token_response.get('access_token'))
 
     @endpoints.method(
@@ -115,8 +112,7 @@ class BondApi(remote.Service):
         name='get fence accesstoken')
     def accesstoken(self, request):
         user_info = self.auth.require_user_info(self.request_state)
-        bond_token = ndb.Key('BondToken', user_info.email).get()
-        my_token = json.loads(bond_token.token_dict)
+        my_token = TokenStore.lookup(user_info.email)
         oauth = OAuth2Session(client_id, token=my_token)
         auth = HTTPBasicAuth(client_id, client_secret)
         token_response = oauth.refresh_token(token_url, auth=auth)
