@@ -3,7 +3,7 @@ from bond_token import BondToken
 import json
 
 
-class TokenStore():
+class TokenStore:
 
     @staticmethod
     def save(email, token_dict):
@@ -13,16 +13,16 @@ class TokenStore():
         :param token_dict: a dict instance populated with token information
         :return: The datastore Key of the persisted entity
         """
-        # TODO: Should we validate the structure of token_dict?  What should these rules be?
-        token_entity = BondToken(token_dict=json.dumps(token_dict), id=email)
-        return token_entity.put()
+        bond_token = BondToken(id=email, token_dict_str=json.dumps(token_dict))
+        # TODO: See if we can't get this validation to happen when the BondToken is created
+        bond_token.validate()
+        return bond_token.put()
 
     @staticmethod
     def lookup(email):
         """
         Retrieves an entity out of Google Datastore of the "BondToken" type and id (email address)
         :param email: unique identifier (email address) for the BondToken entity
-        :return: A dict instance populated with token information
+        :return: A BondToken entity
         """
-        bond_token = ndb.Key('BondToken', email).get()
-        return json.loads(bond_token.token_dict)
+        return ndb.Key('BondToken', email).get()

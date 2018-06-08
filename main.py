@@ -5,15 +5,10 @@ import endpoints
 from protorpc import message_types
 from protorpc import messages
 from protorpc import remote
-from requests.auth import HTTPBasicAuth
-from requests_oauthlib import OAuth2Session
-from requests_toolbelt.adapters import appengine
 
 import authentication
+from oauth_adapter import OauthAdapter
 from token_store import TokenStore
-
-# https://toolbelt.readthedocs.io/en/latest/adapters.html#appengineadapter
-appengine.monkeypatch()
 
 
 class JsonField(messages.StringField):
@@ -61,14 +56,12 @@ client_secret = config.get('fence', 'CLIENT_SECRET')
 redirect_uri = config.get('fence', 'REDIRECT_URI')
 token_url = config.get('fence', 'TOKEN_URL')
 
-# For debugging/testing, you can get a token dict from the oauthcode endpoint and past it in below
-# token = {"token_type": "Bearer", "refresh_token": "xxxxxxxx", "access_token": "xxxxxxxxx", "id_token": "xxxxxxxxx", "expires_in": 1200, "expires_at": 1528214759.476306}
-
 
 @endpoints.api(name='link', version='v1', base_path="/api/")
 class BondApi(remote.Service):
     def __init__(self):
         self.auth = authentication.Authentication(authentication.default_config())
+        self.oauth_adapter = OauthAdapter(client_id, client_secret, redirect_uri, token_url)
 
     @endpoints.method(
         OAUTH_CODE_RESOURCE,
@@ -78,9 +71,7 @@ class BondApi(remote.Service):
         name='fence/oauthcode')
     def oauthcode(self, request):
         user_info = self.auth.require_user_info(self.request_state)
-        oauth = OAuth2Session(client_id, redirect_uri=redirect_uri)
-        auth = HTTPBasicAuth(client_id, client_secret)
-        token_response = oauth.fetch_token(token_url, code=request.oauthcode, auth=auth)
+        token_response = self.oauth_adapter.exchange_authz_code(request.oauthcode)
         TokenStore.save(user_info.email, token_response)
         return AccessTokenResponse(token=token_response.get('access_token'))
 
@@ -112,11 +103,12 @@ class BondApi(remote.Service):
         name='get fence accesstoken')
     def accesstoken(self, request):
         user_info = self.auth.require_user_info(self.request_state)
-        my_token = TokenStore.lookup(user_info.email)
-        oauth = OAuth2Session(client_id, token=my_token)
-        auth = HTTPBasicAuth(client_id, client_secret)
-        token_response = oauth.refresh_token(token_url, auth=auth)
-        return AccessTokenResponse(token=token_response.get("access_token"))
+        bond_token = TokenStore.lookup(user_info.email)
+        if bond_token is not None:
+            token_response = self.oauth_adapter.refresh_access_token(bond_token.token_dict())
+            return AccessTokenResponse(token=token_response.get("access_token"))
+        else:
+            raise endpoints.BadRequestException("Could not find refresh token for user")
 
     @endpoints.method(
         message_types.VoidMessage,
