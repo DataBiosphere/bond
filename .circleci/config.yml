@@ -26,3 +26,4 @@ workflows:
   build:
     jobs:
       - test
+
