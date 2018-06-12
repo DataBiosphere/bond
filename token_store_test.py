@@ -21,7 +21,7 @@ class TokenStoreTestCase(unittest.TestCase):
         self.testbed.init_datastore_v3_stub()
         self.testbed.init_memcache_stub()
 
-        self.some_dict = {"foo": "bar"}
+        self.some_dict = {"access_token": "foo", "refresh_token": "bar", "token_type": "baz"}
         self.email = "fake@fake.gov"
         self.key = ndb.Key('BondToken', self.email)
 
@@ -34,5 +34,5 @@ class TokenStoreTestCase(unittest.TestCase):
         self.assertIsNotNone(self.key.get())
 
     def test_lookup(self):
-        BondToken(token_dict=json.dumps(self.some_dict), id=self.email).put()
-        self.assertEqual(TokenStore.lookup(self.email), self.some_dict)
+        BondToken(token_dict_str=json.dumps(self.some_dict), id=self.email).put()
+        self.assertEqual(TokenStore.lookup(self.email).token_dict(), self.some_dict)
