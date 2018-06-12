@@ -1,28 +1,25 @@
 from google.appengine.ext import ndb
 from refresh_token import RefreshToken
-import json
 
 
 class TokenStore:
 
     @staticmethod
-    def save(email, token_dict):
+    def save(user_id, refresh_token_str):
         """
-        Persists a BondToken by creating a new entity or updating an existing entity with the same id
-        :param email: identifier for the Google Datastore entity, in our case an email address
-        :param token_dict: a dict instance populated with token information
+        Persists a RefreshToken by creating a new entity or updating an existing entity with the same id
+        :param user_id: identifier for the Google Datastore entity
+        :param refresh_token_str: a refresh token string
         :return: The datastore Key of the persisted entity
         """
-        bond_token = RefreshToken(id=email, token_dict_str=json.dumps(token_dict))
-        # TODO: See if we can't get this validation to happen when the BondToken is created
-        bond_token.validate()
-        return bond_token.put()
+        refresh_token = RefreshToken(id=user_id, token=refresh_token_str)
+        return refresh_token.put()
 
     @staticmethod
-    def lookup(email):
+    def lookup(user_id):
         """
-        Retrieves an entity out of Google Datastore of the "BondToken" type and id (email address)
-        :param email: unique identifier (email address) for the BondToken entity
-        :return: A BondToken entity
+        Retrieves an entity out of Google Datastore of the "RefreshToken" type with the specified user_id
+        :param user_id: unique identifier for the RefreshToken entity
+        :return: A RefreshToken entity
         """
-        return ndb.Key(RefreshToken.kind_name(), email).get()
+        return ndb.Key(RefreshToken.kind_name(), user_id).get()

@@ -56,6 +56,11 @@ client_secret = config.get('fence', 'CLIENT_SECRET')
 redirect_uri = config.get('fence', 'REDIRECT_URI')
 token_url = config.get('fence', 'TOKEN_URL')
 
+REFRESH_TOKEN_KEY = 'refresh_token'
+EXPIRES_AT_KEY = 'expires_at'
+ACCESS_TOKEN_KEY = 'access_token'
+ID_TOKEN = 'id_token'
+
 
 @endpoints.api(name='link', version='v1', base_path="/api/")
 class BondApi(remote.Service):
@@ -72,7 +77,7 @@ class BondApi(remote.Service):
     def oauthcode(self, request):
         user_info = self.auth.require_user_info(self.request_state)
         token_response = self.oauth_adapter.exchange_authz_code(request.oauthcode)
-        TokenStore.save(user_info.email, token_response)
+        TokenStore.save(user_info.id, token_response.get(REFRESH_TOKEN_KEY))
         return AccessTokenResponse(token=token_response.get('access_token'))
 
     @endpoints.method(
@@ -103,9 +108,9 @@ class BondApi(remote.Service):
         name='get fence accesstoken')
     def accesstoken(self, request):
         user_info = self.auth.require_user_info(self.request_state)
-        bond_token = TokenStore.lookup(user_info.email)
-        if bond_token is not None:
-            token_response = self.oauth_adapter.refresh_access_token(bond_token.token_dict())
+        refresh_token = TokenStore.lookup(user_info.id)
+        if refresh_token is not None:
+            token_response = self.oauth_adapter.refresh_access_token(refresh_token.token)
             return AccessTokenResponse(token=token_response.get("access_token"))
         else:
             raise endpoints.BadRequestException("Could not find refresh token for user")

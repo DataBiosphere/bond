@@ -1,5 +1,4 @@
 import unittest
-import json
 
 # Imports might be highlighted as "unused" by IntelliJ, but they are used, see setUp()
 from google.appengine.api import datastore
@@ -21,18 +20,18 @@ class TokenStoreTestCase(unittest.TestCase):
         self.testbed.init_datastore_v3_stub()
         self.testbed.init_memcache_stub()
 
-        self.some_dict = {"access_token": "foo", "refresh_token": "bar", "token_type": "baz"}
-        self.email = "fake@fake.gov"
-        self.key = ndb.Key(RefreshToken.kind_name(), self.email)
+        self.user_id = "abc123"
+        self.token_str = "aaaaaabbbbbbcccccccddddddd"
+        self.key = ndb.Key(RefreshToken.kind_name(), self.user_id)
 
     def tearDown(self):
         self.testbed.deactivate()
 
     def test_save(self):
         self.assertIsNone(self.key.get())
-        self.assertEqual(TokenStore.save(self.email, self.some_dict), self.key)
+        self.assertEqual(TokenStore.save(self.user_id, self.token_str), self.key)
         self.assertIsNotNone(self.key.get())
 
     def test_lookup(self):
-        RefreshToken(token_dict_str=json.dumps(self.some_dict), id=self.email).put()
-        self.assertEqual(TokenStore.lookup(self.email).token_dict(), self.some_dict)
+        RefreshToken(token=self.token_str, id=self.user_id).put()
+        self.assertEqual(TokenStore.lookup(self.user_id).token, self.token_str)
