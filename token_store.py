@@ -1,5 +1,5 @@
 from google.appengine.ext import ndb
-from bond_token import BondToken
+from refresh_token import RefreshToken
 import json
 
 
@@ -13,7 +13,7 @@ class TokenStore:
         :param token_dict: a dict instance populated with token information
         :return: The datastore Key of the persisted entity
         """
-        bond_token = BondToken(id=email, token_dict_str=json.dumps(token_dict))
+        bond_token = RefreshToken(id=email, token_dict_str=json.dumps(token_dict))
         # TODO: See if we can't get this validation to happen when the BondToken is created
         bond_token.validate()
         return bond_token.put()
@@ -25,4 +25,4 @@ class TokenStore:
         :param email: unique identifier (email address) for the BondToken entity
         :return: A BondToken entity
         """
-        return ndb.Key('BondToken', email).get()
+        return ndb.Key(RefreshToken.kind_name(), email).get()

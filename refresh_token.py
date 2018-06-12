@@ -2,10 +2,14 @@ from google.appengine.ext import ndb
 import json
 
 
-class BondToken(ndb.Model):
+class RefreshToken(ndb.Model):
     token_dict_str = ndb.TextProperty()
 
     REQUIRED_KEYS = ["access_token", "refresh_token", "token_type"]
+
+    @classmethod
+    def kind_name(cls):
+        return cls.__name__
 
     # @classmethod
     # def new(cls, email, token_dict):
@@ -24,11 +28,11 @@ class BondToken(ndb.Model):
         return json.loads(self.token_dict_str)
 
     def validate(self):
-        BondToken.__validate_token_dict(self.token_dict_str)
+        RefreshToken.__validate_token_dict(self.token_dict_str)
 
     @staticmethod
     def __validate_token_dict(token_dict):
-        [BondToken.__check_for_key(k, token_dict) for k in BondToken.REQUIRED_KEYS]
+        [RefreshToken.__check_for_key(k, token_dict) for k in RefreshToken.REQUIRED_KEYS]
 
     @staticmethod
     def __check_for_key(key, my_dict):

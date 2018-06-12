@@ -7,7 +7,7 @@ from google.appengine.api import memcache
 from google.appengine.ext import testbed
 from google.appengine.ext import ndb
 from token_store import TokenStore
-from bond_token import BondToken
+from refresh_token import RefreshToken
 
 
 class TokenStoreTestCase(unittest.TestCase):
@@ -23,7 +23,7 @@ class TokenStoreTestCase(unittest.TestCase):
 
         self.some_dict = {"access_token": "foo", "refresh_token": "bar", "token_type": "baz"}
         self.email = "fake@fake.gov"
-        self.key = ndb.Key('BondToken', self.email)
+        self.key = ndb.Key(RefreshToken.kind_name(), self.email)
 
     def tearDown(self):
         self.testbed.deactivate()
@@ -34,5 +34,5 @@ class TokenStoreTestCase(unittest.TestCase):
         self.assertIsNotNone(self.key.get())
 
     def test_lookup(self):
-        BondToken(token_dict_str=json.dumps(self.some_dict), id=self.email).put()
+        RefreshToken(token_dict_str=json.dumps(self.some_dict), id=self.email).put()
         self.assertEqual(TokenStore.lookup(self.email).token_dict(), self.some_dict)
