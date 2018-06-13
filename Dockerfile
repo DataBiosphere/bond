@@ -2,7 +2,7 @@ FROM python:2.7.15
 
 # Prepare the image
 ENV DEBIAN_FRONTEND noninteractive
-RUN apt-get update && apt-get install -y -qq --no-install-recommends wget unzip python python-pip python-dev build-essential openssh-client python-openssl curl && apt-get clean
+RUN apt-get update && apt-get install -y -qq --no-install-recommends wget unzip python python-pip python-dev build-essential openssh-client python-openssl && apt-get clean
 
 # Install the Google Cloud SDK
 ENV HOME /
