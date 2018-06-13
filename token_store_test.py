@@ -24,6 +24,7 @@ class TokenStoreTestCase(unittest.TestCase):
         self.user_id = "abc123"
         self.token_str = "aaaaaabbbbbbcccccccddddddd"
         self.issued_at = datetime.now()
+        self.username = "Ralph"
         self.key = ndb.Key(RefreshToken.kind_name(), self.user_id)
 
     def tearDown(self):
@@ -31,11 +32,17 @@ class TokenStoreTestCase(unittest.TestCase):
 
     def test_save(self):
         self.assertIsNone(self.key.get())
-        self.assertEqual(TokenStore.save(self.user_id, self.token_str, self.issued_at), self.key)
-        self.assertIsNotNone(self.key.get())
+        result_key = TokenStore.save(self.user_id, self.token_str, self.issued_at, self.username)
+        self.assertEqual(result_key, self.key)
+        saved_token = self.key.get()
+        self.assertIsNotNone(saved_token)
+        self.assertEqual(self.token_str, saved_token.token)
+        self.assertEqual(self.issued_at, saved_token.issued_at)
+        self.assertEqual(self.username, saved_token.username)
 
     def test_lookup(self):
-        RefreshToken(id=self.user_id, token=self.token_str, issued_at=self.issued_at).put()
+        RefreshToken(id=self.user_id, token=self.token_str, issued_at=self.issued_at, username=self.username).put()
         persisted_token = TokenStore.lookup(self.user_id)
-        self.assertEqual(persisted_token.token, self.token_str)
-        self.assertEqual(persisted_token.issued_at, self.issued_at)
+        self.assertEqual(self.token_str, persisted_token.token)
+        self.assertEqual(self.issued_at, persisted_token.issued_at)
+        self.assertEqual(self.username, persisted_token.username)

@@ -17,12 +17,13 @@ class JsonField(messages.StringField):
 
 
 class LinkInfoResponse(messages.Message):
-    expires = message_types.DateTimeField(1)
+    issued_at = message_types.DateTimeField(1)
     username = messages.StringField(2)
 
 
 class AccessTokenResponse(messages.Message):
     token = messages.StringField(1)
+    expires_at = message_types.DateTimeField(2)
 
 
 class ServiceAccountKeyResponse(messages.Message):
@@ -78,10 +79,9 @@ class BondApi(remote.Service):
     def oauthcode(self, request):
         user_info = self.auth.require_user_info(self.request_state)
         token_response = self.oauth_adapter.exchange_authz_code(request.oauthcode)
-        TokenStore.save(user_info.id, token_response.get(REFRESH_TOKEN_KEY), datetime.now())
-        expiration_datetime = datetime.fromtimestamp(token_response.get(EXPIRES_AT_KEY))
         jwt_token = JwtToken(token_response.get(ID_TOKEN))
-        return LinkInfoResponse(expires=expiration_datetime, username=jwt_token.username)
+        TokenStore.save(user_info.id, token_response.get(REFRESH_TOKEN_KEY), jwt_token.issued_at, jwt_token.username)
+        return LinkInfoResponse(issued_at=jwt_token.issued_at, username=jwt_token.username)
 
     @endpoints.method(
         message_types.VoidMessage,
@@ -114,7 +114,8 @@ class BondApi(remote.Service):
         refresh_token = TokenStore.lookup(user_info.id)
         if refresh_token is not None:
             token_response = self.oauth_adapter.refresh_access_token(refresh_token.token)
-            return AccessTokenResponse(token=token_response.get("access_token"))
+            expires_at = datetime.fromtimestamp(token_response.get(EXPIRES_AT_KEY))
+            return AccessTokenResponse(token=token_response.get("access_token"), expires_at=expires_at)
         else:
             raise endpoints.BadRequestException("Could not find refresh token for user")
 

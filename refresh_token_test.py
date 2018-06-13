@@ -9,10 +9,11 @@ class RefreshTokenTestCase(unittest.TestCase):
         self.assertEqual("RefreshToken", RefreshToken.kind_name())
 
     def test_properties(self):
-        user_id = "bob"
+        user_id = "123456"
         token_str = "foobarbaz"
         issued_at = datetime.now()
-        refresh_token = RefreshToken(id=user_id, token=token_str, issued_at=issued_at)
+        username = "bob@email-address.gov"
+        refresh_token = RefreshToken(id=user_id, token=token_str, issued_at=issued_at, username=username)
         self.assertEqual(user_id, refresh_token.key.id())
         self.assertEqual(token_str, refresh_token.token)
         self.assertEqual(issued_at, refresh_token.issued_at)
