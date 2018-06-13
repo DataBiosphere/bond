@@ -9,6 +9,7 @@ from protorpc import remote
 import authentication
 from oauth_adapter import OauthAdapter
 from token_store import TokenStore
+from jwt_token import JwtToken
 
 
 class JsonField(messages.StringField):
@@ -70,15 +71,17 @@ class BondApi(remote.Service):
 
     @endpoints.method(
         OAUTH_CODE_RESOURCE,
-        AccessTokenResponse,
+        LinkInfoResponse,
         path='fence/oauthcode',
         http_method='POST',
         name='fence/oauthcode')
     def oauthcode(self, request):
         user_info = self.auth.require_user_info(self.request_state)
         token_response = self.oauth_adapter.exchange_authz_code(request.oauthcode)
-        TokenStore.save(user_info.id, token_response.get(REFRESH_TOKEN_KEY))
-        return AccessTokenResponse(token=token_response.get('access_token'))
+        TokenStore.save(user_info.id, token_response.get(REFRESH_TOKEN_KEY), datetime.now())
+        expiration_datetime = datetime.fromtimestamp(token_response.get(EXPIRES_AT_KEY))
+        jwt_token = JwtToken(token_response.get(ID_TOKEN))
+        return LinkInfoResponse(expires=expiration_datetime, username=jwt_token.username)
 
     @endpoints.method(
         message_types.VoidMessage,

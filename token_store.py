@@ -5,14 +5,15 @@ from refresh_token import RefreshToken
 class TokenStore:
 
     @staticmethod
-    def save(user_id, refresh_token_str):
+    def save(user_id, refresh_token_str, issued_at):
         """
         Persists a RefreshToken by creating a new entity or updating an existing entity with the same id
         :param user_id: identifier for the Google Datastore entity
         :param refresh_token_str: a refresh token string
+        :param issued_at: datetime at which the token was issued
         :return: The datastore Key of the persisted entity
         """
-        refresh_token = RefreshToken(id=user_id, token=refresh_token_str)
+        refresh_token = RefreshToken(id=user_id, token=refresh_token_str, issued_at=issued_at)
         return refresh_token.put()
 
     @staticmethod
