@@ -6,7 +6,7 @@ version: 2
 jobs:
   test:
     docker:
-      - image: mbemis/bond-tests:latest
+      - image: quay.io/databiosphere/bond-tests:latest
       
     environment:
       - PYTHONPATH: /usr/local/google_appengine
