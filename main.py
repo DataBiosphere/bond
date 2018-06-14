@@ -1,9 +1,15 @@
+import ConfigParser
+from datetime import datetime
+
 import endpoints
 from protorpc import message_types
 from protorpc import messages
 from protorpc import remote
-from datetime import datetime
+
 import authentication
+from oauth_adapter import OauthAdapter
+from token_store import TokenStore
+from jwt_token import JwtToken
 
 
 class JsonField(messages.StringField):
@@ -11,12 +17,13 @@ class JsonField(messages.StringField):
 
 
 class LinkInfoResponse(messages.Message):
-    expires = message_types.DateTimeField(1)
+    issued_at = message_types.DateTimeField(1)
     username = messages.StringField(2)
 
 
 class AccessTokenResponse(messages.Message):
     token = messages.StringField(1)
+    expires_at = message_types.DateTimeField(2)
 
 
 class ServiceAccountKeyResponse(messages.Message):
@@ -43,11 +50,25 @@ OAUTH_CODE_RESOURCE = endpoints.ResourceContainer(oauthcode=messages.StringField
 
 SCOPES_RESOURCE = endpoints.ResourceContainer(scopes=messages.StringField(1, repeated=True))
 
+config = ConfigParser.ConfigParser()
+config.read("config.ini")
+
+client_id = config.get('fence', 'CLIENT_ID')
+client_secret = config.get('fence', 'CLIENT_SECRET')
+redirect_uri = config.get('fence', 'REDIRECT_URI')
+token_url = config.get('fence', 'TOKEN_URL')
+
+REFRESH_TOKEN_KEY = 'refresh_token'
+EXPIRES_AT_KEY = 'expires_at'
+ACCESS_TOKEN_KEY = 'access_token'
+ID_TOKEN = 'id_token'
+
 
 @endpoints.api(name='link', version='v1', base_path="/api/")
 class BondApi(remote.Service):
     def __init__(self):
         self.auth = authentication.Authentication(authentication.default_config())
+        self.oauth_adapter = OauthAdapter(client_id, client_secret, redirect_uri, token_url)
 
     @endpoints.method(
         OAUTH_CODE_RESOURCE,
@@ -57,7 +78,10 @@ class BondApi(remote.Service):
         name='fence/oauthcode')
     def oauthcode(self, request):
         user_info = self.auth.require_user_info(self.request_state)
-        return LinkInfoResponse(expires=datetime.now(), username=request.oauthcode)
+        token_response = self.oauth_adapter.exchange_authz_code(request.oauthcode)
+        jwt_token = JwtToken(token_response.get(ID_TOKEN))
+        TokenStore.save(user_info.id, token_response.get(REFRESH_TOKEN_KEY), jwt_token.issued_at, jwt_token.username)
+        return LinkInfoResponse(issued_at=jwt_token.issued_at, username=jwt_token.username)
 
     @endpoints.method(
         message_types.VoidMessage,
@@ -87,7 +111,13 @@ class BondApi(remote.Service):
         name='get fence accesstoken')
     def accesstoken(self, request):
         user_info = self.auth.require_user_info(self.request_state)
-        return AccessTokenResponse(token="fake token")
+        refresh_token = TokenStore.lookup(user_info.id)
+        if refresh_token is not None:
+            token_response = self.oauth_adapter.refresh_access_token(refresh_token.token)
+            expires_at = datetime.fromtimestamp(token_response.get(EXPIRES_AT_KEY))
+            return AccessTokenResponse(token=token_response.get("access_token"), expires_at=expires_at)
+        else:
+            raise endpoints.BadRequestException("Could not find refresh token for user")
 
     @endpoints.method(
         message_types.VoidMessage,
