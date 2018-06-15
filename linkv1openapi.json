@@ -1,0 +1,167 @@
+{
+  "basePath": "/api",
+  "consumes": [
+    "application/json"
+  ],
+  "definitions": {
+    "MainAccessTokenResponse": {
+      "properties": {
+        "expires_at": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "token": {
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "MainLinkInfoResponse": {
+      "properties": {
+        "issued_at": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "username": {
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "MainServiceAccountAccessTokenResponse": {
+      "properties": {
+        "token": {
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "MainServiceAccountKeyResponse": {
+      "properties": {
+        "data": {
+          "type": "string"
+        }
+      },
+      "type": "object"
+    }
+  },
+  "host": "gpolumbo-practice-project.appspot.com",
+  "info": {
+    "title": "link",
+    "version": "v1"
+  },
+  "paths": {
+    "/link/v1/fence": {
+      "delete": {
+        "operationId": "BondApi_deleteLink",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "A successful response"
+          }
+        }
+      },
+      "get": {
+        "operationId": "BondApi_linkInfo",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "A successful response",
+            "schema": {
+              "$ref": "#/definitions/MainLinkInfoResponse"
+            }
+          }
+        }
+      }
+    },
+    "/link/v1/fence/accesstoken": {
+      "get": {
+        "operationId": "BondApi_accesstoken",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "A successful response",
+            "schema": {
+              "$ref": "#/definitions/MainAccessTokenResponse"
+            }
+          }
+        }
+      }
+    },
+    "/link/v1/fence/oauthcode": {
+      "post": {
+        "operationId": "BondApi_oauthcode",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "oauthcode",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A successful response",
+            "schema": {
+              "$ref": "#/definitions/MainLinkInfoResponse"
+            }
+          }
+        }
+      }
+    },
+    "/link/v1/fence/serviceaccount/accesstoken": {
+      "get": {
+        "operationId": "BondApi_serviceAccountAccesstoken",
+        "parameters": [
+          {
+            "collectionFormat": "multi",
+            "in": "query",
+            "items": {
+              "type": "string"
+            },
+            "name": "scopes",
+            "type": "array"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A successful response",
+            "schema": {
+              "$ref": "#/definitions/MainServiceAccountAccessTokenResponse"
+            }
+          }
+        }
+      }
+    },
+    "/link/v1/fence/serviceaccount/key": {
+      "get": {
+        "operationId": "BondApi_serviceAccountKey",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "A successful response",
+            "schema": {
+              "$ref": "#/definitions/MainServiceAccountKeyResponse"
+            }
+          }
+        }
+      }
+    }
+  },
+  "produces": [
+    "application/json"
+  ],
+  "schemes": [
+    "https"
+  ],
+  "securityDefinitions": {
+    "google_id_token": {
+      "authorizationUrl": "",
+      "flow": "implicit",
+      "type": "oauth2",
+      "x-google-issuer": "https://accounts.google.com",
+      "x-google-jwks_uri": "https://www.googleapis.com/oauth2/v3/certs"
+    }
+  },
+  "swagger": "2.0"
+}

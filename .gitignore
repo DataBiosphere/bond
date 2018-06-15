@@ -3,6 +3,8 @@
 *.log
 configure.rb
 /config/
+env/
+lib/
 
 # sbt specific
 .sbtopts
