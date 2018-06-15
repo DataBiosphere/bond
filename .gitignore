@@ -5,6 +5,7 @@ configure.rb
 /config/
 env/
 lib/
+linkv1openapi.json
 
 # sbt specific
 .sbtopts
