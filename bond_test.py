@@ -43,10 +43,14 @@ class BondTestCase(unittest.TestCase):
         self.assertEqual(self.name, username)
         self.assertEqual(datetime.fromtimestamp(self.issued_at_epoch), issued_at)
 
-    def test_access_token_for_user(self):
+    def test_generate_access_token(self):
         user_id = str(uuid.uuid4())
         token = str(uuid.uuid4())
         RefreshToken(id=user_id, token=token, issued_at=datetime.fromtimestamp(self.issued_at_epoch), username=self.name).put()
-        access_token, expires_at = self.bond.access_token_for_user(user_id)
+        access_token, expires_at = self.bond.generate_access_token(user_id)
         self.assertEqual(self.fake_access_token, access_token)
         self.assertEqual(datetime.fromtimestamp(self.expires_at_epoch), expires_at)
+
+    def test_generate_access_token_errors_when_missing_token(self):
+        user_id = str(uuid.uuid4())
+        self.assertRaises(Bond.MissingTokenError, self.bond.generate_access_token, user_id)

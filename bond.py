@@ -22,7 +22,7 @@ class Bond:
         TokenStore.save(user_id, token_response.get(FenceKeys.REFRESH_TOKEN_KEY), jwt_token.issued_at, jwt_token.username)
         return jwt_token.issued_at, jwt_token.username
 
-    def access_token_for_user(self, user_id):
+    def generate_access_token(self, user_id):
         """
         Given a user's unique id, lookup their refresh token and use it to generate a new refresh token from their OAuth
         provider.  If a refresh token cannot be found for the user_id provided, a MissingTokenError will be raised.

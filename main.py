@@ -105,7 +105,7 @@ class BondApi(remote.Service):
     def accesstoken(self, request):
         user_info = self.auth.require_user_info(self.request_state)
         try:
-            access_token, expires_at = self.bond.access_token_for_user(user_info.id)
+            access_token, expires_at = self.bond.generate_access_token(user_info.id)
             return AccessTokenResponse(token=access_token, expires_at=expires_at)
         except Bond.MissingTokenError as err:
             # TODO: I don't like throwing and rethrowing exceptions
