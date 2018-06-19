@@ -16,7 +16,7 @@ class SamApi:
         headers = {'Authorization': 'Bearer ' + access_token}
         result = urlfetch.fetch(url=self.base_url + '/register/user/v1?userDetailsOnly=true', headers=headers)
         if result.status_code == 200:
-            return json.load(result.content)
+            return json.loads(result.content)["userInfo"]
         elif result.status_code == 404:
             return None
         else:
