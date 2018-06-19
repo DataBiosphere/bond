@@ -49,4 +49,4 @@ workflows:
             - test
           filters:
             branches:
-              only: develop
+              only: mb-tag-on-success
