@@ -74,13 +74,13 @@ class Authentication:
 
         token = auth_header_parts[1]
 
-        user_info = memcache.get(key=token)
+        user_info = memcache.get(key='access_token:' + token)
         if user_info is None:
             user_info = self._fetch_user_info(token, token_info_fn)
             # cache for 10 minutes or until token expires
             expires_in = min([user_info.expires_in, self.config.max_token_life])
             logging.debug("caching token %s for %s seconds", token, expires_in)
-            memcache.add(key=token, value=user_info, time=expires_in)
+            memcache.add(key='access_token:' + token, value=user_info, time=expires_in)
         else:
             logging.debug("auth token cache hit for token %s", token)
 
