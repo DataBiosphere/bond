@@ -7,9 +7,8 @@ from protorpc import messages
 from protorpc import remote
 
 import authentication
+from bond import Bond
 from oauth_adapter import OauthAdapter
-from token_store import TokenStore
-from jwt_token import JwtToken
 
 
 class JsonField(messages.StringField):
@@ -58,17 +57,13 @@ client_secret = config.get('fence', 'CLIENT_SECRET')
 redirect_uri = config.get('fence', 'REDIRECT_URI')
 token_url = config.get('fence', 'TOKEN_URL')
 
-REFRESH_TOKEN_KEY = 'refresh_token'
-EXPIRES_AT_KEY = 'expires_at'
-ACCESS_TOKEN_KEY = 'access_token'
-ID_TOKEN = 'id_token'
-
 
 @endpoints.api(name='link', version='v1', base_path="/api/")
 class BondApi(remote.Service):
     def __init__(self):
         self.auth = authentication.Authentication(authentication.default_config())
         self.oauth_adapter = OauthAdapter(client_id, client_secret, redirect_uri, token_url)
+        self.bond = Bond(self.oauth_adapter)
 
     @endpoints.method(
         OAUTH_CODE_RESOURCE,
@@ -78,10 +73,8 @@ class BondApi(remote.Service):
         name='fence/oauthcode')
     def oauthcode(self, request):
         user_info = self.auth.require_user_info(self.request_state)
-        token_response = self.oauth_adapter.exchange_authz_code(request.oauthcode)
-        jwt_token = JwtToken(token_response.get(ID_TOKEN))
-        TokenStore.save(user_info.id, token_response.get(REFRESH_TOKEN_KEY), jwt_token.issued_at, jwt_token.username)
-        return LinkInfoResponse(issued_at=jwt_token.issued_at, username=jwt_token.username)
+        issued_at, username = self.bond.exchange_authz_code(request.oauthcode, user_info.id)
+        return LinkInfoResponse(issued_at=issued_at, username=username)
 
     @endpoints.method(
         message_types.VoidMessage,
@@ -111,13 +104,12 @@ class BondApi(remote.Service):
         name='get fence accesstoken')
     def accesstoken(self, request):
         user_info = self.auth.require_user_info(self.request_state)
-        refresh_token = TokenStore.lookup(user_info.id)
-        if refresh_token is not None:
-            token_response = self.oauth_adapter.refresh_access_token(refresh_token.token)
-            expires_at = datetime.fromtimestamp(token_response.get(EXPIRES_AT_KEY))
-            return AccessTokenResponse(token=token_response.get("access_token"), expires_at=expires_at)
-        else:
-            raise endpoints.BadRequestException("Could not find refresh token for user")
+        try:
+            access_token, expires_at = self.bond.generate_access_token(user_info.id)
+            return AccessTokenResponse(token=access_token, expires_at=expires_at)
+        except Bond.MissingTokenError as err:
+            # TODO: I don't like throwing and rethrowing exceptions
+            raise endpoints.BadRequestException(err.message)
 
     @endpoints.method(
         message_types.VoidMessage,
