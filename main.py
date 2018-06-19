@@ -8,7 +8,11 @@ from protorpc import remote
 
 import authentication
 from bond import Bond
+from fence_token_vending import FenceTokenVendingMachine
+from fence_api import FenceApi
+from sam_api import SamApi
 from oauth_adapter import OauthAdapter
+import json
 
 
 class JsonField(messages.StringField):
@@ -56,6 +60,8 @@ client_id = config.get('fence', 'CLIENT_ID')
 client_secret = config.get('fence', 'CLIENT_SECRET')
 redirect_uri = config.get('fence', 'REDIRECT_URI')
 token_url = config.get('fence', 'TOKEN_URL')
+credentials_google_url = config.get('fence', 'CREDENTIALS_USER_URL')
+sam_base_url = config.get('sam', 'BASE_URL')
 
 
 @endpoints.api(name='link', version='v1', base_path="/api/")
@@ -64,6 +70,7 @@ class BondApi(remote.Service):
         self.auth = authentication.Authentication(authentication.default_config())
         self.oauth_adapter = OauthAdapter(client_id, client_secret, redirect_uri, token_url)
         self.bond = Bond(self.oauth_adapter)
+        self.fence_tvm = FenceTokenVendingMachine(FenceApi(credentials_google_url), SamApi(sam_base_url), self.oauth_adapter)
 
     @endpoints.method(
         OAUTH_CODE_RESOURCE,
@@ -119,7 +126,7 @@ class BondApi(remote.Service):
         name='get fence service account key')
     def service_account_key(self, request):
         user_info = self.auth.require_user_info(self.request_state)
-        return ServiceAccountKeyResponse(data={"foo": "bar"})
+        return ServiceAccountKeyResponse(data=json.loads(self.fence_tvm.get_service_account_key_json(user_info)))
 
     @endpoints.method(
         SCOPES_RESOURCE,
@@ -129,7 +136,7 @@ class BondApi(remote.Service):
         name='get fence service account access token')
     def service_account_accesstoken(self, request):
         user_info = self.auth.require_user_info(self.request_state)
-        return ServiceAccountAccessTokenResponse(token="fake SA token " + str(request.scopes))
+        return ServiceAccountAccessTokenResponse(token=self.fence_tvm.get_service_account_access_token(user_info, request.scopes))
 
 
 @endpoints.api(name='status', version='v1', base_path="/api/")

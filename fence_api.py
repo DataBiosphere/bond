@@ -3,8 +3,8 @@ import endpoints
 
 
 class FenceApi:
-    def __init__(self, base_url):
-        self.base_url = base_url
+    def __init__(self, credentials_google_url):
+        self.credentials_google_url = credentials_google_url
 
     def get_credentials_google(self, access_token):
         """
@@ -13,7 +13,7 @@ class FenceApi:
         :return: service account key json
         """
         headers = {'Authorization': 'Bearer ' + access_token}
-        result = urlfetch.fetch(url=self.base_url + '/user/credentials/google', headers=headers, method=urlfetch.POST)
+        result = urlfetch.fetch(url=self.credentials_google_url, headers=headers, method=urlfetch.POST)
         if result.status_code == 200:
             return result.content
         else:

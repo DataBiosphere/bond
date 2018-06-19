@@ -7,6 +7,8 @@ from google.appengine.api import memcache
 from google.appengine.ext import ndb
 from token_store import TokenStore
 import time
+from google.oauth2 import service_account
+import json
 
 
 class FenceTokenVendingMachine:
@@ -14,6 +16,11 @@ class FenceTokenVendingMachine:
         self.fence_api = fence_api
         self.sam_api = sam_api
         self.fence_oauth_adapter = fence_oauth_adapter
+
+    def get_service_account_access_token(self, user_info, scopes):
+        key_json = self.get_service_account_key_json(user_info)
+        credentials = service_account.Credentials.from_service_account_info(json.loads(key_json), scopes=scopes)
+        return credentials.get_access_token().access_token
 
     def get_service_account_key_json(self, user_info):
         """
