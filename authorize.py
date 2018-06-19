@@ -12,7 +12,7 @@ fence_authorize_url = config.get('fence', 'AUTHZ_URI')
 
 
 def auth_code_with_basic_auth():
-    oauth = OAuth2Session(client_id, redirect_uri=redirect_uri, scope=['openid'])
+    oauth = OAuth2Session(client_id, redirect_uri=redirect_uri, scope=['openid', 'google_credentials'])
     authorization_url, state = oauth.authorization_url(fence_authorize_url)
     return authorization_url
 
