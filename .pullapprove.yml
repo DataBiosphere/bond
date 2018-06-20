@@ -30,7 +30,7 @@ groups:
   deploy-prod:
     conditions:
       branches:
-        - "prod..."
+        - "master..."
     required: 1
     github_reviews:
       enabled: true
