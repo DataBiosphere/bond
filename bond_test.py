@@ -82,6 +82,16 @@ class BondTestCase(unittest.TestCase):
         user_info = UserInfo(str(uuid.uuid4()), "", "", 30)
         self.bond.unlink_account(user_info)
 
+    def test_link_info_exists(self):
+        token = str(uuid.uuid4())
+        refresh_token = RefreshToken(id=self.user_id, token=token, issued_at=datetime.fromtimestamp(self.issued_at_epoch), username=self.name)
+        refresh_token.put()
+        link_info = self.bond.get_link_info(UserInfo(str(uuid.uuid4()), "", "", 30))
+        self.assertEqual(refresh_token, link_info)
+
+    def test_link_info_not_exists(self):
+        link_info = self.bond.get_link_info(UserInfo(str(uuid.uuid4()), "", "", 30))
+        self.assertIsNone(link_info)
 
     @staticmethod
     def _mock_fence_api(service_account_json):
