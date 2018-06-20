@@ -1,10 +1,12 @@
 version: 2
+
 group_defaults:
   approve_by_comment:
     enabled: true
     approve_regex: ':\+1:'
   reset_on_push:
     enabled: false
+
 groups:
   pullapprove-admins:
     conditions:
