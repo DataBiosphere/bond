@@ -4,6 +4,7 @@ import jwt
 from datetime import datetime
 from google.appengine.api import datastore
 from google.appengine.api import memcache
+from google.appengine.ext import ndb
 from google.appengine.ext import testbed
 
 from oauth_adapter import OauthAdapter
@@ -13,8 +14,10 @@ from sam_api import SamApi
 from sam_api import SamKeys
 from fence_api import FenceApi
 from authentication import UserInfo
-from fence_token_vending import FenceTokenVendingMachine
+from fence_token_vending import FenceTokenVendingMachine, FenceServiceAccount
 from mock import MagicMock
+from token_store import TokenStore
+import json
 
 
 class BondTestCase(unittest.TestCase):
@@ -42,7 +45,7 @@ class BondTestCase(unittest.TestCase):
         mock_oauth_adapter.exchange_authz_code = MagicMock(return_value=fake_token_dict)
         mock_oauth_adapter.refresh_access_token = MagicMock(return_value=fake_token_dict)
 
-        fence_api = self._mock_fence_api("")
+        fence_api = self._mock_fence_api(json.dumps({"private_key_id": "asfasdfasdf"}))
         sam_api = self._mock_sam_api(self.user_id, "email")
         self.bond = Bond(mock_oauth_adapter, fence_api, sam_api, FenceTokenVendingMachine(fence_api, sam_api, mock_oauth_adapter))
 
@@ -61,10 +64,31 @@ class BondTestCase(unittest.TestCase):
     def test_generate_access_token_errors_when_missing_token(self):
         self.assertRaises(Bond.MissingTokenError, self.bond.generate_access_token, UserInfo(str(uuid.uuid4()), "", "", 30))
 
+    def test_revoke_link_exists(self):
+        token = str(uuid.uuid4())
+        TokenStore.save(self.user_id, token, datetime.now(), self.name)
+        user_info = UserInfo(str(uuid.uuid4()), "", "", 30)
+        self.bond.fence_tvm.get_service_account_key_json(user_info)
+        self.assertIsNotNone(ndb.Key(FenceServiceAccount, self.user_id).get())
+
+        self.bond.unlink_account(user_info)
+
+        self.assertIsNone(ndb.Key(FenceServiceAccount, self.user_id).get())
+        self.assertIsNone(TokenStore.lookup(self.user_id))
+        self.bond.fence_api.revoke_refresh_token.assert_called_once()
+        self.bond.fence_api.delete_credentials_google.assert_called_once()
+
+    def test_revoke_link_does_not_exists(self):
+        user_info = UserInfo(str(uuid.uuid4()), "", "", 30)
+        self.bond.unlink_account(user_info)
+
+
     @staticmethod
     def _mock_fence_api(service_account_json):
-        fence_api = FenceApi("", "")
+        fence_api = FenceApi("")
         fence_api.get_credentials_google = MagicMock(return_value=service_account_json)
+        fence_api.delete_credentials_google = MagicMock()
+        fence_api.revoke_refresh_token = MagicMock()
         return fence_api
 
     @staticmethod

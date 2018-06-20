@@ -60,8 +60,7 @@ client_id = config.get('fence', 'CLIENT_ID')
 client_secret = config.get('fence', 'CLIENT_SECRET')
 redirect_uri = config.get('fence', 'REDIRECT_URI')
 token_url = config.get('fence', 'TOKEN_URL')
-credentials_google_url = config.get('fence', 'CREDENTIALS_USER_URL')
-revoke_url = config.get('fence', 'REVOKE_URL')
+fence_base_url = config.get('fence', 'FENCE_BASE_URL')
 sam_base_url = config.get('sam', 'BASE_URL')
 
 
@@ -69,7 +68,7 @@ sam_base_url = config.get('sam', 'BASE_URL')
 class BondApi(remote.Service):
     def __init__(self):
         oauth_adapter = OauthAdapter(client_id, client_secret, redirect_uri, token_url)
-        fence_api = FenceApi(credentials_google_url, revoke_url)
+        fence_api = FenceApi(fence_base_url)
         sam_api = SamApi(sam_base_url)
 
         self.auth = authentication.Authentication(authentication.default_config())

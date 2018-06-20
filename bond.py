@@ -54,8 +54,8 @@ class Bond:
         refresh_token = TokenStore.lookup(user_id)
         if refresh_token:
             self.fence_api.revoke_refresh_token(refresh_token.token)
-            TokenStore.delete(user_id)
             self.fence_tvm.remove_service_account(user_id)
+            TokenStore.delete(user_id)
 
     def get_link_info(self, user_info):
         """
