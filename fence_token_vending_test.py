@@ -15,6 +15,7 @@ import string
 import random
 import endpoints
 import time
+from sam_api import SamKeys
 
 
 class FenceTokenVendingMachineTestCase(unittest.TestCase):
@@ -174,7 +175,7 @@ class FenceTokenVendingMachineTestCase(unittest.TestCase):
     @staticmethod
     def _mock_sam_api(subject_id, email):
         sam_api = SamApi("")
-        sam_api.user_info = MagicMock(return_value={"userSubjectId": subject_id, "userEmail": email})
+        sam_api.user_info = MagicMock(return_value={SamKeys.USER_ID_KEY: subject_id, SamKeys.USER_EMAIL_KEY: email})
         return sam_api
 
     @staticmethod

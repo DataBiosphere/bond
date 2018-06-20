@@ -21,3 +21,8 @@ class SamApi:
             return None
         else:
             raise endpoints.InternalServerErrorException("sam status code {}, error body {}".format(result.status_code, result.content))
+
+
+class SamKeys:
+    USER_ID_KEY = "userSubjectId"
+    USER_EMAIL_KEY = "userEmail"
