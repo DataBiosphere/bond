@@ -60,17 +60,20 @@ client_id = config.get('fence', 'CLIENT_ID')
 client_secret = config.get('fence', 'CLIENT_SECRET')
 redirect_uri = config.get('fence', 'REDIRECT_URI')
 token_url = config.get('fence', 'TOKEN_URL')
-credentials_google_url = config.get('fence', 'CREDENTIALS_USER_URL')
+fence_base_url = config.get('fence', 'FENCE_BASE_URL')
 sam_base_url = config.get('sam', 'BASE_URL')
 
 
 @endpoints.api(name='link', version='v1', base_path="/api/")
 class BondApi(remote.Service):
     def __init__(self):
+        oauth_adapter = OauthAdapter(client_id, client_secret, redirect_uri, token_url)
+        fence_api = FenceApi(fence_base_url)
+        sam_api = SamApi(sam_base_url)
+
         self.auth = authentication.Authentication(authentication.default_config())
-        self.oauth_adapter = OauthAdapter(client_id, client_secret, redirect_uri, token_url)
-        self.bond = Bond(self.oauth_adapter)
-        self.fence_tvm = FenceTokenVendingMachine(FenceApi(credentials_google_url), SamApi(sam_base_url), self.oauth_adapter)
+        self.fence_tvm = FenceTokenVendingMachine(fence_api, sam_api, oauth_adapter)
+        self.bond = Bond(oauth_adapter, fence_api, sam_api, self.fence_tvm)
 
     @endpoints.method(
         OAUTH_CODE_RESOURCE,
@@ -80,7 +83,7 @@ class BondApi(remote.Service):
         name='fence/oauthcode')
     def oauthcode(self, request):
         user_info = self.auth.require_user_info(self.request_state)
-        issued_at, username = self.bond.exchange_authz_code(request.oauthcode, user_info.id)
+        issued_at, username = self.bond.exchange_authz_code(request.oauthcode, user_info)
         return LinkInfoResponse(issued_at=issued_at, username=username)
 
     @endpoints.method(
@@ -91,7 +94,11 @@ class BondApi(remote.Service):
         name='fence link info')
     def link_info(self, request):
         user_info = self.auth.require_user_info(self.request_state)
-        return LinkInfoResponse(expires=datetime.now(), username="foo")
+        refresh_token = self.bond.get_link_info(user_info)
+        if refresh_token:
+            return LinkInfoResponse(issued_at=refresh_token.issued_at, username=refresh_token.username)
+        else:
+            raise endpoints.NotFoundException
 
     @endpoints.method(
         message_types.VoidMessage,
@@ -101,6 +108,7 @@ class BondApi(remote.Service):
         name='delete fence link')
     def delete_link(self, request):
         user_info = self.auth.require_user_info(self.request_state)
+        self.bond.unlink_account(user_info)
         return message_types.VoidMessage()
 
     @endpoints.method(
@@ -112,7 +120,7 @@ class BondApi(remote.Service):
     def accesstoken(self, request):
         user_info = self.auth.require_user_info(self.request_state)
         try:
-            access_token, expires_at = self.bond.generate_access_token(user_info.id)
+            access_token, expires_at = self.bond.generate_access_token(user_info)
             return AccessTokenResponse(token=access_token, expires_at=expires_at)
         except Bond.MissingTokenError as err:
             # TODO: I don't like throwing and rethrowing exceptions
