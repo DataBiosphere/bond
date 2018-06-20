@@ -7,10 +7,10 @@ jobs:
   test:
     docker:
       - image: quay.io/databiosphere/bond-tests:latest
-      
+
     environment:
       - PYTHONPATH: /usr/local/google_appengine
-      
+
     steps:
       - checkout
       - run: # install and activate virtual environment with pip
@@ -21,9 +21,32 @@ jobs:
             pip install -t lib/ -r requirements.txt
             pip install nose nosegae nose-exclude
             nosetests --with-gae --gae-lib-root=`gcloud info --format="value(installation.sdk_root)"`/platform/google_appengine --exclude-dir=lib
-          
+
+  tag:
+    docker:
+      - image: alpine/git
+
+    steps:
+      - add_ssh_keys:
+          fingerprints:
+            - "ab:2d:12:de:d1:ac:36:0b:6a:02:92:3f:2c:49:98:c9"
+      - checkout
+      - run:
+          when: on_success
+          command: |
+            echo 'export TAG_NAME=dev_tests_passed_$(date +%s)' >> $BASH_ENV
+            source $BASH_ENV
+            git tag $TAG_NAME
+            git push origin $TAG_NAME
+
 workflows:
   version: 2
-  build:
+  test-and-tag:
     jobs:
       - test
+      - tag:
+          requires:
+            - test
+          filters:
+            branches:
+              only: develop
