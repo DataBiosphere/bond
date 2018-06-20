@@ -29,7 +29,8 @@ groups:
 
   deploy-prod:
     conditions:
-      - "prod..."
+      branches:
+        - "prod..."
     required: 1
     github_reviews:
       enabled: true
