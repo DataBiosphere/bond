@@ -1,0 +1,27 @@
+# enabling version 2 turns github reviews on by default
+version: 2
+group_defaults:
+  approve_by_comment:
+    enabled: true
+    approve_regex: ':\+1:'
+  reset_on_push:
+    enabled: false
+groups:
+#  pullapprove-admins:
+#    conditions:
+#      - ".pullapprove.yml"
+#    required: 1
+#    users:
+#      - superuser
+
+  deploy-staging:
+    conditions:
+      branches:
+        - "staging..."
+    required: 1
+    github_reviews:
+      enabled: true
+    author_approval:
+      ignored: true #might not want to require broadies to need an approval to merge into staging (use-case: emergency hot fix)
+    teams:
+        - broadwrite
