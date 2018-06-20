@@ -168,7 +168,7 @@ class FenceTokenVendingMachineTestCase(unittest.TestCase):
 
     @staticmethod
     def _mock_fence_api(service_account_json):
-        fence_api = FenceApi("")
+        fence_api = FenceApi("", "")
         fence_api.get_credentials_google = MagicMock(return_value=service_account_json)
         return fence_api
 

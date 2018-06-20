@@ -13,6 +13,7 @@ from sam_api import SamApi
 from sam_api import SamKeys
 from fence_api import FenceApi
 from authentication import UserInfo
+from fence_token_vending import FenceTokenVendingMachine
 from mock import MagicMock
 
 
@@ -41,7 +42,9 @@ class BondTestCase(unittest.TestCase):
         mock_oauth_adapter.exchange_authz_code = MagicMock(return_value=fake_token_dict)
         mock_oauth_adapter.refresh_access_token = MagicMock(return_value=fake_token_dict)
 
-        self.bond = Bond(mock_oauth_adapter, self._mock_fence_api(""), self._mock_sam_api(self.user_id, "email"))
+        fence_api = self._mock_fence_api("")
+        sam_api = self._mock_sam_api(self.user_id, "email")
+        self.bond = Bond(mock_oauth_adapter, fence_api, sam_api, FenceTokenVendingMachine(fence_api, sam_api, mock_oauth_adapter))
 
     def test_exchange_authz_code(self):
         issued_at, username = self.bond.exchange_authz_code("irrelevantString", UserInfo(str(uuid.uuid4()), "", "", 30))
@@ -60,7 +63,7 @@ class BondTestCase(unittest.TestCase):
 
     @staticmethod
     def _mock_fence_api(service_account_json):
-        fence_api = FenceApi("")
+        fence_api = FenceApi("", "")
         fence_api.get_credentials_google = MagicMock(return_value=service_account_json)
         return fence_api
 

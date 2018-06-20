@@ -69,12 +69,12 @@ sam_base_url = config.get('sam', 'BASE_URL')
 class BondApi(remote.Service):
     def __init__(self):
         oauth_adapter = OauthAdapter(client_id, client_secret, redirect_uri, token_url)
-        fence_api = FenceApi(credentials_google_url)
+        fence_api = FenceApi(credentials_google_url, revoke_url)
         sam_api = SamApi(sam_base_url)
 
         self.auth = authentication.Authentication(authentication.default_config())
-        self.bond = Bond(self.oauth_adapter, fence_api, sam_api)
         self.fence_tvm = FenceTokenVendingMachine(fence_api, sam_api, oauth_adapter)
+        self.bond = Bond(oauth_adapter, fence_api, sam_api, self.fence_tvm)
 
     @endpoints.method(
         OAUTH_CODE_RESOURCE,

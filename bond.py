@@ -23,7 +23,7 @@ class Bond:
         """
         token_response = self.oauth_adapter.exchange_authz_code(authz_code)
         jwt_token = JwtToken(token_response.get(FenceKeys.ID_TOKEN))
-        user_id = self.sam_api(user_info.token)[SamKeys.USER_ID_KEY]
+        user_id = self.sam_api.user_info(user_info.token)[SamKeys.USER_ID_KEY]
         TokenStore.save(user_id, token_response.get(FenceKeys.REFRESH_TOKEN_KEY), jwt_token.issued_at, jwt_token.username)
         return jwt_token.issued_at, jwt_token.username
 
@@ -35,7 +35,7 @@ class Bond:
         the username for whom the refresh token was issued by the OAuth provider)
         :return: Two values: An Access Token string, datetime when that token expires
         """
-        user_id = self.sam_api(user_info.token)[SamKeys.USER_ID_KEY]
+        user_id = self.sam_api.user_info(user_info.token)[SamKeys.USER_ID_KEY]
         refresh_token = TokenStore.lookup(user_id)
         if refresh_token is not None:
             token_response = self.oauth_adapter.refresh_access_token(refresh_token.token)
@@ -50,7 +50,7 @@ class Bond:
         :param user_info:
         :return:
         """
-        user_id = self.sam_api(user_info.token)[SamKeys.USER_ID_KEY]
+        user_id = self.sam_api.user_info(user_info.token)[SamKeys.USER_ID_KEY]
         refresh_token = TokenStore.lookup(user_id)
         if refresh_token:
             self.fence_api.revoke_refresh_token(refresh_token.token)
@@ -64,11 +64,11 @@ class Bond:
         the username for whom the refresh token was issued by the OAuth provider)
         :return: refresh_token
         """
-        user_id = self.sam_api(user_info.token)[SamKeys.USER_ID_KEY]
+        user_id = self.sam_api.user_info(user_info.token)[SamKeys.USER_ID_KEY]
         return TokenStore.lookup(user_id)
 
 
-class MissingTokenError(Exception):
+    class MissingTokenError(Exception):
         pass
 
 
