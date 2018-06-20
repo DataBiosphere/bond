@@ -8,12 +8,19 @@ from google.appengine.ext import ndb
 from token_store import TokenStore
 import time
 from oauth2client.service_account import ServiceAccountCredentials
+from sam_api import SamKeys
+
 
 class FenceTokenVendingMachine:
     def __init__(self, fence_api, sam_api, fence_oauth_adapter):
         self.fence_api = fence_api
         self.sam_api = sam_api
         self.fence_oauth_adapter = fence_oauth_adapter
+
+    def remove_service_account(self, user_id):
+        fsa_key = ndb.Key(FenceServiceAccount, user_id)
+        fsa_key.delete()
+        memcache.delete(namespace='fence_key', key=user_id)
 
     def get_service_account_access_token(self, user_info, scopes=None):
         """
@@ -45,7 +52,7 @@ class FenceTokenVendingMachine:
         key_json = memcache.get(namespace='fence_key', key=user_info.id)
         if key_json is None:
             real_user_info = self._fetch_real_user_info(user_info)
-            fsa_key = ndb.Key(FenceServiceAccount, real_user_info["userSubjectId"])
+            fsa_key = ndb.Key(FenceServiceAccount, real_user_info[SamKeys.USER_ID_KEY])
             fence_service_account = fsa_key.get()
             now = datetime.datetime.now()
             if fence_service_account is None or \
