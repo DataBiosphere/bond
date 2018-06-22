@@ -12,7 +12,9 @@ from fence_token_vending import FenceTokenVendingMachine
 from fence_api import FenceApi
 from sam_api import SamApi
 from oauth_adapter import OauthAdapter
+from status import Status
 import json
+from status import Subsystems
 
 
 class JsonField(messages.StringField):
@@ -47,6 +49,7 @@ class StatusResponse(messages.Message):
     memcache = messages.MessageField(SubSystemStatusResponse, 2)
     datastore = messages.MessageField(SubSystemStatusResponse, 3)
     fence = messages.MessageField(SubSystemStatusResponse, 4)
+    sam = messages.MessageField(SubSystemStatusResponse, 5)
 
 
 OAUTH_CODE_RESOURCE = endpoints.ResourceContainer(oauthcode=messages.StringField(1, required=True))
@@ -149,6 +152,10 @@ class BondApi(remote.Service):
 
 @endpoints.api(name='status', version='v1', base_path="/api/")
 class BondStatusApi(remote.Service):
+    def __init__(self):
+        fence_api = FenceApi(fence_base_url)
+        sam_api = SamApi(sam_base_url)
+        self.status_service = Status(fence_api, sam_api)
 
     @endpoints.method(
         message_types.VoidMessage,
@@ -157,6 +164,16 @@ class BondStatusApi(remote.Service):
         http_method='GET',
         name='status')
     def status(self, request):
-        return StatusResponse(ok=True, memcache=SubSystemStatusResponse(ok=True), datastore=SubSystemStatusResponse(ok=True), fence=SubSystemStatusResponse(ok=True))
+        subsystems = self.status_service.get()
+        ok = all(subsystem["ok"] for subsystem in subsystems.values())
+        response = StatusResponse(ok=ok,
+                                  memcache=SubSystemStatusResponse(ok=subsystems[Subsystems.memcache]["ok"], message=subsystems[Subsystems.memcache]["message"]),
+                                  datastore=SubSystemStatusResponse(ok=subsystems[Subsystems.datastore]["ok"], message=subsystems[Subsystems.datastore]["message"]),
+                                  fence=SubSystemStatusResponse(ok=subsystems[Subsystems.fence]["ok"], message=subsystems[Subsystems.fence]["message"]),
+                                  sam=SubSystemStatusResponse(ok=subsystems[Subsystems.sam]["ok"], message=subsystems[Subsystems.sam]["message"]))
+        if ok:
+            return response
+        else:
+            raise endpoints.InternalServerErrorException(response)
 
 api = endpoints.api_server([BondApi, BondStatusApi])
