@@ -67,7 +67,6 @@ class Bond:
         user_id = self.sam_api.user_info(user_info.token)[SamKeys.USER_ID_KEY]
         return TokenStore.lookup(user_id)
 
-
     class MissingTokenError(Exception):
         pass
 

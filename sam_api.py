@@ -22,6 +22,20 @@ class SamApi:
         else:
             raise endpoints.InternalServerErrorException("sam status code {}, error body {}".format(result.status_code, result.content))
 
+    def status(self):
+        """
+        Tests the connection to sam
+        :return: 2 values: boolean ok or not, status message if not ok
+        """
+        try:
+            result = urlfetch.fetch(url=self.base_url + "/status")
+            if result.status_code // 100 != 2:
+                return False, "sam status code {}, error body {}".format(result.status_code, result.content)
+            else:
+                return True, ""
+        except Exception as e:
+            return False, e.message
+
 
 class SamKeys:
     USER_ID_KEY = "userSubjectId"
