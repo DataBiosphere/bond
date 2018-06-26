@@ -15,7 +15,6 @@ jobs:
       - checkout
       - run: # install and activate virtual environment with pip
           command: |
-            rm Dockerfile
             python2.7 -m virtualenv virtualenv
             . virtualenv/bin/activate
             pip install -t lib/ -r requirements.txt
