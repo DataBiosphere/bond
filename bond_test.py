@@ -49,6 +49,10 @@ class BondTestCase(unittest.TestCase):
         sam_api = self._mock_sam_api(self.user_id, "email")
         self.bond = Bond(mock_oauth_adapter, fence_api, sam_api, FenceTokenVendingMachine(fence_api, sam_api, mock_oauth_adapter))
 
+    def tearDown(self):
+        ndb.get_context().clear_cache()  # Ensure data is truly flushed from datastore/memcache
+        self.testbed.deactivate()
+
     def test_exchange_authz_code(self):
         issued_at, username = self.bond.exchange_authz_code("irrelevantString", UserInfo(str(uuid.uuid4()), "", "", 30))
         self.assertEqual(self.name, username)

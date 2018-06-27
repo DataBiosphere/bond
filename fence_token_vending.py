@@ -107,6 +107,7 @@ class FenceTokenVendingMachine:
         refresh_token = TokenStore.lookup(user_id)
         if refresh_token is None:
             raise endpoints.BadRequestException("Fence account not linked")
+        # TODO: get("access_token") I think we have a constant we can use instead of magic string?
         access_token = self.fence_oauth_adapter.refresh_access_token(refresh_token.token).get("access_token")
         return access_token
 
@@ -118,6 +119,7 @@ class FenceTokenVendingMachine:
         try:
             self._lock_fence_service_account(fsa_key)
             return True
+        # TODO: Can we be more specific in the exception handling here?  We should at least log the error
         except:
             return False
 
@@ -156,6 +158,7 @@ class FenceTokenVendingMachine:
         if fence_service_account is None:
             fence_service_account = FenceServiceAccount(key=fsa_key, update_lock_timeout=update_lock_timeout)
         elif fence_service_account.update_lock_timeout and fence_service_account.update_lock_timeout > datetime.datetime.now():
+            # TODO: Perhaps we should raise a specific/custom exception here so we can be precise in handling
             raise Exception("already locked")
         else:
             fence_service_account.update_lock_timeout = update_lock_timeout
