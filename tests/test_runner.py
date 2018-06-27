@@ -48,6 +48,12 @@ def main(sdk_path, test_path, test_pattern):
     # Loading appengine_config from the current project ensures that any
     # changes to configuration there are available to all tests (e.g.
     # sys.path modifications, namespaces, etc.)
+    if not os.path.isfile("./appengine_config.py"):
+        print('Please run tests from the application root directory')
+        sys.exit(1)
+
+    sys.path.insert(1, '.')
+
     try:
         import appengine_config
         (appengine_config)
