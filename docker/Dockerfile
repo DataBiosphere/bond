@@ -14,7 +14,7 @@ RUN mkdir /.ssh
 ENV PATH /google-cloud-sdk/bin:$PATH
 VOLUME ["/.config"]
 
-ADD .. app/
+ADD . app/
 WORKDIR app/
 RUN pip install -t lib/ -r requirements.txt
 
