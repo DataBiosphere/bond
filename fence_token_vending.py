@@ -1,10 +1,10 @@
 import json
 import endpoints
-import os
-import logging
 import datetime
 from google.appengine.api import memcache
 from google.appengine.ext import ndb
+
+from bond import FenceKeys
 from token_store import TokenStore
 import time
 from oauth2client.service_account import ServiceAccountCredentials
@@ -107,8 +107,7 @@ class FenceTokenVendingMachine:
         refresh_token = TokenStore.lookup(user_id)
         if refresh_token is None:
             raise endpoints.BadRequestException("Fence account not linked")
-        # TODO: get("access_token") I think we have a constant we can use instead of magic string?
-        access_token = self.fence_oauth_adapter.refresh_access_token(refresh_token.token).get("access_token")
+        access_token = self.fence_oauth_adapter.refresh_access_token(refresh_token.token).get(FenceKeys.ACCESS_TOKEN_KEY)
         return access_token
 
     def _acquire_lock(self, fsa_key):
