@@ -1,3 +1,8 @@
+{{with $environment := env "ENVIRONMENT"}}
+{{with $commonSecrets := vault (printf "secret/dsde/firecloud/common/oauth_client_id")}}
+{{with $googleProject := env "GOOGLE_PROJ"}}
+{{with $serviceVersion := env "SERVICE_VERSION"}}
+
 runtime: python27
 threadsafe: true
 api_version: 1
@@ -28,8 +33,10 @@ libraries:
 env_variables:
   # The following values are to be replaced by information from the output of
   # 'gcloud endpoints services deploy swagger.json' command.
-  ENDPOINTS_SERVICE_NAME: YOUR-PROJECT-ID.appspot.com
-  ENDPOINTS_SERVICE_VERSION: 2016-08-01r0
-  BOND_ACCEPTED_AUDIENCE_PREFIXES: 101001913277133815837 657299777109 933372231138 635957978953 500025638838 652846758833 100192220632335687445 602460048110 56507752110 652421484530 972537320227 115856234180227002025 497833288316 424501080111 823828872292 44976466195 32555940559 806222273987 513406676236 764086051850 101291953224627454160 1020846292598 454950129951 100037868974996586670 116798894341 786075537258 1026207799702
+  ENDPOINTS_SERVICE_NAME: {{$googleProject}}.appspot.com
+  ENDPOINTS_SERVICE_VERSION: 2018-06-28r6
+  BOND_ACCEPTED_AUDIENCE_PREFIXES: {{range $index, $element := $commonSecrets.Data.client_ids}} {{ $element }}{{end}}
   BOND_ACCEPTED_EMAIL_SUFFIXES: .gserviceaccount.com
  # [END env_vars]
+
+{{end}}{{end}}{{end}}{{end}}
