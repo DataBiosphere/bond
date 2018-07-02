@@ -60,19 +60,12 @@ docker run -v $PWD:/app \
   -e ENVIRONMENT=$ENVIRONMENT \
   broadinstitute/dsde-toolbox render-templates.sh
 
-cat output/app.yaml
-
 cp output/app.yaml .
-
-cat output/config.ini
-
 cp output/config.ini .
 
 CONTAINER_ID=`docker create databiosphere/bond:deploy`
 
 docker cp $CONTAINER_ID:/app/lib .
-
-
 
 #deploy the app to the specified project
 gcloud -q app deploy app.yaml --project=$GOOGLE_PROJECT
