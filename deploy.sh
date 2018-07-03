@@ -47,6 +47,8 @@ docker run -v $PWD:/app \
   -e ENVIRONMENT=$ENVIRONMENT \
   broadinstitute/dsde-toolbox render-templates.sh
 
+ls
+
 #deploy the app to the specified project
 docker run -v $PWD/startup.sh:/app/startup.sh \
     -v $PWD/output:/output \
