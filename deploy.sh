@@ -34,7 +34,7 @@ docker run -v $PWD/startup.sh:/app/startup.sh \
 docker run -v $PWD/startup.sh:/app/startup.sh \
     -v $PWD/output:/output \
     -e GOOGLE_PROJECT=$GOOGLE_PROJECT \
-    databiosphere/bond:deploy /bin/bash -c "python lib/endpoints/endpointscfg.py get_openapi_spec main.BondApi --hostname $GOOGLE_PROJECT.appspot.com; cp linkv1openapi.json /output"
+    databiosphere/bond:deploy /bin/bash -c "python lib/endpoints/endpointscfg.py get_openapi_spec main.BondApi --hostname $GOOGLE_PROJECT.appspot.com"
 
 #deploy google endpoints
 docker run -v $PWD/startup.sh:/app/startup.sh \
