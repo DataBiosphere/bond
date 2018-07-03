@@ -28,6 +28,10 @@ class FenceTokenVendingMachineTestCase(unittest.TestCase):
         self.testbed.init_memcache_stub()
         self.testbed.init_datastore_v3_stub()
 
+    def tearDown(self):
+        ndb.get_context().clear_cache()  # Ensure data is truly flushed from datastore/memcache
+        self.testbed.deactivate()
+
     def test_no_service_account(self):
         expected_json = 'fake service account json'
         caller_uid = self._random_subject_id()

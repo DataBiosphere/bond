@@ -4,6 +4,7 @@ from sam_api import SamApi
 from mock import MagicMock
 from status import Status, Subsystems
 from google.appengine.ext import testbed
+from google.appengine.ext import ndb
 
 
 class StatusTestCase(unittest.TestCase):
@@ -15,6 +16,10 @@ class StatusTestCase(unittest.TestCase):
         # Next, declare which service stubs you want to use.
         self.testbed.init_memcache_stub()
         self.testbed.init_datastore_v3_stub()
+
+    def tearDown(self):
+        ndb.get_context().clear_cache()  # Ensure data is truly flushed from datastore/memcache
+        self.testbed.deactivate()
 
     def test_ok_status(self):
         status = Status(self._mock_fence_api(True), self._mock_sam_api(True))

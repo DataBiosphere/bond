@@ -1,10 +1,10 @@
 import json
 import endpoints
-import os
-import logging
 import datetime
 from google.appengine.api import memcache
 from google.appengine.ext import ndb
+
+from bond import FenceKeys
 from token_store import TokenStore
 import time
 from oauth2client.service_account import ServiceAccountCredentials
@@ -107,7 +107,7 @@ class FenceTokenVendingMachine:
         refresh_token = TokenStore.lookup(user_id)
         if refresh_token is None:
             raise endpoints.BadRequestException("Fence account not linked")
-        access_token = self.fence_oauth_adapter.refresh_access_token(refresh_token.token).get("access_token")
+        access_token = self.fence_oauth_adapter.refresh_access_token(refresh_token.token).get(FenceKeys.ACCESS_TOKEN_KEY)
         return access_token
 
     def _acquire_lock(self, fsa_key):
@@ -118,6 +118,7 @@ class FenceTokenVendingMachine:
         try:
             self._lock_fence_service_account(fsa_key)
             return True
+        # TODO: Can we be more specific in the exception handling here?  We should at least log the error
         except:
             return False
 
@@ -156,6 +157,7 @@ class FenceTokenVendingMachine:
         if fence_service_account is None:
             fence_service_account = FenceServiceAccount(key=fsa_key, update_lock_timeout=update_lock_timeout)
         elif fence_service_account.update_lock_timeout and fence_service_account.update_lock_timeout > datetime.datetime.now():
+            # TODO: Perhaps we should raise a specific/custom exception here so we can be precise in handling
             raise Exception("already locked")
         else:
             fence_service_account.update_lock_timeout = update_lock_timeout

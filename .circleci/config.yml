@@ -18,8 +18,7 @@ jobs:
             python2.7 -m virtualenv virtualenv
             . virtualenv/bin/activate
             pip install -t lib/ -r requirements.txt
-            pip install nose nosegae nose-exclude
-            nosetests --with-gae --gae-lib-root=`gcloud info --format="value(installation.sdk_root)"`/platform/google_appengine --exclude-dir=lib
+            python tests/test_runner.py `gcloud info --format="value(installation.sdk_root)"`
 
   tag:
     docker:
