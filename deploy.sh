@@ -26,16 +26,15 @@ docker run --rm -e VAULT_TOKEN=$VAULT_TOKEN broadinstitute/dsde-toolbox vault re
 gcloud auth activate-service-account --key-file=deploy_account.json
 
 # render the .ini
-docker run -v $PWD:/app \
-  -e INPUT_PATH=/app/configs-pre \
-  -e OUT_PATH=/app/output \
-  -e VAULT_TOKEN=$VAULT_TOKEN \
-  -e ENVIRONMENT=$ENVIRONMENT \
-  broadinstitute/dsde-toolbox render-templates.sh
+#docker run -v $PWD:/app \
+#  -e INPUT_PATH=/app/configs-pre \
+#  -e OUT_PATH=/app/output \
+#  -e VAULT_TOKEN=$VAULT_TOKEN \
+#  -e ENVIRONMENT=$ENVIRONMENT \
+#  broadinstitute/dsde-toolbox render-templates.sh
 
 #build the docker image so we can 
-#docker build -f docker/Dockerfile -t databiosphere/bond:deploy .
-echo "uncomment the above line*********************************************"
+docker build -f docker/Dockerfile -t databiosphere/bond:deploy .
 
 #render the endpoints json
 docker run -v $PWD/output/config.ini:/app/config.ini \
@@ -55,7 +54,7 @@ SERVICE_VERSION="dummy"
 docker run -v $PWD:/app \
   -e GOOGLE_PROJ=$GOOGLE_PROJECT \
   -e SERVICE_VERSION=$SERVICE_VERSION \
-  -e INPUT_PATH=/app/configs-post \
+  -e INPUT_PATH=/app \
   -e OUT_PATH=/app/output \
   -e VAULT_TOKEN=$VAULT_TOKEN \
   -e ENVIRONMENT=$ENVIRONMENT \
