@@ -1,5 +1,5 @@
 {{with $environment := env "ENVIRONMENT"}}
-{{with $fenceSecrets := vault (printf "secret/dsde/bond/$ENVIRONMENT/config.ini")}}
+{{with $fenceSecrets := vault (printf "secret/dsde/bond/%s/config.ini" $environment)}}
 
 [fence]
 CLIENT_ID={{ $fenceSecrets.Data.client_id }}
