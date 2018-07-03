@@ -57,7 +57,6 @@ OAUTH_CODE_RESOURCE = endpoints.ResourceContainer(oauthcode=messages.StringField
 SCOPES_RESOURCE = endpoints.ResourceContainer(scopes=messages.StringField(1, repeated=True))
 
 
-#drop these down, and don't need self
 config = ConfigParser.ConfigParser()
 config.read("config.ini")
 
