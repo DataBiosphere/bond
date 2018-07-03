@@ -39,8 +39,9 @@ docker run -v $PWD/startup.sh:/app/startup.sh \
 #deploy google endpoints
 docker run -v $PWD/startup.sh:/app/startup.sh \
     -v $PWD/output:/output \
+    -v $PWD/linkv1openapi.json:/linkv1openapi.json \
     -e GOOGLE_PROJECT=$GOOGLE_PROJECT \
-    databiosphere/bond:deploy /bin/bash -c "gcloud -q endpoints services deploy /app/linkv1openapi.json --project $GOOGLE_PROJECT"
+    databiosphere/bond:deploy /bin/bash -c "gcloud -q endpoints services deploy linkv1openapi.json --project $GOOGLE_PROJECT"
 
 #SERVICE_VERSION in app.yaml needs to match this
 #SERVICE_VERSION=`gcloud endpoints services describe $GOOGLE_PROJECT.appspot.com --format=json --project $GOOGLE_PROJECT | jq .serviceConfig.id` #todo: gcloud returns different response when calling as a service account and google doesn't know why
