@@ -25,16 +25,15 @@ docker run --rm -e VAULT_TOKEN=$VAULT_TOKEN broadinstitute/dsde-toolbox vault re
 #build the docker image so we can deploy
 docker build -f docker/Dockerfile -t databiosphere/bond:deploy .
 
-#activate as a service account that has the App Engine Deployer role
-docker run -v $PWD/startup.sh:/app/startup.sh \
-    -v $PWD/deploy_account.json:/deploy_account.json \
-    databiosphere/bond:deploy /bin/bash -c "gcloud auth activate-service-account --key-file=deploy_account.json"
-
 #render the endpoints json and then deploy it
 docker run -v $PWD/startup.sh:/app/startup.sh \
     -v $PWD/output:/output \
+    -v $PWD/deploy_account.json:/deploy_account.json \
     -e GOOGLE_PROJECT=$GOOGLE_PROJECT \
-    databiosphere/bond:deploy /bin/bash -c "python lib/endpoints/endpointscfg.py get_openapi_spec main.BondApi --hostname $GOOGLE_PROJECT.appspot.com; gcloud -q endpoints services deploy linkv1openapi.json --project $GOOGLE_PROJECT"
+    databiosphere/bond:deploy /bin/bash -c 
+    "gcloud auth activate-service-account --key-file=deploy_account.json;
+    python lib/endpoints/endpointscfg.py get_openapi_spec main.BondApi --hostname $GOOGLE_PROJECT.appspot.com; 
+    gcloud -q endpoints services deploy linkv1openapi.json --project $GOOGLE_PROJECT"
 
 #SERVICE_VERSION in app.yaml needs to match this
 #SERVICE_VERSION=`gcloud endpoints services describe $GOOGLE_PROJECT.appspot.com --format=json --project $GOOGLE_PROJECT | jq .serviceConfig.id` #todo: gcloud returns different response when calling as a service account and google doesn't know why
@@ -53,5 +52,8 @@ docker run -v $PWD:/app \
 #deploy the app to the specified project
 docker run -v $PWD/startup.sh:/app/startup.sh \
     -v $PWD/output:/output \
+    -v $PWD/deploy_account.json:/deploy_account.json \
     -e GOOGLE_PROJECT=$GOOGLE_PROJECT \
-    databiosphere/bond:deploy /bin/bash -c "gcloud -q app deploy app.yaml --project=$GOOGLE_PROJECT"
+    databiosphere/bond:deploy /bin/bash -c 
+    "gcloud auth activate-service-account --key-file=deploy_account.json;
+    gcloud -q app deploy app.yaml --project=$GOOGLE_PROJECT"
