@@ -6,6 +6,7 @@ configure.rb
 env/
 lib/
 linkv1openapi.json
+http-client.private.env.json
 
 # sbt specific
 .sbtopts

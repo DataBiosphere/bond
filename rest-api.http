@@ -1,0 +1,51 @@
+############################################################################################################
+# IntelliJ HTTP Client docs: https://www.jetbrains.com/help/idea/http-client-in-product-code-editor.html
+#
+# APIs for testing Bond
+# 1. Update ./config.ini by providing the CLIENT_ID and CLIENT_SECRET
+# 2. Authorize Bond to to get access to your Fence data by running ./authorize.py and navigating to generated URL
+# 3. In the redirect URL, copy the "code" param from the URL and paste it into the "oauthcode" param value in the
+#    /api/link/v1/fence/oauthcode request below
+# 4. Get an access token for the same same Google Account you authorized with fence.  Open a terminal and run the
+#    following command: `gcloud auth print-access-token`
+# 5. Create the file ./http-client.private.env.json if it does not yet exist.  This file is not checked into source
+#    control, so you will need to create it the first time you use it
+# 6. Copy the access token generated above and paste it into the following JSON in ./http-client.private.env.json:
+#
+#    {
+#      "development": {
+#        "access-token": "PASTE_YOUR_ACCESS_TOKEN_HERE"
+#      }
+#    }
+#
+# 7. If needed, you can update the `bond-host` variable in ./rest-client.env.json.  If testing locally, you do not need
+#    to make any changes to this value
+############################################################################################################
+
+###
+
+GET http://{{bond-host}}/api/status/v1/
+Accept: */*
+Cache-Control: no-cache
+
+###
+# API #1 - you need to run this first before any of the other API's below will work.  You must acquire a valid oauthcode
+# from Fence first
+POST http://{{bond-host}}/api/link/v1/fence/oauthcode?oauthcode=REPLACE_ME
+Accept: */*
+Cache-Control: no-cache
+Authorization: bearer {{access-token}}
+
+###
+
+GET http://{{bond-host}}/api/link/v1/fence/accesstoken
+Accept: */*
+Cache-Control: no-cache
+Authorization: bearer {{access-token}}
+
+###
+
+GET http://{{bond-host}}/api/link/v1/fence/serviceaccount/key
+Accept: */*
+Cache-Control: no-cache
+Authorization: bearer {{access-token}}
