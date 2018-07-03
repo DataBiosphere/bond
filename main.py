@@ -56,6 +56,8 @@ OAUTH_CODE_RESOURCE = endpoints.ResourceContainer(oauthcode=messages.StringField
 
 SCOPES_RESOURCE = endpoints.ResourceContainer(scopes=messages.StringField(1, repeated=True))
 
+
+#drop these down, and don't need self
 config = ConfigParser.ConfigParser()
 config.read("config.ini")
 
@@ -152,8 +154,11 @@ class BondApi(remote.Service):
 @endpoints.api(name='status', version='v1', base_path="/api/")
 class BondStatusApi(remote.Service):
     def __init__(self):
-        fence_api = FenceApi(fence_base_url)
-        sam_api = SamApi(sam_base_url)
+        self.fence_base_url = config.get('fence', 'FENCE_BASE_URL')
+        self.sam_base_url = config.get('sam', 'BASE_URL')
+
+        fence_api = FenceApi(self.fence_base_url)
+        sam_api = SamApi(self.sam_base_url)
         self.status_service = Status(fence_api, sam_api)
 
     @endpoints.method(
