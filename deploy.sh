@@ -28,7 +28,7 @@ gcloud auth activate-service-account --key-file=deploy_account.json
 # render the .ini
 docker run -v $PWD:/app \
   -e INPUT_PATH=/app/configs-pre \
-  -e OUT_PATH=/app/ \
+  -e OUT_PATH=/app/output \
   -e VAULT_TOKEN=$VAULT_TOKEN \
   -e ENVIRONMENT=$ENVIRONMENT \
   broadinstitute/dsde-toolbox render-templates.sh
@@ -55,10 +55,13 @@ docker run -v $PWD:/app \
   -e GOOGLE_PROJ=$GOOGLE_PROJECT \
   -e SERVICE_VERSION=$SERVICE_VERSION \
   -e INPUT_PATH=/app/configs-post \
-  -e OUT_PATH=/app/ \
+  -e OUT_PATH=/app/output \
   -e VAULT_TOKEN=$VAULT_TOKEN \
   -e ENVIRONMENT=$ENVIRONMENT \
   broadinstitute/dsde-toolbox render-templates.sh
+
+#copy out the rendered configs
+cp -r output/. .
 
 #start the container
 CONTAINER_ID=`docker create databiosphere/bond:deploy`
