@@ -56,23 +56,22 @@ OAUTH_CODE_RESOURCE = endpoints.ResourceContainer(oauthcode=messages.StringField
 
 SCOPES_RESOURCE = endpoints.ResourceContainer(scopes=messages.StringField(1, repeated=True))
 
-
 config = ConfigParser.ConfigParser()
 config.read("config.ini")
 
 @endpoints.api(name='link', version='v1', base_path="/api/")
 class BondApi(remote.Service):
     def __init__(self):
-        self.client_id = config.get('fence', 'CLIENT_ID')
-        self.client_secret = config.get('fence', 'CLIENT_SECRET')
-        self.redirect_uri = config.get('fence', 'REDIRECT_URI')
-        self.token_url = config.get('fence', 'TOKEN_URL')
-        self.fence_base_url = config.get('fence', 'FENCE_BASE_URL')
-        self.sam_base_url = config.get('sam', 'BASE_URL')
+        client_id = config.get('fence', 'CLIENT_ID')
+        client_secret = config.get('fence', 'CLIENT_SECRET')
+        redirect_uri = config.get('fence', 'REDIRECT_URI')
+        token_url = config.get('fence', 'TOKEN_URL')
+        fence_base_url = config.get('fence', 'FENCE_BASE_URL')
+        sam_base_url = config.get('sam', 'BASE_URL')
 
-        oauth_adapter = OauthAdapter(self.client_id, self.client_secret, self.redirect_uri, self.token_url)
-        fence_api = FenceApi(self.fence_base_url)
-        sam_api = SamApi(self.sam_base_url)
+        oauth_adapter = OauthAdapter(client_id, client_secret, redirect_uri, token_url)
+        fence_api = FenceApi(fence_base_url)
+        sam_api = SamApi(sam_base_url)
 
         self.auth = authentication.Authentication(authentication.default_config())
         self.fence_tvm = FenceTokenVendingMachine(fence_api, sam_api, oauth_adapter)
@@ -153,11 +152,11 @@ class BondApi(remote.Service):
 @endpoints.api(name='status', version='v1', base_path="/api/")
 class BondStatusApi(remote.Service):
     def __init__(self):
-        self.fence_base_url = config.get('fence', 'FENCE_BASE_URL')
-        self.sam_base_url = config.get('sam', 'BASE_URL')
+        fence_base_url = config.get('fence', 'FENCE_BASE_URL')
+        sam_base_url = config.get('sam', 'BASE_URL')
 
-        fence_api = FenceApi(self.fence_base_url)
-        sam_api = SamApi(self.sam_base_url)
+        fence_api = FenceApi(fence_base_url)
+        sam_api = SamApi(sam_base_url)
         self.status_service = Status(fence_api, sam_api)
 
     @endpoints.method(
