@@ -25,14 +25,6 @@ docker run --rm -e VAULT_TOKEN=$VAULT_TOKEN broadinstitute/dsde-toolbox vault re
 #activate as a service account that has the App Engine Deployer role
 gcloud auth activate-service-account --key-file=deploy_account.json
 
-# render the .ini
-#docker run -v $PWD:/app \
-#  -e INPUT_PATH=/app/configs-pre \
-#  -e OUT_PATH=/app/output \
-#  -e VAULT_TOKEN=$VAULT_TOKEN \
-#  -e ENVIRONMENT=$ENVIRONMENT \
-#  broadinstitute/dsde-toolbox render-templates.sh
-
 #build the docker image so we can 
 docker build -f docker/Dockerfile -t databiosphere/bond:deploy .
 
