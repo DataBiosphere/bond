@@ -29,8 +29,7 @@ gcloud auth activate-service-account --key-file=deploy_account.json
 docker build -f docker/Dockerfile -t databiosphere/bond:deploy .
 
 #render the endpoints json
-docker run -v $PWD/configs-test/config.ini:/app/config.ini \
-    -v $PWD/startup.sh:/app/startup.sh \
+docker run -v $PWD/startup.sh:/app/startup.sh \
     -v $PWD/output:/output \
     -e GOOGLE_PROJECT=$GOOGLE_PROJECT \
     databiosphere/bond:deploy /bin/bash -c "python lib/endpoints/endpointscfg.py get_openapi_spec main.BondApi --hostname $GOOGLE_PROJECT.appspot.com; cp linkv1openapi.json /output"
