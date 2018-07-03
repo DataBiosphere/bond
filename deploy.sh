@@ -34,7 +34,8 @@ docker run -v $PWD:/app \
   broadinstitute/dsde-toolbox render-templates.sh
 
 #build the docker image so we can 
-docker build -f docker/Dockerfile -t databiosphere/bond:deploy .
+#docker build -f docker/Dockerfile -t databiosphere/bond:deploy .
+echo "uncomment the above line*********************************************"
 
 #render the endpoints json
 docker run -v $PWD/output/config.ini:/app/config.ini \
