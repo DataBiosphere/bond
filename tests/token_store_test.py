@@ -41,8 +41,6 @@ class TokenStoreTestCase(unittest.TestCase):
         self.assertEqual(self.issued_at, saved_token.issued_at)
         self.assertEqual(self.username, saved_token.username)
 
-        self.assertTrue(False)
-
     def test_lookup(self):
         RefreshToken(id=self.user_id, token=self.token_str, issued_at=self.issued_at, username=self.username).put()
         persisted_token = TokenStore.lookup(self.user_id)
