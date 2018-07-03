@@ -34,7 +34,7 @@ env_variables:
   # The following values are to be replaced by information from the output of
   # 'gcloud endpoints services deploy swagger.json' command.
   ENDPOINTS_SERVICE_NAME: {{$googleProject}}.appspot.com
-  ENDPOINTS_SERVICE_VERSION: 2018-06-28r6
+  ENDPOINTS_SERVICE_VERSION: {{$serviceVersion}}
   BOND_ACCEPTED_AUDIENCE_PREFIXES: {{range $index, $element := $commonSecrets.Data.client_ids}} {{ $element }}{{end}}
   BOND_ACCEPTED_EMAIL_SUFFIXES: .gserviceaccount.com
  # [END env_vars]

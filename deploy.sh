@@ -39,7 +39,7 @@ gcloud -q endpoints services deploy output/linkv1openapi.json --project $GOOGLE_
 
 #SERVICE_VERSION in app.yaml needs to match this
 #SERVICE_VERSION=`gcloud endpoints services describe $GOOGLE_PROJECT.appspot.com --format=json --project $GOOGLE_PROJECT | jq .serviceConfig.id` #todo: gcloud returns different response when calling as a service account and google doesn't know why
-SERVICE_VERSION="dummy"
+SERVICE_VERSION=`date +%Y-%m-%d`r0
 
 #render app.yaml for environment with SERVICE_VERSION and GOOGLE_PROJECT
 docker run -v $PWD:/app \
