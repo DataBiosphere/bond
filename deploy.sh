@@ -50,6 +50,7 @@ docker run -v $PWD:/app \
 #deploy the app to the specified project
 docker run -v $PWD/startup.sh:/app/startup.sh \
     -v $PWD/app.yaml:/app/app.yaml \
+    -v $PWD/config.ini:/app/config.ini \
     -v $PWD/deploy_account.json:/deploy_account.json \
     -e GOOGLE_PROJECT=$GOOGLE_PROJECT \
     databiosphere/bond:deploy /bin/bash -c \
