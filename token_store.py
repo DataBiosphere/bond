@@ -25,3 +25,7 @@ class TokenStore:
         :return: A RefreshToken entity
         """
         return ndb.Key(RefreshToken.kind_name(), user_id).get()
+
+    @staticmethod
+    def delete(user_id):
+        ndb.Key(RefreshToken.kind_name(), user_id).delete()

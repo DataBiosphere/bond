@@ -15,6 +15,7 @@ import string
 import random
 import endpoints
 import time
+from sam_api import SamKeys
 
 
 class FenceTokenVendingMachineTestCase(unittest.TestCase):
@@ -26,6 +27,10 @@ class FenceTokenVendingMachineTestCase(unittest.TestCase):
         # Next, declare which service stubs you want to use.
         self.testbed.init_memcache_stub()
         self.testbed.init_datastore_v3_stub()
+
+    def tearDown(self):
+        ndb.get_context().clear_cache()  # Ensure data is truly flushed from datastore/memcache
+        self.testbed.deactivate()
 
     def test_no_service_account(self):
         expected_json = 'fake service account json'
@@ -174,7 +179,7 @@ class FenceTokenVendingMachineTestCase(unittest.TestCase):
     @staticmethod
     def _mock_sam_api(subject_id, email):
         sam_api = SamApi("")
-        sam_api.user_info = MagicMock(return_value={"userSubjectId": subject_id, "userEmail": email})
+        sam_api.user_info = MagicMock(return_value={SamKeys.USER_ID_KEY: subject_id, SamKeys.USER_EMAIL_KEY: email})
         return sam_api
 
     @staticmethod

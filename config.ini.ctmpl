@@ -1,0 +1,15 @@
+{{with $environment := env "ENVIRONMENT"}}
+{{with $fenceSecrets := vault (printf "secret/dsde/bond/%s/config.ini" $environment)}}
+
+[fence]
+CLIENT_ID={{ $fenceSecrets.Data.client_id }}
+CLIENT_SECRET={{ $fenceSecrets.Data.client_secret }}
+AUTHZ_URI={{if eq $environment "prod"}}https://qa.dcf.planx-pla.net/user/oauth2/authorize{{else}}https://qa.dcf.planx-pla.net/user/oauth2/authorize{{end}}
+REDIRECT_URI={{if eq $environment "prod"}}https://local.broadinstitute.org/fence-callback{{else}}https://local.broadinstitute.org/fence-callback{{end}}
+TOKEN_URL={{if eq $environment "prod"}}https://qa.dcf.planx-pla.net/user/oauth2/token{{else}}https://qa.dcf.planx-pla.net/user/oauth2/token{{end}}
+FENCE_BASE_URL={{if eq $environment "prod"}}https://qa.dcf.planx-pla.net{{else}}https://qa.dcf.planx-pla.net{{end}}
+
+[sam]
+BASE_URL=https://sam.dsde-{{$environment}}.broadinstitute.org
+
+{{end}}{{end}}

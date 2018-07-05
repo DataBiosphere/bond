@@ -28,6 +28,7 @@ class TokenStoreTestCase(unittest.TestCase):
         self.key = ndb.Key(RefreshToken.kind_name(), self.user_id)
 
     def tearDown(self):
+        ndb.get_context().clear_cache()  # Ensure data is truly flushed from datastore/memcache
         self.testbed.deactivate()
 
     def test_save(self):
