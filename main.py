@@ -59,17 +59,16 @@ SCOPES_RESOURCE = endpoints.ResourceContainer(scopes=messages.StringField(1, rep
 config = ConfigParser.ConfigParser()
 config.read("config.ini")
 
-client_id = config.get('fence', 'CLIENT_ID')
-client_secret = config.get('fence', 'CLIENT_SECRET')
-redirect_uri = config.get('fence', 'REDIRECT_URI')
-token_url = config.get('fence', 'TOKEN_URL')
-fence_base_url = config.get('fence', 'FENCE_BASE_URL')
-sam_base_url = config.get('sam', 'BASE_URL')
-
-
 @endpoints.api(name='link', version='v1', base_path="/api/")
 class BondApi(remote.Service):
     def __init__(self):
+        client_id = config.get('fence', 'CLIENT_ID')
+        client_secret = config.get('fence', 'CLIENT_SECRET')
+        redirect_uri = config.get('fence', 'REDIRECT_URI')
+        token_url = config.get('fence', 'TOKEN_URL')
+        fence_base_url = config.get('fence', 'FENCE_BASE_URL')
+        sam_base_url = config.get('sam', 'BASE_URL')
+
         oauth_adapter = OauthAdapter(client_id, client_secret, redirect_uri, token_url)
         fence_api = FenceApi(fence_base_url)
         sam_api = SamApi(sam_base_url)
@@ -153,6 +152,9 @@ class BondApi(remote.Service):
 @endpoints.api(name='status', version='v1', base_path="/api/")
 class BondStatusApi(remote.Service):
     def __init__(self):
+        fence_base_url = config.get('fence', 'FENCE_BASE_URL')
+        sam_base_url = config.get('sam', 'BASE_URL')
+
         fence_api = FenceApi(fence_base_url)
         sam_api = SamApi(sam_base_url)
         self.status_service = Status(fence_api, sam_api)
