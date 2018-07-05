@@ -1,0 +1,40 @@
+version: 2
+
+group_defaults:
+  approve_by_comment:
+    enabled: true
+    approve_regex: ':\+1:'
+  reset_on_push:
+    enabled: false
+
+groups:
+  pullapprove-admins:
+    conditions:
+      - ".pullapprove.yml"
+    required: 1
+    teams:
+      - broadwrite
+
+  deploy-staging:
+    conditions:
+      branches:
+        - "staging..."
+    required: 1
+    github_reviews:
+      enabled: true
+    author_approval:
+      ignored: true #might not want to require broadies to need an approval to merge into staging (use-case: emergency hot fix)
+    teams:
+      - broadwrite
+
+  deploy-prod:
+    conditions:
+      branches:
+        - "master..."
+    required: 1
+    github_reviews:
+      enabled: true
+    author_approval:
+      ignored: true #see above
+    teams:
+      - broadwrite #should be broadsuitable or something else but for now this will suffice...
