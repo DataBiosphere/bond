@@ -24,28 +24,28 @@
 
 ###
 
-GET http://{{bond-host}}/api/status/v1/
+GET {{bond-protocol-host}}/api/status/v1/
 Accept: */*
 Cache-Control: no-cache
 
 ###
 # API #1 - you need to run this first before any of the other API's below will work.  You must acquire a valid oauthcode
 # from Fence first
-POST http://{{bond-host}}/api/link/v1/fence/oauthcode?oauthcode=REPLACE_ME
+POST {{bond-protocol-host}}/api/link/v1/fence/oauthcode?oauthcode=lNPej7NVcbViRFtA3BxY10mEHPxp8aLFFGVxQEII9yuj9ROLjk
 Accept: */*
 Cache-Control: no-cache
 Authorization: bearer {{access-token}}
 
 ###
 
-GET http://{{bond-host}}/api/link/v1/fence/accesstoken
+GET {{bond-protocol-host}}/api/link/v1/fence/accesstoken
 Accept: */*
 Cache-Control: no-cache
 Authorization: bearer {{access-token}}
 
 ###
 
-GET http://{{bond-host}}/api/link/v1/fence/serviceaccount/key
+GET {{bond-protocol-host}}/api/link/v1/fence/serviceaccount/key
 Accept: */*
 Cache-Control: no-cache
 Authorization: bearer {{access-token}}
