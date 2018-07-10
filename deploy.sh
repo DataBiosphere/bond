@@ -8,6 +8,8 @@ GIT_BRANCH=$2
 #need to get the environment from the branch name
 if [ "$GIT_BRANCH" == "develop" ]; then
 	ENVIRONMENT="dev"
+elif [ "$GIT_BRANCH" == "alpha" ]; then
+        ENVIRONMENT="alpha"
 elif [ "$GIT_BRANCH" == "staging" ]; then
 	ENVIRONMENT="staging"
 elif [ "$GIT_BRANCH" == "master" ]; then
