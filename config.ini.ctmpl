@@ -5,7 +5,7 @@
 CLIENT_ID={{ $fenceSecrets.Data.client_id }}
 CLIENT_SECRET={{ $fenceSecrets.Data.client_secret }}
 AUTHZ_URI={{if eq $environment "prod"}}https://dcp.bionimbus.org/user/oauth2/authorize{{else}}https://dcp.bionimbus.org/user/oauth2/authorize{{end}}
-REDIRECT_URI={{if eq $environment "prod"}}https://portal.firecloud.org/#fence-callback{{else if eq $environment "alpha"}}https://firecloud.dsde-alpha.broadinstitute.org/#fence-callback{{else if eq $environment "staging"}}https://firecloud.dsde-staging.broadinstitute.org/#fence-callback{{else if eq $environment "dev"}}https://firecloud.dsde-dev.broadinstitute.org/#fence-callback{{else}}https://local.broadinstitute.org/#fence-callback{{end}}
+REDIRECT_URI={{if eq $environment "prod"}}https://portal.firecloud.org/#fence-callback{{else if eq $environment "alpha"}}https://firecloud.dsde-alpha.broadinstitute.org/#fence-callback{{else if eq $environment "staging"}}https://firecloud.dsde-staging.broadinstitute.org/#fence-callback{{else if eq $environment "dev"}}https://firecloud.dsde-dev.broadinstitute.org/#fence-callback{{else}}http://local.broadinstitute.org/#fence-callback{{end}}
 TOKEN_URL={{if eq $environment "prod"}}https://dcp.bionimbus.org/user/oauth2/token{{else}}https://dcp.bionimbus.org/user/oauth2/token{{end}}
 FENCE_BASE_URL={{if eq $environment "prod"}}https://dcp.bionimbus.org{{else}}https://dcp.bionimbus.org{{end}}
 
