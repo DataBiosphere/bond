@@ -52,7 +52,8 @@ class StatusResponse(messages.Message):
     sam = messages.MessageField(SubSystemStatusResponse, 5)
 
 
-OAUTH_CODE_RESOURCE = endpoints.ResourceContainer(oauthcode=messages.StringField(1, required=True))
+OAUTH_CODE_RESOURCE = endpoints.ResourceContainer(oauthcode=messages.StringField(1, required=True),
+                                                  redirect_url=messages.StringField(2, required=False))
 
 SCOPES_RESOURCE = endpoints.ResourceContainer(scopes=messages.StringField(1, repeated=True))
 
@@ -85,7 +86,7 @@ class BondApi(remote.Service):
         name='fence/oauthcode')
     def oauthcode(self, request):
         user_info = self.auth.require_user_info(self.request_state)
-        issued_at, username = self.bond.exchange_authz_code(request.oauthcode, user_info)
+        issued_at, username = self.bond.exchange_authz_code(request.oauthcode, request.redirect_url, user_info)
         return LinkInfoResponse(issued_at=issued_at, username=username)
 
     @endpoints.method(

@@ -54,7 +54,7 @@ class BondTestCase(unittest.TestCase):
         self.testbed.deactivate()
 
     def test_exchange_authz_code(self):
-        issued_at, username = self.bond.exchange_authz_code("irrelevantString", UserInfo(str(uuid.uuid4()), "", "", 30))
+        issued_at, username = self.bond.exchange_authz_code("irrelevantString", "redirect", UserInfo(str(uuid.uuid4()), "", "", 30))
         self.assertEqual(self.name, username)
         self.assertEqual(datetime.fromtimestamp(self.issued_at_epoch), issued_at)
 
