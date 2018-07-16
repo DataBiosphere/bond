@@ -12,13 +12,14 @@ from sam_api import SamKeys
 
 
 class FenceTokenVendingMachine:
-    def __init__(self, fence_api, sam_api, fence_oauth_adapter):
+    def __init__(self, fence_api, sam_api, fence_oauth_adapter, provider_name):
         self.fence_api = fence_api
         self.sam_api = sam_api
         self.fence_oauth_adapter = fence_oauth_adapter
+        self.provider_name = provider_name
 
     def remove_service_account(self, user_id):
-        fsa_key = ndb.Key(FenceServiceAccount, user_id)
+        fsa_key = self._fence_service_account_key(user_id)
         fence_service_account = fsa_key.get()
         if fence_service_account:
             access_token = self._get_oauth_access_token(user_id)
@@ -27,10 +28,14 @@ class FenceTokenVendingMachine:
             self.fence_api.delete_credentials_google(access_token, key_id)
             fsa_key.delete()
 
+    def _fence_service_account_key(self, user_id):
+        return ndb.Key("User", user_id, FenceServiceAccount, self.provider_name)
+
     def get_service_account_access_token(self, user_info, scopes=None):
         """
         Get a service account access token to access objects protected by fence
 
+        :param fence_instance:
         :param user_info:
         :param scopes: scopes to request token, defaults to ["email", "profile"]
         :return: access token for service account
@@ -54,10 +59,10 @@ class FenceTokenVendingMachine:
         :param user_info:
         :return: fence service account key_json
         """
-        key_json = memcache.get(namespace='fence_key', key=user_info.id)
+        key_json = memcache.get(namespace=self.provider_name, key=user_info.id)
         if key_json is None:
             real_user_info = self._fetch_real_user_info(user_info)
-            fsa_key = ndb.Key(FenceServiceAccount, real_user_info[SamKeys.USER_ID_KEY])
+            fsa_key = self._fence_service_account_key(real_user_info[SamKeys.USER_ID_KEY])
             fence_service_account = fsa_key.get()
             now = datetime.datetime.now()
             if fence_service_account is None or \
@@ -67,7 +72,7 @@ class FenceTokenVendingMachine:
 
             key_json = fence_service_account.key_json
             seconds_to_expire = (fence_service_account.expires_at - now).total_seconds()
-            memcache.add(namespace='fence_key', key=user_info.id, value=key_json, time=seconds_to_expire)
+            memcache.add(namespace=self.provider_name, key=user_info.id, value=key_json, time=seconds_to_expire)
         return key_json
 
     def _fetch_real_user_info(self, user_info):
@@ -104,7 +109,7 @@ class FenceTokenVendingMachine:
         return fence_service_account
 
     def _get_oauth_access_token(self, user_id):
-        refresh_token = TokenStore.lookup(user_id)
+        refresh_token = TokenStore.lookup(user_id, self.provider_name)
         if refresh_token is None:
             raise endpoints.BadRequestException("Fence account not linked")
         access_token = self.fence_oauth_adapter.refresh_access_token(refresh_token.token).get(FenceKeys.ACCESS_TOKEN_KEY)

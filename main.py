@@ -21,6 +21,10 @@ class JsonField(messages.StringField):
     type = dict
 
 
+class ListProvidersResponse(messages.Message):
+    providers = messages.StringField(1, repeated=True)
+
+
 class LinkInfoResponse(messages.Message):
     issued_at = message_types.DateTimeField(1)
     username = messages.StringField(2)
@@ -42,123 +46,153 @@ class ServiceAccountAccessTokenResponse(messages.Message):
 class SubSystemStatusResponse(messages.Message):
     ok = messages.BooleanField(1)
     message = messages.StringField(2)
+    subsystem = messages.StringField(3)
 
 
 class StatusResponse(messages.Message):
     ok = messages.BooleanField(1)
-    memcache = messages.MessageField(SubSystemStatusResponse, 2)
-    datastore = messages.MessageField(SubSystemStatusResponse, 3)
-    fence = messages.MessageField(SubSystemStatusResponse, 4)
-    sam = messages.MessageField(SubSystemStatusResponse, 5)
+    subsystems = messages.MessageField(SubSystemStatusResponse, 2, repeated=True)
 
 
-OAUTH_CODE_RESOURCE = endpoints.ResourceContainer(oauthcode=messages.StringField(1, required=True),
-                                                  redirect_uri=messages.StringField(2, required=False))
+OAUTH_CODE_RESOURCE = endpoints.ResourceContainer(provider=messages.StringField(1),
+                                                  oauthcode=messages.StringField(2, required=True),
+                                                  redirect_uri=messages.StringField(3, required=False))
 
-SCOPES_RESOURCE = endpoints.ResourceContainer(scopes=messages.StringField(1, repeated=True))
+SCOPES_RESOURCE = endpoints.ResourceContainer(provider=messages.StringField(1), scopes=messages.StringField(2, repeated=True))
+
+PROVIDER_RESOURCE = endpoints.ResourceContainer(provider=messages.StringField(1))
 
 config = ConfigParser.ConfigParser()
 config.read("config.ini")
 
+
+class BondProvider:
+    def __init__(self, fence_tvm, bond):
+        self.fence_tvm = fence_tvm
+        self.bond = bond
+
+
 @endpoints.api(name='link', version='v1', base_path="/api/")
 class BondApi(remote.Service):
     def __init__(self):
-        client_id = config.get('fence', 'CLIENT_ID')
-        client_secret = config.get('fence', 'CLIENT_SECRET')
-        redirect_uri = config.get('fence', 'REDIRECT_URI')
-        token_url = config.get('fence', 'TOKEN_URL')
-        fence_base_url = config.get('fence', 'FENCE_BASE_URL')
-        sam_base_url = config.get('sam', 'BASE_URL')
+        def create_provider(provider_name):
+            client_id = config.get(provider_name, 'CLIENT_ID')
+            client_secret = config.get(provider_name, 'CLIENT_SECRET')
+            redirect_uri = config.get(provider_name, 'REDIRECT_URI')
+            token_url = config.get(provider_name, 'TOKEN_URL')
+            fence_base_url = config.get(provider_name, 'FENCE_BASE_URL')
+    
+            sam_base_url = config.get('sam', 'BASE_URL')
+    
+            oauth_adapter = OauthAdapter(client_id, client_secret, redirect_uri, token_url)
+            fence_api = FenceApi(fence_base_url)
+            sam_api = SamApi(sam_base_url)
 
-        oauth_adapter = OauthAdapter(client_id, client_secret, redirect_uri, token_url)
-        fence_api = FenceApi(fence_base_url)
-        sam_api = SamApi(sam_base_url)
+            fence_tvm = FenceTokenVendingMachine(fence_api, sam_api, oauth_adapter, provider_name)
+            return BondProvider(fence_tvm, Bond(oauth_adapter, fence_api, sam_api, fence_tvm, provider_name))
 
+        self.providers = {provider_name: create_provider(provider_name) 
+                          for provider_name in config.sections() if provider_name != 'sam'}
         self.auth = authentication.Authentication(authentication.default_config())
-        self.fence_tvm = FenceTokenVendingMachine(fence_api, sam_api, oauth_adapter)
-        self.bond = Bond(oauth_adapter, fence_api, sam_api, self.fence_tvm)
+
+    def _get_provider(self, provider_name):
+        if provider_name in self.providers:
+            return self.providers[provider_name]
+        else:
+            raise endpoints.NotFoundException(provider_name + " not found")
+
+    @endpoints.method(
+        PROVIDER_RESOURCE,
+        ListProvidersResponse,
+        path='/',
+        http_method='GET',
+        name='listProviders')
+    def providers(self, request):
+        return ListProvidersResponse(providers=self.providers.keys())
 
     @endpoints.method(
         OAUTH_CODE_RESOURCE,
         LinkInfoResponse,
-        path='fence/oauthcode',
+        path='{provider}/oauthcode',
         http_method='POST',
-        name='fence/oauthcode')
+        name='oauthcode')
     def oauthcode(self, request):
         user_info = self.auth.require_user_info(self.request_state)
-        issued_at, username = self.bond.exchange_authz_code(request.oauthcode, request.redirect_uri, user_info)
+        issued_at, username = self._get_provider(request.provider).bond.exchange_authz_code(request.oauthcode, request.redirect_uri, user_info)
         return LinkInfoResponse(issued_at=issued_at, username=username)
 
     @endpoints.method(
-        message_types.VoidMessage,
+        PROVIDER_RESOURCE,
         LinkInfoResponse,
-        path='fence',
+        path='{provider}',
         http_method='GET',
-        name='fence link info')
+        name='getLinkInfo')
     def link_info(self, request):
         user_info = self.auth.require_user_info(self.request_state)
-        refresh_token = self.bond.get_link_info(user_info)
+        refresh_token = self._get_provider(request.provider).bond.get_link_info(user_info)
         if refresh_token:
             return LinkInfoResponse(issued_at=refresh_token.issued_at, username=refresh_token.username)
         else:
             raise endpoints.NotFoundException
 
     @endpoints.method(
+        PROVIDER_RESOURCE,
         message_types.VoidMessage,
-        message_types.VoidMessage,
-        path='fence',
+        path='{provider}',
         http_method='DELETE',
-        name='delete fence link')
+        name='revokeLink')
     def delete_link(self, request):
         user_info = self.auth.require_user_info(self.request_state)
-        self.bond.unlink_account(user_info)
+        self._get_provider(request.provider).bond.unlink_account(user_info)
         return message_types.VoidMessage()
 
     @endpoints.method(
-        message_types.VoidMessage,
+        PROVIDER_RESOURCE,
         AccessTokenResponse,
-        path='fence/accesstoken',
+        path='{provider}/accesstoken',
         http_method='GET',
-        name='get fence accesstoken')
+        name='getAccessToken')
     def accesstoken(self, request):
         user_info = self.auth.require_user_info(self.request_state)
         try:
-            access_token, expires_at = self.bond.generate_access_token(user_info)
+            access_token, expires_at = self._get_provider(request.provider).bond.generate_access_token(user_info)
             return AccessTokenResponse(token=access_token, expires_at=expires_at)
         except Bond.MissingTokenError as err:
             # TODO: I don't like throwing and rethrowing exceptions
             raise endpoints.BadRequestException(err.message)
 
     @endpoints.method(
-        message_types.VoidMessage,
+        PROVIDER_RESOURCE,
         ServiceAccountKeyResponse,
-        path='fence/serviceaccount/key',
+        path='{provider}/serviceaccount/key',
         http_method='GET',
-        name='get fence service account key')
+        name='getServiceAccountKey')
     def service_account_key(self, request):
         user_info = self.auth.require_user_info(self.request_state)
-        return ServiceAccountKeyResponse(data=json.loads(self.fence_tvm.get_service_account_key_json(user_info)))
+        return ServiceAccountKeyResponse(data=json.loads(
+            self._get_provider(request.provider).fence_tvm.get_service_account_key_json(user_info)))
 
     @endpoints.method(
         SCOPES_RESOURCE,
         ServiceAccountAccessTokenResponse,
-        path='fence/serviceaccount/accesstoken',
+        path='{provider}/serviceaccount/accesstoken',
         http_method='GET',
-        name='get fence service account access token')
+        name='getServiceAccountAccessToken')
     def service_account_accesstoken(self, request):
         user_info = self.auth.require_user_info(self.request_state)
-        return ServiceAccountAccessTokenResponse(token=self.fence_tvm.get_service_account_access_token(user_info, request.scopes))
+        return ServiceAccountAccessTokenResponse(token=self._get_provider(request.provider).fence_tvm.get_service_account_access_token(user_info, request.scopes))
 
 
 @endpoints.api(name='status', version='v1', base_path="/api/")
 class BondStatusApi(remote.Service):
     def __init__(self):
-        fence_base_url = config.get('fence', 'FENCE_BASE_URL')
         sam_base_url = config.get('sam', 'BASE_URL')
 
-        fence_api = FenceApi(fence_base_url)
+        providers = {provider_name: FenceApi(config.get(provider_name, 'FENCE_BASE_URL'))
+                     for provider_name in config.sections() if provider_name != 'sam'}
+
         sam_api = SamApi(sam_base_url)
-        self.status_service = Status(fence_api, sam_api)
+        self.status_service = Status(sam_api, providers)
 
     @endpoints.method(
         message_types.VoidMessage,
@@ -168,12 +202,12 @@ class BondStatusApi(remote.Service):
         name='status')
     def status(self, request):
         subsystems = self.status_service.get()
-        ok = all(subsystem["ok"] for subsystem in subsystems.values())
+        ok = all(subsystem["ok"] for subsystem in subsystems)
         response = StatusResponse(ok=ok,
-                                  memcache=SubSystemStatusResponse(ok=subsystems[Subsystems.memcache]["ok"], message=subsystems[Subsystems.memcache]["message"]),
-                                  datastore=SubSystemStatusResponse(ok=subsystems[Subsystems.datastore]["ok"], message=subsystems[Subsystems.datastore]["message"]),
-                                  fence=SubSystemStatusResponse(ok=subsystems[Subsystems.fence]["ok"], message=subsystems[Subsystems.fence]["message"]),
-                                  sam=SubSystemStatusResponse(ok=subsystems[Subsystems.sam]["ok"], message=subsystems[Subsystems.sam]["message"]))
+                                  subsystems=[SubSystemStatusResponse(ok=subsystem["ok"],
+                                                                      message=subsystem["message"],
+                                                                      subsystem=subsystem["subsystem"])
+                                              for subsystem in subsystems])
         if ok:
             return response
         else:
