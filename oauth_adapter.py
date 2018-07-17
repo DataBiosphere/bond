@@ -19,7 +19,7 @@ class OauthAdapter:
         """
         Perform an authorization code exchange to get a token dict that includes an access token and a refresh token
         :param authz_code: The authorization code provided by the Oauth authorization response
-        :param redirect_url: redirect_url that was used to get the token - will use self.redirect_url if None
+        :param redirect_uri: redirect_uri that was used to get the token - will use self.redirect_url if None
         :return: A token dict including the access token, refresh token, and token type (amongst other details)
         """
         if not redirect_uri:
