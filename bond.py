@@ -11,7 +11,7 @@ class Bond:
         self.sam_api = sam_api
         self.fence_tvm = fence_tvm
 
-    def exchange_authz_code(self, authz_code, redirect_url, user_info):
+    def exchange_authz_code(self, authz_code, redirect_uri, user_info):
         """
         Given an authz_code and user information, exchange that code for an OAuth Access Token and Refresh Token.  Store
         the refresh token for later, and return the datetime the token was issued along with the username for whom it
@@ -22,7 +22,7 @@ class Bond:
         the username for whom the refresh token was issued by the OAuth provider)
         :return: Two values: datetime when token was issued, username for whom the token was issued
         """
-        token_response = self.oauth_adapter.exchange_authz_code(authz_code, redirect_url)
+        token_response = self.oauth_adapter.exchange_authz_code(authz_code, redirect_uri)
         jwt_token = JwtToken(token_response.get(FenceKeys.ID_TOKEN))
         user_id = self.sam_api.user_info(user_info.token)[SamKeys.USER_ID_KEY]
         TokenStore.save(user_id, token_response.get(FenceKeys.REFRESH_TOKEN_KEY), jwt_token.issued_at, jwt_token.username)
