@@ -42,6 +42,7 @@ a) To run an existing image:
 
 1) Browse the available tags [here](https://quay.io/repository/databiosphere/bond?tag=latest&tab=tags)
 2) With your tag of choice, run `docker run -v $PWD/config.ini:/app/config.ini -p=8080:8080 -p=8000:8000 quay.io/databiosphere/bond:{TAG}`
+3) Check http://localhost:8080/api/status/v1/ to make sure you're up and running
 
 b) Run your local code:
 
