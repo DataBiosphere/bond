@@ -15,8 +15,40 @@ Bond supports test runners: [unittest](https://docs.python.org/2/library/unittes
 * `pip install nose nosegae nose-exclude`
 * ```nosetests --with-gae --gae-lib-root=`gcloud info --format="value(installation.sdk_root)"`/platform/google_appengine --exclude-dir=lib```
 
-# Running locally in Docker
-* `docker run -p=8080:8080 -p=8000:8000 quay.io/databiosphere/bond:latest`
+# Running locally
+
+## Docker
+
+Before you run locally, you will need to render configs:
+
+For Broad devs:
+
+```
+docker run -v $PWD:/app \
+  -e GOOGLE_PROJ=broad-bond-dev \
+  -e SERVICE_VERSION=2016-08-01r0 \
+  -e INPUT_PATH=/app \
+  -e OUT_PATH=/app \
+  -e VAULT_TOKEN=$(cat ~/.vault-token) \
+  -e ENVIRONMENT=dev \
+  broadinstitute/dsde-toolbox render-templates.sh
+```
+  
+For non-Broad, manually edit the config.ini and app.yaml files in the root of the project to use your desired values.
+
+Then choose one of the options below:
+
+a) To run an existing image:
+
+1) Browse the available tags [here](https://quay.io/repository/databiosphere/bond?tag=latest&tab=tags)
+2) With your tag of choice, run `docker run -v $PWD/config.ini:/app/config.ini -p=8080:8080 -p=8000:8000 quay.io/databiosphere/bond:{TAG}`
+3) Check http://localhost:8080/api/status/v1/ to make sure you're up and running
+
+b) Run your local code:
+
+1) Build your image: `docker build -f docker/Dockerfile .`
+2) Grab the Image ID and run: `docker run -v $PWD/config.ini:/app/config.ini -p=8080:8080 -p=8000:8000 {IMAGE_ID}`
+3) Check http://localhost:8080/api/status/v1/ to make sure you're up and running
 
 # Deployment (for Broad only)
 
