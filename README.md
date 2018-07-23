@@ -75,3 +75,19 @@ b) Run your local code:
 `prod` environment (branch: `master`):
 1) Open a PR merging your `dev_tests_passed_<TIMESTAMP>_release` branch into the `master` branch
 2) Jenkins will kick off a deploy to the `prod` environment
+
+# Git Secrets
+
+To run Bond you will need to modify `config.ini` to contain a few secrets that should never be committed into git.  To 
+help protect you from accidentally committing secrets, we recommend that you download and install 
+[git-secrets](https://github.com/awslabs/git-secrets).
+
+Once installed, you can add the following patterns:
+
+```
+git secrets --add 'CLIENT_ID\s*=\s*.+'
+git secrets --add 'CLIENT_SECRET\s*=\s*.+'
+git secrets --add --allowed 'REPLACE_ME'
+git secrets --add --allowed '\{\{ \$fenceSecrets\.Data\.client_id \}\}'
+git secrets --add --allowed '\{\{ \$fenceSecrets\.Data\.client_secret \}\}'
+```
