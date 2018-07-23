@@ -6,6 +6,7 @@ configure.rb
 env/
 lib/
 linkv1openapi.json
+http-client.private.env.json
 
 # sbt specific
 .sbtopts
@@ -41,6 +42,7 @@ docker/stand-alone/ca-bundle.crt
 .idea/dictionaries
 .idea/misc.xml
 .idea/modules/
+*.private.env.json
 
 # Sensitive or high-churn files:
 .idea/dataSources.ids
