@@ -10,6 +10,6 @@ TOKEN_URL={{if eq $environment "prod"}}https://dcp.bionimbus.org/user/oauth2/tok
 FENCE_BASE_URL={{if eq $environment "prod"}}https://dcp.bionimbus.org{{else}}https://dcp.bionimbus.org{{end}}
 
 [sam]
-BASE_URL=https://35.232.48.230:29443
+BASE_URL=https://sam.dsde-{{$environment}}.broadinstitute.org
 
 {{end}}{{end}}
