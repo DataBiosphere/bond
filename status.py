@@ -1,14 +1,14 @@
 from google.appengine.api import memcache
 
 class Status:
-    def __init__(self, fence_api, sam_api):
-        self.fence_api = fence_api
+    def __init__(self, sam_api, provider_status_apis_by_name):
+        self.provider_status_apis_by_name = provider_status_apis_by_name
         self.sam_api = sam_api
 
     def get(self):
         """
         gets status of all sub systems
-        :return: dict with key the name of the subsystem, value is a dict with entries "ok": boolean and "message": string
+        :return: list of dicts with entries "ok": boolean, "message": string, "subsystem": name
         """
         try:
             status = self._get_cached_status()
@@ -16,26 +16,24 @@ class Status:
                 return status
             else:
                 # if we got this far memcache is ok
-                fence_ok, fence_message = self.fence_api.status()
+                provider_statuses = [(provider_name, provider_api.status())
+                                     for (provider_name, provider_api) in self.provider_status_apis_by_name.items()]
+                provider_status_messages = [{"ok": ok, "message": message, "subsystem": provider_name}
+                                            for (provider_name, (ok, message)) in provider_statuses]
+
                 datastore_ok, datastore_message = self._datastore_status()
                 sam_ok, sam_message = self.sam_api.status()
 
-                status = {
-                    Subsystems.memcache: {"ok": True, "message": ""},
-                    Subsystems.datastore: {"ok": datastore_ok, "message": datastore_message},
-                    Subsystems.fence: {"ok": fence_ok, "message": fence_message},
-                    Subsystems.sam: {"ok": sam_ok, "message": sam_message}
-                }
+                status = provider_status_messages + [
+                    {"ok": True, "message": "", "subsystem": Subsystems.memcache},
+                    {"ok": datastore_ok, "message": datastore_message, "subsystem": Subsystems.datastore},
+                    {"ok": sam_ok, "message": sam_message, "subsystem": Subsystems.sam}
+                ]
                 self._cache_status(status)
             return status
         except Exception as e:
             # any exception at this point is memcache
-            return {
-                Subsystems.memcache: {"ok": False, "message": e.message},
-                Subsystems.datastore: {"ok": False, "message": "unknown"},
-                Subsystems.fence: {"ok": False, "message": "unknown"},
-                Subsystems.sam: {"ok": False, "message": "unknown"}
-            }
+            return [{"ok": False, "message": e.message, "subsystem": Subsystems.memcache}]
 
     @staticmethod
     def _cache_status(status):
@@ -59,4 +57,3 @@ class Subsystems:
     memcache = "memcache"
     datastore = "datastore"
     sam = "sam"
-    fence = "fence"
