@@ -37,7 +37,7 @@ docker run -v $PWD/startup.sh:/app/startup.sh \
 
 #SERVICE_VERSION in app.yaml needs to match this
 gcloud auth activate-service-account --key-file=deploy_account.json
-SERVICE_VERSION=curl -X https://servicemanagement.googleapis.com/v1/services/broad-bond-dev.appspot.com/config | jq .id
+SERVICE_VERSION=$(curl --silent --header "Authorization: Bearer `gcloud auth print-access-token`" https://servicemanagement.googleapis.com/v1/services/broad-bond-$ENVIRONMENT.appspot.com/config | jq --raw-output .id)
 
 #render config.ini and app.yaml for environment with SERVICE_VERSION and GOOGLE_PROJECT
 docker run -v $PWD:/app \
