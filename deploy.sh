@@ -36,8 +36,8 @@ docker run -v $PWD/startup.sh:/app/startup.sh \
     "gcloud auth activate-service-account --key-file=deploy_account.json; python lib/endpoints/endpointscfg.py get_openapi_spec main.BondApi --hostname $GOOGLE_PROJECT.appspot.com; gcloud -q endpoints services deploy linkv1openapi.json --project $GOOGLE_PROJECT"
 
 #SERVICE_VERSION in app.yaml needs to match this
-#SERVICE_VERSION=`gcloud endpoints services describe $GOOGLE_PROJECT.appspot.com --format=json --project $GOOGLE_PROJECT | jq .serviceConfig.id` #todo: gcloud returns different response when calling as a service account and google doesn't know why
-SERVICE_VERSION=`date +%Y-%m-%d`r0 #todo: until google fixes the above gcloud command, we will use this. it will work a max of once per day (because it only uses r0 for each date)
+gcloud auth activate-service-account --key-file=deploy_account.json
+SERVICE_VERSION=curl -X https://servicemanagement.googleapis.com/v1/services/broad-bond-dev.appspot.com/config | jq .id
 
 #render config.ini and app.yaml for environment with SERVICE_VERSION and GOOGLE_PROJECT
 docker run -v $PWD:/app \
