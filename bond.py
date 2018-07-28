@@ -5,12 +5,13 @@ from sam_api import SamKeys
 
 
 class Bond:
-    def __init__(self, oauth_adapter, fence_api, sam_api, fence_tvm, provider_name):
+    def __init__(self, oauth_adapter, fence_api, sam_api, fence_tvm, provider_name, user_name_path_expr):
         self.oauth_adapter = oauth_adapter
         self.fence_api = fence_api
         self.sam_api = sam_api
         self.fence_tvm = fence_tvm
         self.provider_name = provider_name
+        self.user_name_path_expr = user_name_path_expr
 
     def exchange_authz_code(self, authz_code, redirect_uri, user_info):
         """
@@ -24,7 +25,7 @@ class Bond:
         :return: Two values: datetime when token was issued, username for whom the token was issued
         """
         token_response = self.oauth_adapter.exchange_authz_code(authz_code, redirect_uri)
-        jwt_token = JwtToken(token_response.get(FenceKeys.ID_TOKEN))
+        jwt_token = JwtToken(token_response.get(FenceKeys.ID_TOKEN), self.user_name_path_expr)
         user_id = self.sam_api.user_info(user_info.token)[SamKeys.USER_ID_KEY]
         TokenStore.save(user_id, token_response.get(FenceKeys.REFRESH_TOKEN_KEY), jwt_token.issued_at,
                         jwt_token.username, self.provider_name)

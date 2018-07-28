@@ -52,7 +52,7 @@ class BondTestCase(unittest.TestCase):
         sam_api = self._mock_sam_api(self.user_id, "email")
         self.bond = Bond(mock_oauth_adapter, fence_api, sam_api,
                          FenceTokenVendingMachine(fence_api, sam_api, mock_oauth_adapter, provider_name),
-                         provider_name)
+                         provider_name, "/context/user/name")
 
     def tearDown(self):
         ndb.get_context().clear_cache()  # Ensure data is truly flushed from datastore/memcache

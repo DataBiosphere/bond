@@ -5,6 +5,7 @@
 CLIENT_ID={{ $fenceSecrets.Data.client_id }}
 CLIENT_SECRET={{ $fenceSecrets.Data.client_secret }}
 OPEN_ID_CONFIG_URL={{if eq $environment "prod"}}https://dcp.bionimbus.org/user/.well-known/openid-configuration{{else}}https://dcp.bionimbus.org/user/.well-known/openid-configuration{{end}}
+USER_NAME_PATH_EXPR=/context/user/name
 FENCE_BASE_URL={{if eq $environment "prod"}}https://dcp.bionimbus.org{{else}}https://dcp.bionimbus.org{{end}}
 
 [sam]
