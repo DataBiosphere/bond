@@ -56,21 +56,6 @@ class OauthAdapter:
             raise endpoints.InternalServerErrorException("revoke url {}, status code {}, error body {}".
                                                          format(revoke_url, result.status_code, result.content))
 
-    def _token_url(self):
-        open_id_config = memcache.get(namespace="OauthAdapter", key=self.provider_name)
-        if open_id_config:
-            return open_id_config["token_endpoint"]
-        else:
-            open_id_config_response = urlfetch.fetch(self.open_id_config_url)
-            if open_id_config_response.status_code/100 != 2:
-                raise endpoints.InternalServerErrorException(
-                    message='open_id_config_url [{}] returned status {}: {}'.format(self.open_id_config_url,
-                                                                                    open_id_config_response.status_code,
-                                                                                    open_id_config_response.content))
-            else:
-                open_id_config = json.loads(open_id_config_response.content)
-                memcache.get(namespace="OauthAdapter", key=self.provider_name, value=open_id_config)
-
     def _get_open_id_config(self):
         open_id_config = memcache.get(namespace="OauthAdapter", key=self.provider_name)
         if not open_id_config:
