@@ -5,6 +5,7 @@ from google.appengine.api import memcache
 from google.appengine.api import urlfetch
 import endpoints
 import json
+import base64
 
 
 # https://toolbelt.readthedocs.io/en/latest/adapters.html#appengineadapter
@@ -40,6 +41,21 @@ class OauthAdapter:
         oauth = OAuth2Session(self.client_id, token=token_dict)
         return oauth.refresh_token(self._get_token_info_url(), auth=self.basic_auth)
 
+    def revoke_refresh_token(self, refresh_token):
+        """
+        Calls the auth provider to revoke the given refresh token
+        :param refresh_token:
+        :return:
+        """
+        revoke_url = self._get_revoke_url()
+        result = urlfetch.fetch(url=revoke_url,
+                                method=urlfetch.POST,
+                                payload="token=" + refresh_token,
+                                headers={"Authorization": "Basic %s" % base64.b64encode("{}:{}".format(self.client_id, self.client_secret))})
+        if result.status_code // 100 != 2:
+            raise endpoints.InternalServerErrorException("revoke url {}, status code {}, error body {}".
+                                                         format(revoke_url, result.status_code, result.content))
+
     def _token_url(self):
         open_id_config = memcache.get(namespace="OauthAdapter", key=self.provider_name)
         if open_id_config:
@@ -70,4 +86,15 @@ class OauthAdapter:
         return open_id_config
 
     def _get_token_info_url(self):
-        return self._get_open_id_config()["token_endpoint"]
+        config = self._get_open_id_config()
+        if "token_endpoint" in config:
+            return self._get_open_id_config()["token_endpoint"]
+        else:
+            raise endpoints.InternalServerErrorException("token_endpoint not found in openid config: " + self.open_id_config_url)
+
+    def _get_revoke_url(self):
+        config = self._get_open_id_config()
+        if "revocation_endpoint" in config:
+            return config["revocation_endpoint"]
+        else:
+            return self._get_open_id_config()["token_endpoint"].replace("token", "revoke")

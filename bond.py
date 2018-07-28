@@ -56,8 +56,8 @@ class Bond:
         user_id = self.sam_api.user_info(user_info.token)[SamKeys.USER_ID_KEY]
         refresh_token = TokenStore.lookup(user_id, self.provider_name)
         if refresh_token:
-            self.fence_api.revoke_refresh_token(refresh_token.token)
             self.fence_tvm.remove_service_account(user_id)
+            self.oauth_adapter.revoke_refresh_token(refresh_token.token)
             TokenStore.delete(user_id, self.provider_name)
 
     def get_link_info(self, user_info):
