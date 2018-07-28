@@ -2,6 +2,7 @@ from datetime import datetime
 from jwt_token import JwtToken
 from token_store import TokenStore
 from sam_api import SamKeys
+import endpoints
 
 
 class Bond:
@@ -27,6 +28,8 @@ class Bond:
         token_response = self.oauth_adapter.exchange_authz_code(authz_code, redirect_uri)
         jwt_token = JwtToken(token_response.get(FenceKeys.ID_TOKEN), self.user_name_path_expr)
         user_id = self.sam_api.user_info(user_info.token)[SamKeys.USER_ID_KEY]
+        if FenceKeys.REFRESH_TOKEN_KEY not in token_response:
+            raise endpoints.BadRequestException("authorization response did not include " + FenceKeys.REFRESH_TOKEN_KEY)
         TokenStore.save(user_id, token_response.get(FenceKeys.REFRESH_TOKEN_KEY), jwt_token.issued_at,
                         jwt_token.username, self.provider_name)
         return jwt_token.issued_at, jwt_token.username
