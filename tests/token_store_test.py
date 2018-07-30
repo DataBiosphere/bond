@@ -9,6 +9,8 @@ from token_store import TokenStore
 from refresh_token import RefreshToken
 from datetime import datetime
 
+provider_name = "test"
+
 
 class TokenStoreTestCase(unittest.TestCase):
 
@@ -25,7 +27,7 @@ class TokenStoreTestCase(unittest.TestCase):
         self.token_str = "aaaaaabbbbbbcccccccddddddd"
         self.issued_at = datetime.now()
         self.username = "Ralph"
-        self.key = ndb.Key(RefreshToken.kind_name(), self.user_id)
+        self.key = TokenStore._token_store_key(self.user_id, provider_name)
 
     def tearDown(self):
         ndb.get_context().clear_cache()  # Ensure data is truly flushed from datastore/memcache
@@ -33,7 +35,7 @@ class TokenStoreTestCase(unittest.TestCase):
 
     def test_save(self):
         self.assertIsNone(self.key.get())
-        result_key = TokenStore.save(self.user_id, self.token_str, self.issued_at, self.username)
+        result_key = TokenStore.save(self.user_id, self.token_str, self.issued_at, self.username, provider_name)
         self.assertEqual(result_key, self.key)
         saved_token = self.key.get()
         self.assertIsNotNone(saved_token)
@@ -42,8 +44,8 @@ class TokenStoreTestCase(unittest.TestCase):
         self.assertEqual(self.username, saved_token.username)
 
     def test_lookup(self):
-        RefreshToken(id=self.user_id, token=self.token_str, issued_at=self.issued_at, username=self.username).put()
-        persisted_token = TokenStore.lookup(self.user_id)
+        TokenStore.save(self.user_id, self.token_str, self.issued_at, self.username, provider_name)
+        persisted_token = TokenStore.lookup(self.user_id, provider_name)
         self.assertEqual(self.token_str, persisted_token.token)
         self.assertEqual(self.issued_at, persisted_token.issued_at)
         self.assertEqual(self.username, persisted_token.username)
