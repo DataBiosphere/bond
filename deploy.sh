@@ -33,7 +33,7 @@ docker run -v $PWD/startup.sh:/app/startup.sh \
     -v $PWD/deploy_account.json:/deploy_account.json \
     -e GOOGLE_PROJECT=$GOOGLE_PROJECT \
     databiosphere/bond:deploy /bin/bash -c \
-    "gcloud auth activate-service-account --key-file=deploy_account.json; python lib/endpoints/endpointscfg.py get_openapi_spec main.BondApi --hostname $GOOGLE_PROJECT.appspot.com; gcloud -q endpoints services deploy linkv1openapi.json --project $GOOGLE_PROJECT"
+    "gcloud auth activate-service-account --key-file=deploy_account.json; python lib/endpoints/endpointscfg.py get_openapi_spec main.BondApi main.BondStatusApi --hostname $GOOGLE_PROJECT.appspot.com; gcloud -q endpoints services deploy linkv1openapi.json statusv1openapi.json --project $GOOGLE_PROJECT"
 
 #SERVICE_VERSION in app.yaml needs to match this
 #SERVICE_VERSION=`gcloud endpoints services describe $GOOGLE_PROJECT.appspot.com --format=json --project $GOOGLE_PROJECT | jq .serviceConfig.id` #todo: gcloud returns different response when calling as a service account and google doesn't know why

@@ -99,12 +99,12 @@ class BondApi(remote.Service):
         if provider_name in self.providers:
             return self.providers[provider_name]
         else:
-            raise endpoints.NotFoundException(provider_name + " not found")
+            raise endpoints.NotFoundException("provider {} not found".format(provider_name))
 
     @endpoints.method(
         PROVIDER_RESOURCE,
         ListProvidersResponse,
-        path='/',
+        path='/providers',
         http_method='GET',
         name='listProviders')
     def providers(self, request):
@@ -133,7 +133,7 @@ class BondApi(remote.Service):
         if refresh_token:
             return LinkInfoResponse(issued_at=refresh_token.issued_at, username=refresh_token.username)
         else:
-            raise endpoints.NotFoundException
+            raise endpoints.NotFoundException("{} link does not exist".format(request.provider))
 
     @endpoints.method(
         PROVIDER_RESOURCE,
@@ -197,7 +197,7 @@ class BondStatusApi(remote.Service):
     @endpoints.method(
         message_types.VoidMessage,
         StatusResponse,
-        path='/',
+        path='/status',
         http_method='GET',
         name='status')
     def status(self, request):
