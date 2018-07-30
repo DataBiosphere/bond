@@ -102,7 +102,7 @@ class BondApi(remote.Service):
             raise endpoints.NotFoundException("provider {} not found".format(provider_name))
 
     @endpoints.method(
-        PROVIDER_RESOURCE,
+        message_types.VoidMessage,
         ListProvidersResponse,
         path='/providers',
         http_method='GET',

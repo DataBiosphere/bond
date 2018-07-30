@@ -67,7 +67,7 @@ class OauthAdapter:
                                                                                     open_id_config_response.content))
             else:
                 open_id_config = json.loads(open_id_config_response.content)
-                memcache.add(namespace="OauthAdapter", key=self.provider_name, value=open_id_config)
+                memcache.add(namespace="OauthAdapter", key=self.provider_name, value=open_id_config, time=60*60*24)
         return open_id_config
 
     def _get_token_info_url(self):
