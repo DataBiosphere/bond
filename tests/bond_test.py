@@ -19,6 +19,8 @@ from mock import MagicMock
 from token_store import TokenStore
 import json
 
+provider_name = "test"
+
 
 class BondTestCase(unittest.TestCase):
     def setUp(self):
@@ -47,20 +49,26 @@ class BondTestCase(unittest.TestCase):
 
         fence_api = self._mock_fence_api(json.dumps({"private_key_id": "asfasdfasdf"}))
         sam_api = self._mock_sam_api(self.user_id, "email")
-        self.bond = Bond(mock_oauth_adapter, fence_api, sam_api, FenceTokenVendingMachine(fence_api, sam_api, mock_oauth_adapter))
+        self.bond = Bond(mock_oauth_adapter, fence_api, sam_api,
+                         FenceTokenVendingMachine(fence_api, sam_api, mock_oauth_adapter, provider_name),
+                         provider_name)
 
     def tearDown(self):
         ndb.get_context().clear_cache()  # Ensure data is truly flushed from datastore/memcache
         self.testbed.deactivate()
 
     def test_exchange_authz_code(self):
-        issued_at, username = self.bond.exchange_authz_code("irrelevantString", UserInfo(str(uuid.uuid4()), "", "", 30))
+        issued_at, username = self.bond.exchange_authz_code("irrelevantString", "redirect", UserInfo(str(uuid.uuid4()), "", "", 30))
         self.assertEqual(self.name, username)
         self.assertEqual(datetime.fromtimestamp(self.issued_at_epoch), issued_at)
 
     def test_generate_access_token(self):
         token = str(uuid.uuid4())
-        RefreshToken(id=self.user_id, token=token, issued_at=datetime.fromtimestamp(self.issued_at_epoch), username=self.name).put()
+        TokenStore.save(user_id=self.user_id,
+                        refresh_token_str=token,
+                        issued_at=datetime.fromtimestamp(self.issued_at_epoch),
+                        username=self.name,
+                        provider_name=provider_name)
         access_token, expires_at = self.bond.generate_access_token(UserInfo(str(uuid.uuid4()), "", "", 30))
         self.assertEqual(self.fake_access_token, access_token)
         self.assertEqual(datetime.fromtimestamp(self.expires_at_epoch), expires_at)
@@ -70,15 +78,15 @@ class BondTestCase(unittest.TestCase):
 
     def test_revoke_link_exists(self):
         token = str(uuid.uuid4())
-        TokenStore.save(self.user_id, token, datetime.now(), self.name)
+        TokenStore.save(self.user_id, token, datetime.now(), self.name, provider_name)
         user_info = UserInfo(str(uuid.uuid4()), "", "", 30)
         self.bond.fence_tvm.get_service_account_key_json(user_info)
-        self.assertIsNotNone(ndb.Key(FenceServiceAccount, self.user_id).get())
+        self.assertIsNotNone(self.bond.fence_tvm._fence_service_account_key(self.user_id).get())
 
         self.bond.unlink_account(user_info)
 
-        self.assertIsNone(ndb.Key(FenceServiceAccount, self.user_id).get())
-        self.assertIsNone(TokenStore.lookup(self.user_id))
+        self.assertIsNone(self.bond.fence_tvm._fence_service_account_key(self.user_id).get())
+        self.assertIsNone(TokenStore.lookup(self.user_id, provider_name))
         self.bond.fence_api.revoke_refresh_token.assert_called_once()
         self.bond.fence_api.delete_credentials_google.assert_called_once()
 
@@ -88,10 +96,13 @@ class BondTestCase(unittest.TestCase):
 
     def test_link_info_exists(self):
         token = str(uuid.uuid4())
-        refresh_token = RefreshToken(id=self.user_id, token=token, issued_at=datetime.fromtimestamp(self.issued_at_epoch), username=self.name)
-        refresh_token.put()
+        TokenStore.save(user_id=self.user_id,
+                        refresh_token_str=token,
+                        issued_at=datetime.fromtimestamp(self.issued_at_epoch),
+                        username=self.name,
+                        provider_name=provider_name)
         link_info = self.bond.get_link_info(UserInfo(str(uuid.uuid4()), "", "", 30))
-        self.assertEqual(refresh_token, link_info)
+        self.assertEqual(token, link_info.token)
 
     def test_link_info_not_exists(self):
         link_info = self.bond.get_link_info(UserInfo(str(uuid.uuid4()), "", "", 30))
