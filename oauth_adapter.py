@@ -15,13 +15,16 @@ class OauthAdapter:
         self.token_url = token_url
         self.basic_auth = HTTPBasicAuth(self.client_id, self.client_secret)
 
-    def exchange_authz_code(self, authz_code):
+    def exchange_authz_code(self, authz_code, redirect_uri):
         """
         Perform an authorization code exchange to get a token dict that includes an access token and a refresh token
         :param authz_code: The authorization code provided by the Oauth authorization response
+        :param redirect_uri: redirect_uri that was used to get the token - will use self.redirect_url if None
         :return: A token dict including the access token, refresh token, and token type (amongst other details)
         """
-        oauth = OAuth2Session(self.client_id, redirect_uri=self.redirect_url)
+        if not redirect_uri:
+            redirect_uri = self.redirect_url
+        oauth = OAuth2Session(self.client_id, redirect_uri=redirect_uri)
         return oauth.fetch_token(self.token_url, code=authz_code, auth=self.basic_auth)
 
     def refresh_access_token(self, refresh_token_str):
