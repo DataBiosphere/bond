@@ -18,6 +18,7 @@ from fence_token_vending import FenceTokenVendingMachine, FenceServiceAccount
 from mock import MagicMock
 from token_store import TokenStore
 import json
+import endpoints
 
 provider_name = "test"
 
@@ -46,12 +47,13 @@ class BondTestCase(unittest.TestCase):
         mock_oauth_adapter = OauthAdapter("foo", "bar", "baz", "qux")
         mock_oauth_adapter.exchange_authz_code = MagicMock(return_value=fake_token_dict)
         mock_oauth_adapter.refresh_access_token = MagicMock(return_value=fake_token_dict)
+        mock_oauth_adapter.revoke_refresh_token = MagicMock()
 
         fence_api = self._mock_fence_api(json.dumps({"private_key_id": "asfasdfasdf"}))
         sam_api = self._mock_sam_api(self.user_id, "email")
         self.bond = Bond(mock_oauth_adapter, fence_api, sam_api,
                          FenceTokenVendingMachine(fence_api, sam_api, mock_oauth_adapter, provider_name),
-                         provider_name)
+                         provider_name, "/context/user/name")
 
     def tearDown(self):
         ndb.get_context().clear_cache()  # Ensure data is truly flushed from datastore/memcache
@@ -61,6 +63,27 @@ class BondTestCase(unittest.TestCase):
         issued_at, username = self.bond.exchange_authz_code("irrelevantString", "redirect", UserInfo(str(uuid.uuid4()), "", "", 30))
         self.assertEqual(self.name, username)
         self.assertEqual(datetime.fromtimestamp(self.issued_at_epoch), issued_at)
+
+    def test_exchange_authz_code_missing_token(self):
+        data = {"context": {"user": {"name": self.name}}, 'iat': self.issued_at_epoch}
+        encoded_jwt = jwt.encode(data, 'secret', 'HS256')
+        fake_token_dict = {FenceKeys.ACCESS_TOKEN_KEY: self.fake_access_token,
+                           FenceKeys.ID_TOKEN: encoded_jwt,
+                           FenceKeys.EXPIRES_AT_KEY: self.expires_at_epoch}
+
+        mock_oauth_adapter = OauthAdapter("foo", "bar", "baz", "qux")
+        mock_oauth_adapter.exchange_authz_code = MagicMock(return_value=fake_token_dict)
+        mock_oauth_adapter.refresh_access_token = MagicMock(return_value=fake_token_dict)
+        mock_oauth_adapter.revoke_refresh_token = MagicMock()
+
+        fence_api = self._mock_fence_api(json.dumps({"private_key_id": "asfasdfasdf"}))
+        sam_api = self._mock_sam_api(self.user_id, "email")
+        bond = Bond(mock_oauth_adapter, fence_api, sam_api,
+                         FenceTokenVendingMachine(fence_api, sam_api, mock_oauth_adapter, provider_name),
+                         provider_name, "/context/user/name")
+
+        with self.assertRaises(endpoints.BadRequestException):
+            bond.exchange_authz_code("irrelevantString", "redirect", UserInfo(str(uuid.uuid4()), "", "", 30))
 
     def test_generate_access_token(self):
         token = str(uuid.uuid4())
@@ -87,7 +110,7 @@ class BondTestCase(unittest.TestCase):
 
         self.assertIsNone(self.bond.fence_tvm._fence_service_account_key(self.user_id).get())
         self.assertIsNone(TokenStore.lookup(self.user_id, provider_name))
-        self.bond.fence_api.revoke_refresh_token.assert_called_once()
+        self.bond.oauth_adapter.revoke_refresh_token.assert_called_once()
         self.bond.fence_api.delete_credentials_google.assert_called_once()
 
     def test_revoke_link_does_not_exists(self):
@@ -113,7 +136,6 @@ class BondTestCase(unittest.TestCase):
         fence_api = FenceApi("")
         fence_api.get_credentials_google = MagicMock(return_value=service_account_json)
         fence_api.delete_credentials_google = MagicMock()
-        fence_api.revoke_refresh_token = MagicMock()
         return fence_api
 
     @staticmethod

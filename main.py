@@ -56,7 +56,7 @@ class StatusResponse(messages.Message):
 
 OAUTH_CODE_RESOURCE = endpoints.ResourceContainer(provider=messages.StringField(1),
                                                   oauthcode=messages.StringField(2, required=True),
-                                                  redirect_uri=messages.StringField(3, required=False))
+                                                  redirect_uri=messages.StringField(3, required=True))
 
 SCOPES_RESOURCE = endpoints.ResourceContainer(provider=messages.StringField(1), scopes=messages.StringField(2, repeated=True))
 
@@ -78,18 +78,18 @@ class BondApi(remote.Service):
         def create_provider(provider_name):
             client_id = config.get(provider_name, 'CLIENT_ID')
             client_secret = config.get(provider_name, 'CLIENT_SECRET')
-            redirect_uri = config.get(provider_name, 'REDIRECT_URI')
-            token_url = config.get(provider_name, 'TOKEN_URL')
+            open_id_config_url = config.get(provider_name, 'OPEN_ID_CONFIG_URL')
             fence_base_url = config.get(provider_name, 'FENCE_BASE_URL')
-    
+            user_name_path_expr = config.get(provider_name, 'USER_NAME_PATH_EXPR')
+
             sam_base_url = config.get('sam', 'BASE_URL')
     
-            oauth_adapter = OauthAdapter(client_id, client_secret, redirect_uri, token_url)
+            oauth_adapter = OauthAdapter(client_id, client_secret, open_id_config_url, provider_name)
             fence_api = FenceApi(fence_base_url)
             sam_api = SamApi(sam_base_url)
 
             fence_tvm = FenceTokenVendingMachine(fence_api, sam_api, oauth_adapter, provider_name)
-            return BondProvider(fence_tvm, Bond(oauth_adapter, fence_api, sam_api, fence_tvm, provider_name))
+            return BondProvider(fence_tvm, Bond(oauth_adapter, fence_api, sam_api, fence_tvm, provider_name, user_name_path_expr))
 
         self.providers = {provider_name: create_provider(provider_name) 
                           for provider_name in config.sections() if provider_name != 'sam'}
@@ -102,7 +102,7 @@ class BondApi(remote.Service):
             raise endpoints.NotFoundException("provider {} not found".format(provider_name))
 
     @endpoints.method(
-        PROVIDER_RESOURCE,
+        message_types.VoidMessage,
         ListProvidersResponse,
         path='/providers',
         http_method='GET',
