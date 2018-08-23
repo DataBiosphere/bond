@@ -35,7 +35,11 @@ docker run -v $PWD/startup.sh:/app/startup.sh \
     databiosphere/bond:deploy /bin/bash -c \
     "gcloud auth activate-service-account --key-file=deploy_account.json; python lib/endpoints/endpointscfg.py get_openapi_spec main.BondApi --hostname $GOOGLE_PROJECT.appspot.com; gcloud -q endpoints services deploy linkv1openapi.json --project $GOOGLE_PROJECT"
 
-#SERVICE_VERSION in app.yaml needs to match this
+#SERVICE_VERSION in app.yaml needs to match the output of the curl call below
+export BUILD_TMP="${HOME}/deploy-bond-${GIT_BRANCH}"
+mkdir -p ${BUILD_TMP}
+export CLOUDSDK_CONFIG=${BUILD_TMP}
+
 gcloud auth activate-service-account --key-file=deploy_account.json
 SERVICE_VERSION=$(curl --silent --header "Authorization: Bearer `gcloud auth print-access-token`" https://servicemanagement.googleapis.com/v1/services/$GOOGLE_PROJECT.appspot.com/config | jq --raw-output .id)
 
