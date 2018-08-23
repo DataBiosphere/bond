@@ -33,7 +33,7 @@ ENV PYTHONPATH /app/lib
 COPY . .
 
 # Generate the OpenAPI documents for the Bond and BondStatus endpoints using meaningless project name 'foo-bar'
-RUN python lib/endpoints/endpointscfg.py get_openapi_spec main.BondApi main.BondStatusApi --hostname foo-bar.appspot.com --x-google-api-name
+# RUN python lib/endpoints/endpointscfg.py get_openapi_spec main.BondApi main.BondStatusApi --hostname foo-bar.appspot.com --x-google-api-name
 
 # Bond Endpoints available on port 8080.  Admin interface not exposed
 EXPOSE 8080
