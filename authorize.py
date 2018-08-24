@@ -6,10 +6,11 @@ import json
 config = ConfigParser.ConfigParser()
 config.read("config.ini")
 
-client_id = config.get('fence', 'CLIENT_ID')
-client_secret = config.get('fence', 'CLIENT_SECRET')
+provider = 'fence'
+client_id = config.get(provider, 'CLIENT_ID')
+client_secret = config.get(provider, 'CLIENT_SECRET')
 redirect_uri = "http://local.broadinstitute.org/#fence-callback"
-open_id_config_url = config.get('fence', 'OPEN_ID_CONFIG_URL')
+open_id_config_url = config.get(provider, 'OPEN_ID_CONFIG_URL')
 
 
 def auth_code_with_basic_auth():
