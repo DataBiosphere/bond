@@ -35,7 +35,6 @@ class FenceTokenVendingMachine:
         """
         Get a service account access token to access objects protected by fence
 
-        :param fence_instance:
         :param user_info:
         :param scopes: scopes to request token, defaults to ["email", "profile"]
         :return: access token for service account
