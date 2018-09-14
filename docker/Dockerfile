@@ -2,27 +2,36 @@ FROM python:2.7.15
 
 # Prepare the image
 ENV DEBIAN_FRONTEND noninteractive
-RUN apt-get update && apt-get install -y -qq --no-install-recommends wget unzip build-essential openssh-client python-openssl && apt-get clean
+RUN apt-get update \
+    && apt-get install -y -qq --no-install-recommends wget unzip build-essential openssh-client python-openssl \
+    && apt-get clean
 
 # Install the Google Cloud SDK
 ENV HOME /
 ENV CLOUDSDK_PYTHON_SITEPACKAGES 1
-RUN wget https://dl.google.com/dl/cloudsdk/channels/rapid/google-cloud-sdk.zip && unzip google-cloud-sdk.zip && rm google-cloud-sdk.zip
-RUN google-cloud-sdk/install.sh --usage-reporting=true --path-update=true --bash-completion=true --rc-path=/.bashrc --additional-components app-engine-python app cloud-datastore-emulator app-engine-python-extras
+RUN wget https://dl.google.com/dl/cloudsdk/channels/rapid/google-cloud-sdk.zip \
+    && unzip google-cloud-sdk.zip \
+    && rm google-cloud-sdk.zip \
+    && google-cloud-sdk/install.sh \
+        --usage-reporting=true --path-update=true --bash-completion=true --rc-path=/.bashrc --additional-components \
+        app-engine-python app cloud-datastore-emulator app-engine-python-extras
 
 RUN mkdir /.ssh
 ENV PATH /google-cloud-sdk/bin:$PATH
 VOLUME ["/.config"]
 
+# Create directory for Bond in the container
 RUN mkdir /app
 WORKDIR app/
-ADD requirements.txt .
-RUN pip install -t lib/ -r requirements.txt
-ADD . .
 
-# Diagnostic log messages
-RUN pip --version
-RUN python --version
+# Install dependencies and set the PYTHONPATH appropriately so that dependencies can be found by the runtime
+COPY requirements.txt .
+RUN pip install --upgrade pip && pip install -t lib/ -r requirements.txt
+ENV PYTHONPATH /app/lib
 
-EXPOSE 8080 8000
-CMD ["dev_appserver.py", "--host=0.0.0.0", "."]
+# Copy the source files into the the container
+COPY . .
+
+# Bond Endpoints available on port 8080.  Admin interface not exposed
+EXPOSE 8080
+ENTRYPOINT ["dev_appserver.py", "--host=0.0.0.0", "--enable_host_checking=false", "."]
