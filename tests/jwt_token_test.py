@@ -11,6 +11,6 @@ class JwtTokenTestCase(unittest.TestCase):
         issued_at = 1528896868
         data = {"context": {"user": {"name": name}}, 'iat': issued_at}
         encoded = jwt.encode(data, 'secret', 'HS256')
-        jwt_token = JwtToken(encoded)
+        jwt_token = JwtToken(encoded, "/context/user/name")
         self.assertEqual(name, jwt_token.username)
         self.assertEqual(datetime.fromtimestamp(issued_at), jwt_token.issued_at)

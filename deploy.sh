@@ -10,6 +10,8 @@ if [ "$GIT_BRANCH" == "develop" ]; then
 	ENVIRONMENT="dev"
 elif [ "$GIT_BRANCH" == "alpha" ]; then
         ENVIRONMENT="alpha"
+elif [ "$GIT_BRANCH" == "perf" ]; then
+	ENVIRONMENT="perf"
 elif [ "$GIT_BRANCH" == "staging" ]; then
 	ENVIRONMENT="staging"
 elif [ "$GIT_BRANCH" == "master" ]; then
@@ -32,12 +34,17 @@ docker run -v $PWD/startup.sh:/app/startup.sh \
     -v $PWD/output:/output \
     -v $PWD/deploy_account.json:/deploy_account.json \
     -e GOOGLE_PROJECT=$GOOGLE_PROJECT \
-    databiosphere/bond:deploy /bin/bash -c \
-    "gcloud auth activate-service-account --key-file=deploy_account.json; python lib/endpoints/endpointscfg.py get_openapi_spec main.BondApi main.BondStatusApi --hostname $GOOGLE_PROJECT.appspot.com --x-google-api-name; gcloud -q endpoints services deploy linkv1openapi.json statusv1openapi.json --project $GOOGLE_PROJECT"
+    --entrypoint "/bin/bash" \
+    databiosphere/bond:deploy \
+    -c "gcloud auth activate-service-account --key-file=deploy_account.json; python lib/endpoints/endpointscfg.py get_openapi_spec main.BondApi main.BondStatusApi --hostname $GOOGLE_PROJECT.appspot.com --x-google-api-name; gcloud -q endpoints services deploy linkv1openapi.json statusv1openapi.json --project $GOOGLE_PROJECT"
 
-#SERVICE_VERSION in app.yaml needs to match this
-#SERVICE_VERSION=`gcloud endpoints services describe $GOOGLE_PROJECT.appspot.com --format=json --project $GOOGLE_PROJECT | jq .serviceConfig.id` #todo: gcloud returns different response when calling as a service account and google doesn't know why
-SERVICE_VERSION=`date +%Y-%m-%d`r0 #todo: until google fixes the above gcloud command, we will use this. it will work a max of once per day (because it only uses r0 for each date)
+#SERVICE_VERSION in app.yaml needs to match the output of the curl call below
+export BUILD_TMP="${HOME}/deploy-bond-${GIT_BRANCH}"
+mkdir -p ${BUILD_TMP}
+export CLOUDSDK_CONFIG=${BUILD_TMP}
+
+gcloud auth activate-service-account --key-file=deploy_account.json
+SERVICE_VERSION=$(curl --silent --header "Authorization: Bearer `gcloud auth print-access-token`" https://servicemanagement.googleapis.com/v1/services/$GOOGLE_PROJECT.appspot.com/config | jq --raw-output .id)
 
 #render config.ini and app.yaml for environment with SERVICE_VERSION and GOOGLE_PROJECT
 docker run -v $PWD:/app \
@@ -55,5 +62,6 @@ docker run -v $PWD/startup.sh:/app/startup.sh \
     -v $PWD/config.ini:/app/config.ini \
     -v $PWD/deploy_account.json:/deploy_account.json \
     -e GOOGLE_PROJECT=$GOOGLE_PROJECT \
-    databiosphere/bond:deploy /bin/bash -c \
-    "gcloud auth activate-service-account --key-file=deploy_account.json; gcloud -q app deploy app.yaml --project=$GOOGLE_PROJECT"
+    --entrypoint "/bin/bash" \
+    databiosphere/bond:deploy \
+    -c "gcloud auth activate-service-account --key-file=deploy_account.json; gcloud -q app deploy app.yaml --project=$GOOGLE_PROJECT"
