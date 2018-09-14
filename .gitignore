@@ -7,6 +7,8 @@ env/
 lib/
 linkv1openapi.json
 statusv1openapi.json
+/app.yaml
+/config.ini
 
 # sbt specific
 .sbtopts
