@@ -1,13 +1,19 @@
 {{with $environment := env "ENVIRONMENT"}}
-{{with $fenceSecrets := vault (printf "secret/dsde/bond/%s/config.ini" $environment)}}
+{{with $secrets := vault (printf "secret/dsde/bond/%s/config.ini" $environment)}}
 
 [fence]
-CLIENT_ID={{ $fenceSecrets.Data.client_id }}
-CLIENT_SECRET={{ $fenceSecrets.Data.client_secret }}
-AUTHZ_URI={{if eq $environment "prod"}}https://dcp.bionimbus.org/user/oauth2/authorize{{else}}https://dcp.bionimbus.org/user/oauth2/authorize{{end}}
-REDIRECT_URI={{if eq $environment "prod"}}https://portal.firecloud.org/#fence-callback{{else if eq $environment "alpha"}}https://firecloud.dsde-alpha.broadinstitute.org/#fence-callback{{else if eq $environment "staging"}}https://firecloud.dsde-staging.broadinstitute.org/#fence-callback{{else if eq $environment "dev"}}https://firecloud.dsde-dev.broadinstitute.org/#fence-callback{{else}}http://local.broadinstitute.org/#fence-callback{{end}}
-TOKEN_URL={{if eq $environment "prod"}}https://dcp.bionimbus.org/user/oauth2/token{{else}}https://dcp.bionimbus.org/user/oauth2/token{{end}}
+CLIENT_ID={{ $secrets.Data.client_id }}
+CLIENT_SECRET={{ $secrets.Data.client_secret }}
+OPEN_ID_CONFIG_URL={{if eq $environment "prod"}}https://dcp.bionimbus.org/user/.well-known/openid-configuration{{else}}https://dcp.bionimbus.org/user/.well-known/openid-configuration{{end}}
+USER_NAME_PATH_EXPR=/context/user/name
 FENCE_BASE_URL={{if eq $environment "prod"}}https://dcp.bionimbus.org{{else}}https://dcp.bionimbus.org{{end}}
+
+[dcf-fence]
+CLIENT_ID={{ $secrets.Data.dcf_fence_client_id }}
+CLIENT_SECRET={{ $secrets.Data.dcf_fence_client_secret }}
+OPEN_ID_CONFIG_URL={{if eq $environment "prod"}}https://nci-crdc.datacommons.io/user/.well-known/openid-configuration{{else if eq $environment "staging"}}https://nci-crdc-staging.datacommons.io/user/.well-known/openid-configuration{{else}}https://qa.dcf.planx-pla.net/user/.well-known/openid-configuration{{end}}
+USER_NAME_PATH_EXPR=/context/user/name
+FENCE_BASE_URL={{if eq $environment "prod"}}https://nci-crdc.datacommons.io{{else if eq $environment "staging"}}https://nci-crdc-staging.datacommons.io{{else}}https://qa.dcf.planx-pla.net{{end}}
 
 [sam]
 BASE_URL=https://sam.dsde-{{$environment}}.broadinstitute.org
