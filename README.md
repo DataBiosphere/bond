@@ -31,6 +31,8 @@ docker run -v $PWD:/app \
   -e OUT_PATH=/app \
   -e VAULT_TOKEN=$(cat ~/.vault-token) \
   -e ENVIRONMENT=dev \
+  -e RUN_CONTEXT=local \
+  -e DNS_DOMAIN=local
   broadinstitute/dsde-toolbox render-templates.sh
 ```
   

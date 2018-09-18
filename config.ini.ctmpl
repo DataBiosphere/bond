@@ -1,4 +1,6 @@
 {{with $environment := env "ENVIRONMENT"}}
+{{with $runContext := env "RUN_CONTEXT"}}
+{{with $dnsDomain := env "DNS_DOMAIN"}}
 {{with $secrets := vault (printf "secret/dsde/bond/%s/config.ini" $environment)}}
 
 [fence]
@@ -16,6 +18,6 @@ USER_NAME_PATH_EXPR=/context/user/name
 FENCE_BASE_URL={{if eq $environment "prod"}}https://nci-crdc.datacommons.io{{else if eq $environment "staging"}}https://nci-crdc-staging.datacommons.io{{else}}https://qa.dcf.planx-pla.net{{end}}
 
 [sam]
-BASE_URL=https://sam.dsde-{{$environment}}.broadinstitute.org
+BASE_URL={{if eq $runContext "fiab"}}https://sam-fiab.{{$dnsDomain}}{{else}}https://sam.dsde-{{$environment}}.broadinstitute.org{{end}}
 
-{{end}}{{end}}
+{{end}}{{end}}{{end}}{{end}}
