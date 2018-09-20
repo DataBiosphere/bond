@@ -55,7 +55,7 @@ docker run -v $PWD:/app \
   -e VAULT_TOKEN=$VAULT_TOKEN \
   -e ENVIRONMENT=$ENVIRONMENT \
   -e RUN_CONTEXT=live \
-  -e DNS_DOMAIN=NULL
+  -e DNS_DOMAIN=NULL \
   broadinstitute/dsde-toolbox render-templates.sh
 
 #deploy the app to the specified project
