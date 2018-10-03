@@ -15,10 +15,12 @@ jobs:
     steps:
       - checkout
 
-      - run: Install virtualenv
+      - run:
+        name: Install virtualenv
+        command: pip install virtualenv
 
       - run:
-          name: Enable virtualenv on project
+          name: Activate virtualenv on project
           command: |
             python2.7 -m virtualenv virtualenv
             . virtualenv/bin/activate
