@@ -15,20 +15,20 @@ jobs:
     steps:
       - checkout
 
-      - run: pip install virtualenv
+      - run: Install virtualenv
 
       - run:
-          name: enable virtualenv on project
+          name: Enable virtualenv on project
           command: |
             python2.7 -m virtualenv virtualenv
             . virtualenv/bin/activate
 
       - run:
-          name: pip install project dependencies
+          name: Install project dependencies
           command: pip install -t lib/ -r requirements.txt
 
       - run:
-          name: run tests
+          name: Run tests
           command: python tests/test_runner.py `gcloud info --format="value(installation.sdk_root)"`
 
   tag:
