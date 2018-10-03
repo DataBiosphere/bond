@@ -7,7 +7,7 @@ jobs:
   test:
     docker:
       # NOTE! When updating the version here, you must ensure that the image has python 2.7
-      - image: google/cloud-sdk:2.18.0.0
+      - image: google/cloud-sdk:218.0.0
 
     environment:
       - PYTHONPATH: /usr/local/google_appengine
