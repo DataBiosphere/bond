@@ -6,19 +6,30 @@ version: 2
 jobs:
   test:
     docker:
-      - image: quay.io/databiosphere/bond-tests:latest
+      # NOTE! When updating the version here, you must ensure that the image has python 2.7
+      - image: google/cloud-sdk:2.18.0.0
 
     environment:
       - PYTHONPATH: /usr/local/google_appengine
 
     steps:
       - checkout
-      - run: # install and activate virtual environment with pip
+
+      - run: pip install virtualenv
+
+      - run:
+          name: enable virtualenv on project
           command: |
             python2.7 -m virtualenv virtualenv
             . virtualenv/bin/activate
-            pip install -t lib/ -r requirements.txt
-            python tests/test_runner.py `gcloud info --format="value(installation.sdk_root)"`
+
+      - run:
+          name: pip install project dependencies
+          command: pip install -t lib/ -r requirements.txt
+
+      - run:
+          name: run tests
+          command: python tests/test_runner.py `gcloud info --format="value(installation.sdk_root)"`
 
   tag:
     docker:
