@@ -16,8 +16,8 @@ jobs:
       - checkout
 
       - run:
-        name: Install virtualenv
-        command: pip install virtualenv
+          name: Install virtualenv
+          command: pip install virtualenv
 
       - run:
           name: Activate virtualenv on project
