@@ -3,15 +3,14 @@ FROM python:2.7.15
 # Prepare the image
 ENV DEBIAN_FRONTEND noninteractive
 RUN apt-get update \
-    && apt-get install -y -qq --no-install-recommends wget unzip build-essential openssh-client python-openssl \
+    && apt-get install -y -qq --no-install-recommends wget tar build-essential openssh-client python-openssl \
     && apt-get clean
 
 # Install the Google Cloud SDK
 ENV HOME /
 ENV CLOUDSDK_PYTHON_SITEPACKAGES 1
-RUN wget https://dl.google.com/dl/cloudsdk/channels/rapid/google-cloud-sdk.zip \
-    && unzip google-cloud-sdk.zip \
-    && rm google-cloud-sdk.zip \
+RUN wget -O google-cloud-sdk.tar.gz https://storage.googleapis.com/cloud-sdk-release/google-cloud-sdk-218.0.0-linux-x86.tar.gz \
+    && tar -xzf google-cloud-sdk.tar.gz \
     && google-cloud-sdk/install.sh \
         --usage-reporting=true --path-update=true --bash-completion=true --rc-path=/.bashrc --additional-components \
         app-engine-python app cloud-datastore-emulator app-engine-python-extras
