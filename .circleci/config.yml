@@ -4,17 +4,9 @@
 #
 version: 2
 jobs:
-  docker-build:
-    docker:
-      - image: google/cloud-sdk:alpine
-    steps:
-      - setup_remote_docker
-      - checkout
-      - run: env | sort
-
   test:
     docker:
-      - image: quay.io/databiosphere/bond:latest
+      - image: google/cloud-sdk:218.0.0
 
     environment:
       - PYTHONPATH: /usr/local/google_appengine
@@ -61,10 +53,7 @@ workflows:
   version: 2
   test-and-tag:
     jobs:
-      - docker-build
-      - test:
-          requires:
-            - docker-build
+      - test
       - tag:
           requires:
             - test
