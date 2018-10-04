@@ -10,11 +10,11 @@ jobs:
     steps:
       - setup_remote_docker
       - checkout
-      - run: docker build -t bond/test -f docker/Dockerfile .
+      - run: env | sort
 
   test:
     docker:
-      - image: bond/test
+      - image: quay.io/databiosphere/bond:latest
 
     environment:
       - PYTHONPATH: /usr/local/google_appengine
