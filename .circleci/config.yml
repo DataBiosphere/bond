@@ -12,6 +12,12 @@ jobs:
       - PYTHONPATH: /usr/local/google_appengine
 
     steps:
+      - run:
+          name: Check Python version
+          command: |
+            export PY_VER=$(python --version)
+            if [[ "$PY_VER" != "Python 2.7.15" ]] ; then exit 1 ; fi
+
       - checkout
 
       - run:
