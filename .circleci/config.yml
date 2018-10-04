@@ -15,8 +15,8 @@ jobs:
       - run:
           name: Check Python version
           command: |
-            export PY_VER=$(python --version)
-            if [[ "$PY_VER" != "Python 2.7.15" ]] ; then exit 1 ; fi
+            export PY_VER=$(python --version 2>&1)
+            if [[ "$PY_VER" != "Python 2.7.15" ]] ; then echo "Python version '$PY_VER' is incorrect" && exit 1 ; fi
 
       - checkout
 
