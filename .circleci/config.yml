@@ -4,10 +4,15 @@
 #
 version: 2
 jobs:
+  docker-build:
+    machine: true
+    steps:
+      - checkout
+      - run: docker build -t databiosphere/bond:build-$CIRCLE_BANCH -f docker/Dockerfile .
+
   test:
     docker:
-      # NOTE! When updating the version here, you must ensure that the image has python 2.7
-      - image: google/cloud-sdk:218.0.0
+      - image: databiosphere/bond:build-$CIRCLE_BANCH
 
     environment:
       - PYTHONPATH: /usr/local/google_appengine
@@ -54,7 +59,10 @@ workflows:
   version: 2
   test-and-tag:
     jobs:
-      - test
+      - docker-build
+      - test:
+          requires:
+            - docker-build
       - tag:
           requires:
             - test
