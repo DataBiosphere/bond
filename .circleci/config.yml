@@ -5,14 +5,16 @@
 version: 2
 jobs:
   docker-build:
-    machine: true
+    docker:
+      - image: google/cloud-sdk:alpine
     steps:
+      - setup_remote_docker
       - checkout
-      - run: docker build -t databiosphere/bond:build-$CIRCLE_BANCH -f docker/Dockerfile .
+      - run: docker build -t bond/test -f docker/Dockerfile .
 
   test:
     docker:
-      - image: databiosphere/bond:build-$CIRCLE_BANCH
+      - image: bond/test
 
     environment:
       - PYTHONPATH: /usr/local/google_appengine
