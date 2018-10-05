@@ -6,19 +6,38 @@ version: 2
 jobs:
   test:
     docker:
-      - image: quay.io/databiosphere/bond-tests:latest
+      - image: google/cloud-sdk:218.0.0
 
     environment:
       - PYTHONPATH: /usr/local/google_appengine
 
     steps:
+      - run:
+          name: Check Python version
+          command: |
+            export VER_REGEX="^Python 2\.7(\.[0-9]+)?$"
+            export PY_VER=$(python --version 2>&1)
+            if ! [[ "$PY_VER" =~ $VER_REGEX ]] ; then echo "$PY_VER is not the expected version" && exit 1 ; fi
+
       - checkout
-      - run: # install and activate virtual environment with pip
+
+      - run:
+          name: Install virtualenv
+          command: pip install virtualenv
+
+      - run:
+          name: Activate virtualenv on project
           command: |
             python2.7 -m virtualenv virtualenv
             . virtualenv/bin/activate
-            pip install -t lib/ -r requirements.txt
-            python tests/test_runner.py `gcloud info --format="value(installation.sdk_root)"`
+
+      - run:
+          name: Install project dependencies
+          command: pip install -t lib/ -r requirements.txt
+
+      - run:
+          name: Run tests
+          command: python tests/test_runner.py `gcloud info --format="value(installation.sdk_root)"`
 
   tag:
     docker:
