@@ -15,8 +15,9 @@ jobs:
       - run:
           name: Check Python version
           command: |
+            export VER_REGEX="^Python 2\.7(\.[0-9]+)?$"
             export PY_VER=$(python --version 2>&1)
-            if ! [[ "$PY_VER" =~ Python\ 2\.7 ]] ; then echo "Python version $PY_VER is incorrect" && exit 1 ; fi
+            if ! [[ "$PY_VER" =~ $VER_REGEX ]] ; then echo "$PY_VER is not the expected version" && exit 1 ; fi
 
       - checkout
 
