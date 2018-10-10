@@ -28,13 +28,16 @@ BOND_IMAGE=quay.io/databiosphere/bond:${GIT_BRANCH}
 #pull the credentials for the service account
 docker run --rm -e VAULT_TOKEN=${VAULT_TOKEN} broadinstitute/dsde-toolbox vault read --format=json "secret/dsde/bond/$ENVIRONMENT/deploy-account.json" | jq .data > deploy_account.json
 
+if [ ! -s deploy_account.json ]; then
+    echo "Failed to create deploy_account.json"
+    exit 1
+fi
+
 #build the docker image so we can deploy
 docker pull ${BOND_IMAGE}
 
 #render the endpoints json and then deploy it
-docker run -v $PWD/startup.sh:/app/startup.sh \
-    -v $PWD/output:/output \
-    -v $PWD/deploy_account.json:/deploy_account.json \
+docker run -v $PWD/deploy_account.json:/app/deploy_account.json \
     -e GOOGLE_PROJECT=${GOOGLE_PROJECT} \
     --entrypoint "/bin/bash" \
     ${BOND_IMAGE} \
@@ -61,10 +64,9 @@ docker run -v $PWD:/app \
   broadinstitute/dsde-toolbox render-templates.sh
 
 #deploy the app to the specified project
-docker run -v $PWD/startup.sh:/app/startup.sh \
-    -v $PWD/app.yaml:/app/app.yaml \
+docker run -v $PWD/app.yaml:/app/app.yaml \
     -v $PWD/config.ini:/app/config.ini \
-    -v $PWD/deploy_account.json:/deploy_account.json \
+    -v $PWD/deploy_account.json:/app/deploy_account.json \
     -e GOOGLE_PROJECT=${GOOGLE_PROJECT} \
     --entrypoint "/bin/bash" \
     ${BOND_IMAGE} \
