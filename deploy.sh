@@ -3,22 +3,22 @@ set -e
 set -x
 
 VAULT_TOKEN=$1
-GIT_BRANCH=$2
+TARGET_ENV=$2
 
 #need to get the environment from the branch name
-if [ "$GIT_BRANCH" == "develop" ]; then
-	ENVIRONMENT="dev"
-elif [ "$GIT_BRANCH" == "alpha" ]; then
-        ENVIRONMENT="alpha"
-elif [ "$GIT_BRANCH" == "perf" ]; then
-	ENVIRONMENT="perf"
-elif [ "$GIT_BRANCH" == "staging" ]; then
-	ENVIRONMENT="staging"
-elif [ "$GIT_BRANCH" == "master" ]; then
-	ENVIRONMENT="prod"
+if [ "$TARGET_ENV" == "dev" ] || [ "$TARGET_ENV" == "develop" ]; then
+    ENVIRONMENT="dev"
+elif [ "$TARGET_ENV" == "alpha" ]; then
+    ENVIRONMENT="alpha"
+elif [ "$TARGET_ENV" == "perf" ]; then
+    ENVIRONMENT="perf"
+elif [ "$TARGET_ENV" == "staging" ]; then
+    ENVIRONMENT="staging"
+elif [ "$TARGET_ENV" == "prod" ] || [ "$TARGET_ENV" == "master" ]; then
+    ENVIRONMENT="prod"
 else
-	echo "Unknown Git branch $GIT_BRANCH"
-	exit 1
+    echo "Unknown environment: $TARGET_ENV - must be one of [dev, alpha, perf, staging, prod]"
+    exit 1
 fi
 
 GOOGLE_PROJECT=broad-bond-$ENVIRONMENT
@@ -39,7 +39,7 @@ docker run -v $PWD/startup.sh:/app/startup.sh \
     -c "gcloud auth activate-service-account --key-file=deploy_account.json; python lib/endpoints/endpointscfg.py get_openapi_spec main.BondApi main.BondStatusApi --hostname $GOOGLE_PROJECT.appspot.com --x-google-api-name; gcloud -q endpoints services deploy linkv1openapi.json statusv1openapi.json --project $GOOGLE_PROJECT"
 
 #SERVICE_VERSION in app.yaml needs to match the output of the curl call below
-export BUILD_TMP="${HOME}/deploy-bond-${GIT_BRANCH}"
+export BUILD_TMP="${HOME}/deploy-bond-${TARGET_ENV}"
 mkdir -p ${BUILD_TMP}
 export CLOUDSDK_CONFIG=${BUILD_TMP}
 
