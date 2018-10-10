@@ -3,7 +3,8 @@ set -e
 set -x
 
 VAULT_TOKEN=$1
-TARGET_ENV=$2
+GIT_BRANCH=$2
+TARGET_ENV=$3
 
 #need to get the environment from the branch name
 if [ "$TARGET_ENV" == "dev" ] || [ "$TARGET_ENV" == "develop" ]; then
@@ -21,21 +22,22 @@ else
     exit 1
 fi
 
-GOOGLE_PROJECT=broad-bond-$ENVIRONMENT
+GOOGLE_PROJECT=broad-bond-${ENVIRONMENT}
+BOND_IMAGE=quay.io/databiosphere/bond:${GIT_BRANCH}
 
 #pull the credentials for the service account
-docker run --rm -e VAULT_TOKEN=$VAULT_TOKEN broadinstitute/dsde-toolbox vault read --format=json "secret/dsde/bond/$ENVIRONMENT/deploy-account.json" | jq .data > deploy_account.json
+docker run --rm -e VAULT_TOKEN=${VAULT_TOKEN} broadinstitute/dsde-toolbox vault read --format=json "secret/dsde/bond/$ENVIRONMENT/deploy-account.json" | jq .data > deploy_account.json
 
 #build the docker image so we can deploy
-docker build -f docker/Dockerfile -t databiosphere/bond:deploy .
+docker pull ${BOND_IMAGE}
 
 #render the endpoints json and then deploy it
 docker run -v $PWD/startup.sh:/app/startup.sh \
     -v $PWD/output:/output \
     -v $PWD/deploy_account.json:/deploy_account.json \
-    -e GOOGLE_PROJECT=$GOOGLE_PROJECT \
+    -e GOOGLE_PROJECT=${GOOGLE_PROJECT} \
     --entrypoint "/bin/bash" \
-    databiosphere/bond:deploy \
+    ${BOND_IMAGE} \
     -c "gcloud auth activate-service-account --key-file=deploy_account.json; python lib/endpoints/endpointscfg.py get_openapi_spec main.BondApi main.BondStatusApi --hostname $GOOGLE_PROJECT.appspot.com --x-google-api-name; gcloud -q endpoints services deploy linkv1openapi.json statusv1openapi.json --project $GOOGLE_PROJECT"
 
 #SERVICE_VERSION in app.yaml needs to match the output of the curl call below
@@ -48,12 +50,12 @@ SERVICE_VERSION=$(curl --silent --header "Authorization: Bearer `gcloud auth pri
 
 #render config.ini and app.yaml for environment with SERVICE_VERSION and GOOGLE_PROJECT
 docker run -v $PWD:/app \
-  -e GOOGLE_PROJ=$GOOGLE_PROJECT \
-  -e SERVICE_VERSION=$SERVICE_VERSION \
+  -e GOOGLE_PROJ=${GOOGLE_PROJECT} \
+  -e SERVICE_VERSION=${SERVICE_VERSION} \
   -e INPUT_PATH=/app \
   -e OUT_PATH=/app \
-  -e VAULT_TOKEN=$VAULT_TOKEN \
-  -e ENVIRONMENT=$ENVIRONMENT \
+  -e VAULT_TOKEN=${VAULT_TOKEN} \
+  -e ENVIRONMENT=${ENVIRONMENT} \
   -e RUN_CONTEXT=live \
   -e DNS_DOMAIN=NULL \
   broadinstitute/dsde-toolbox render-templates.sh
@@ -63,7 +65,7 @@ docker run -v $PWD/startup.sh:/app/startup.sh \
     -v $PWD/app.yaml:/app/app.yaml \
     -v $PWD/config.ini:/app/config.ini \
     -v $PWD/deploy_account.json:/deploy_account.json \
-    -e GOOGLE_PROJECT=$GOOGLE_PROJECT \
+    -e GOOGLE_PROJECT=${GOOGLE_PROJECT} \
     --entrypoint "/bin/bash" \
-    databiosphere/bond:deploy \
-    -c "gcloud auth activate-service-account --key-file=deploy_account.json; gcloud -q app deploy app.yaml --project=$GOOGLE_PROJECT"
+    ${BOND_IMAGE} \
+    -c "gcloud auth activate-service-account --key-file=deploy_account.json; echo 'ALL DONE!'" # gcloud -q app deploy app.yaml --project=$GOOGLE_PROJECT"
