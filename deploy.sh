@@ -68,4 +68,4 @@ docker run -v $PWD/startup.sh:/app/startup.sh \
     -e GOOGLE_PROJECT=${GOOGLE_PROJECT} \
     --entrypoint "/bin/bash" \
     ${BOND_IMAGE} \
-    -c "gcloud auth activate-service-account --key-file=deploy_account.json; echo 'ALL DONE!'" # gcloud -q app deploy app.yaml --project=$GOOGLE_PROJECT"
+    -c "gcloud auth activate-service-account --key-file=deploy_account.json; gcloud -q app deploy app.yaml --project=$GOOGLE_PROJECT"
