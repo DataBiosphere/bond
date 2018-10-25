@@ -34,7 +34,7 @@ project dependencies.  We recommend you setup Virtualenv for development and tes
 of Python installed)
 1. Install virtualenv: `pip install virtualenv`
 1. `cd` to the Bond root directory
-1. Setup virtualenv for Bond: `virtualenv -p python env` 
+1. Set up virtualenv for Bond: `virtualenv -p python env` 
 (**Note**: Ensure that you pass the correct Python 2.7 executable to the [`-p` parameter](https://virtualenv.pypa.io/en/stable/reference/#cmdoption-p)) 
 1. Activate virtualenv: `souce env/bin/activate`
 1. Install project dependencies: `pip install -r requirements.txt -t lib --ignore-installed`
@@ -83,7 +83,7 @@ b) Run your local code:
 # Deployment (for Broad only)
 
 Deployments to non-production and production environments are performed in Jenkins.  In order to access Jenkins, you
-will need to be on the Broad network or logged onto the Broad VPN.
+will need to be on the Broad network or logged on to the Broad VPN.
 
 ## Deploy to the "dev" environment
 
@@ -94,7 +94,7 @@ deployment of the `develop` branch will be triggered if anyone commits or pushes
 
 ## Deploy to non-production environments
 
-1. Log into [Jenkins](https://fc-jenkins.dsp-techops.broadinstitute.org/) 
+1. Log in to [Jenkins](https://fc-jenkins.dsp-techops.broadinstitute.org/) 
 1. Navigate to the [bond-manual-deploy](https://fc-jenkins.dsp-techops.broadinstitute.org/view/Indie%20Deploys/job/bond-manual-deploy/)
    job
 1. In the left menu, click [Build with Parameters](https://fc-jenkins.dsp-techops.broadinstitute.org/view/Indie%20Deploys/job/bond-manual-deploy/build?delay=0sec)
@@ -108,7 +108,7 @@ Production deployments are very similar to deployments for any other environment
 only deploy to Production from the prod Jenkins instance, and you are only allowed to deploy tags, not branches.
 
 1. Create a `git tag` for the commit that you want to release and push it to the [Bond repository on Github](https://github.com/DataBiosphere/bond)
-1. Log into [Prod Jenkins](https://fcprod-jenkins.dsp-techops.broadinstitute.org/)
+1. Log in to [Prod Jenkins](https://fcprod-jenkins.dsp-techops.broadinstitute.org/)
 1. Navigate to the [bond-manual-deploy](https://fcprod-jenkins.dsp-techops.broadinstitute.org/view/Indie%20Deploys/job/bond-manual-deploy/)
    job
 1. In the left menu, click [Build with Parameters](https://fcprod-jenkins.dsp-techops.broadinstitute.org/view/Indie%20Deploys/job/bond-manual-deploy/build?delay=0sec)
