@@ -1,6 +1,6 @@
 google-endpoints==4.6.1
 google-endpoints-api-management==1.11.0
-requests==2.19.1
+requests==2.20.0
 requests-oauthlib==1.0.0
 requests-toolbelt==0.8.0
 pyjwt==1.6.4
