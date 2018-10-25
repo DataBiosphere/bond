@@ -8,8 +8,8 @@ jobs:
     docker:
       - image: google/cloud-sdk:218.0.0
 
-#    environment:
-#      - PYTHONPATH: /usr/local/google_appengine
+    environment:
+      - PYTHONPATH: /usr/local/google_appengine
 
     steps:
       - run:
@@ -38,11 +38,13 @@ jobs:
       - run:
           name: Activate virtualenv, install project dependencies, and run tests
           command: |
-            export PYTHONPATH=${PYTHONPATH}:$(pwd)/lib
-            source virtualenv/bin/activate
-            echo "Using Python: $(which python)"
-            env | sort
-            python -c "import sys; print '\n'.join(sys.path)"
+            source virtualenv/bin/activate && echo ""
+            export PYTHONPATH=${PYTHONPATH}:$(pwd)/lib && echo ""
+            echo "PYTHONPATH=${PYTHONPATH}" && echo ""
+            echo "Using Python: $(which python)" && echo ""
+            echo "Using pip: $(which pip)" && echo ""
+            pip list && echo ""
+            python -c "import sys; print '\n'.join(sys.path)" && echo ""
             python tests/test_runner.py `gcloud info --format="value(installation.sdk_root)"`
 
   tag:
