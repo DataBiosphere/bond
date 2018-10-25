@@ -32,8 +32,10 @@ jobs:
             . virtualenv/bin/activate
 
       - run:
-          name: Install project dependencies
-          command: pip install -t lib -r requirements.txt --ignore-installed
+          name: Install project dependencies and set PYTHONPATH
+          command: |
+            pip install -t lib -r requirements.txt --ignore-installed
+            export PYTHONPATH=$(pwd)/lib
 
       - run:
           name: Run tests
