@@ -1,5 +1,11 @@
-# bond
-Account linking service
+# Bond
+
+Service for linking [Sam](https://github.com/broadinstitute/sam) User accounts with registered 3rd party services via
+Oauth2. Bond is a [Google Endpoints](https://cloud.google.com/endpoints/) application written in Python 2.7.
+
+# Dependencies
+
+In order to run tests or run the local development app server, you need to install Python 2.7, Pip, and [Google Cloud SDK](https://cloud.google.com/sdk/install).
 
 # Running Tests
 
@@ -8,12 +14,34 @@ Bond supports test runners: [unittest](https://docs.python.org/2/library/unittes
 
 ## Unittest
 
-* Determine the path to your Google SDK installation by running: `gcloud info --format="value(installation.sdk_root)"`
-* From the Bond root directory: `python tests/test_runner.py {path-to-google-sdk}`
+There is a custom test runner created following the [gcloud documentation](https://cloud.google.com/appengine/docs/standard/python/tools/localunittesting#Python_Setting_up_a_testing_framework)
+
+To run the tests you need to have the Google SDK installed and you need to pass the installation path to the test runner:
+
+`python tests/test_runner.py $(gcloud info --format="value(installation.sdk_root)")`
 
 ## Nose
 * `pip install nose nosegae nose-exclude`
 * ```nosetests --with-gae --gae-lib-root=`gcloud info --format="value(installation.sdk_root)"`/platform/google_appengine --exclude-dir=lib```
+
+# Virtualenv
+
+[Virtualenv](https://virtualenv.pypa.io/en/stable/) is a tool that helps you manage multiple Python versions and your 
+project dependencies.  We recommend you setup Virtualenv for development and testing of Bond.
+
+1. Verify that you have Python 2.7 installed: `python --version`
+(**Note**: The name of your Python 2.7 command may be something different like `python2` if you have multiple versions 
+of Python installed)
+1. Install virtualenv: `pip install virtualenv`
+1. `cd` to the Bond root directory
+1. Setup virtualenv for Bond: `virtualenv -p python env` 
+(**Note**: Ensure that you pass the correct Python 2.7 executable to the [`-p` parameter](https://virtualenv.pypa.io/en/stable/reference/#cmdoption-p)) 
+1. Activate virtualenv: `souce env/bin/activate`
+1. Install project dependencies: `pip install -r requirements.txt -t lib --ignore-installed`
+
+You may now run tests or run the application server normally.
+
+When you are ready to exit or deactivate your Bond virtualenv, just type the command `deactivate` on your command line.
 
 # Running locally
 
@@ -54,29 +82,40 @@ b) Run your local code:
 
 # Deployment (for Broad only)
 
-`dev` environment (branch: `develop`):
-1) Merge to `develop` branch
-2) Jenkins will kick off a deploy to the `dev` environemnt
-3) CircleCI will run unit tests against `develop`. If tests pass, `develop` will be tagged with the tag name `dev_tests_passed_<TIMESTAMP>`
+Deployments to non-production and production environments are performed in Jenkins.  In order to access Jenkins, you
+will need to be on the Broad network or logged onto the Broad VPN.
 
-`alpha` environment (branch: `alpha`):
-1) Choose the latest tag that you want to release
-2) `get fetch --tags origin`
-3) `git checkout alpha`
-4) `git merge dev_tests_passed_<TIMESTAMP>`
-5) `git checkout -b dev_tests_passed_<TIMESTAMP>_release`
-6) `git push --set-upstream origin dev_tests_passed_<TIMESTAMP>_release`
-7) Open a PR merging your `dev_tests_passed_<TIMESTAMP>_release` branch into the `alpha` branch
-8) Jenkins will kick off a deploy to the `alpha` environemnt
+## Deploy to the "dev" environment
 
+A deployment to `dev` environment will be automatically triggered every time there is a commit or push to the 
+[develop](https://github.com/DataBiosphere/bond/tree/develop) branch on Github.  If you would like to deploy a different 
+branch or tag to the `dev` environment, you can do so by following the instructions below, but be aware that a new
+deployment of the `develop` branch will be triggered if anyone commits or pushes to that branch.
 
-`staging` environment (branch: `staging`):
-1) Open a PR merging your `dev_tests_passed_<TIMESTAMP>_release` branch into the `staging` branch
-2) Jenkins will kick off a deploy to the `staging` environment
+## Deploy to non-production environments
 
-`prod` environment (branch: `master`):
-1) Open a PR merging your `dev_tests_passed_<TIMESTAMP>_release` branch into the `master` branch
-2) Jenkins will kick off a deploy to the `prod` environment
+1. Log into [Jenkins](https://fc-jenkins.dsp-techops.broadinstitute.org/) 
+1. Navigate to the [bond-manual-deploy](https://fc-jenkins.dsp-techops.broadinstitute.org/view/Indie%20Deploys/job/bond-manual-deploy/)
+   job
+1. In the left menu, click [Build with Parameters](https://fc-jenkins.dsp-techops.broadinstitute.org/view/Indie%20Deploys/job/bond-manual-deploy/build?delay=0sec)
+   and select the `BRANCH_OR_TAG` that you want to deploy, the `TARGET` environment to which you want to deploy, and enter
+   the `SLACK_CHANNEL` that you would like to receive notifications of the deploy jobs success/failure  
+1. Click the `Build` button
+
+## Deploy to the "prod" environment
+
+Production deployments are very similar to deployments for any other environment.  The few differences are that you may 
+only deploy to Production from the prod Jenkins instance, and you are only allowed to deploy tags, not branches.
+
+1. Create a `git tag` for the commit that you want to release and push it to the [Bond repository on Github](https://github.com/DataBiosphere/bond)
+1. Log into [Prod Jenkins](https://fcprod-jenkins.dsp-techops.broadinstitute.org/)
+1. Navigate to the [bond-manual-deploy](https://fcprod-jenkins.dsp-techops.broadinstitute.org/view/Indie%20Deploys/job/bond-manual-deploy/)
+   job
+1. In the left menu, click [Build with Parameters](https://fcprod-jenkins.dsp-techops.broadinstitute.org/view/Indie%20Deploys/job/bond-manual-deploy/build?delay=0sec)
+   and select the `TAG` that you want to deploy, select `prod` as the `TARGET` environment to which you want to deploy, 
+   and enter the `SLACK_CHANNEL` that you would like to receive notifications of the deploy 
+   jobs success/failure  
+1. Click the `Build` button
 
 # Git Secrets
 
