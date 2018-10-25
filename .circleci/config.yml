@@ -38,6 +38,7 @@ jobs:
       - run:
           name: Activate virtualenv, install project dependencies, and run tests
           command: |
+            export PYTHONPATH=$PYTHONPATH:$(pwd)/lib
             source virtualenv/bin/activate
             echo "Using Python: $(which python)"
             env | sort
