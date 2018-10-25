@@ -28,7 +28,7 @@ jobs:
       - run:
           name: Activate virtualenv on project
           command: |
-            python2.7 -m virtualenv -p python2.7 virtualenv
+            python -m virtualenv -p python virtualenv
             . virtualenv/bin/activate
 
       - run:
@@ -39,7 +39,11 @@ jobs:
 
       - run:
           name: Run tests
-          command: python tests/test_runner.py `gcloud info --format="value(installation.sdk_root)"`
+          command: |
+            echo "Using Python: $(which python)"
+            env | sort
+            python -c "import sys; print '\n'.join(sys.path)"
+            python tests/test_runner.py `gcloud info --format="value(installation.sdk_root)"`
 
   tag:
     docker:
