@@ -28,12 +28,12 @@ jobs:
       - run:
           name: Activate virtualenv on project
           command: |
-            python2.7 -m virtualenv virtualenv
+            python2.7 -m virtualenv -p python2.7 virtualenv
             . virtualenv/bin/activate
 
       - run:
           name: Install project dependencies
-          command: pip install -t lib/ -r requirements.txt
+          command: pip install -t lib -r requirements.txt --ignore-installed
 
       - run:
           name: Run tests
