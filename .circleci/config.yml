@@ -21,28 +21,24 @@ jobs:
 
       - checkout
 
+      # NOTE: each "run" command is executed in its own shell, so if you want future "run" blocks to execute in a
+      #       virtualenv, you will need to activate virtualenv inside each "run" block
       - run:
-          name: Install virtualenv
-          command: pip install virtualenv
-
-      - run:
-          name: Activate virtualenv on project
+          name: Setup virtualenv
           command: |
+            pip install virtualenv
             python -m virtualenv -p python virtualenv
-            . virtualenv/bin/activate
 
       - run:
-          name: Install project dependencies and set PYTHONPATH
+          name: Install dependencies
           command: |
+            source virtualenv/bin/activate
             pip install -t lib -r requirements.txt --ignore-installed
-            export PYTHONPATH=$(pwd)/lib
 
       - run:
-          name: Run tests
+          name: Activate virtualenv, install project dependencies, and run tests
           command: |
-            echo "Using Python: $(which python)"
-            env | sort
-            python -c "import sys; print '\n'.join(sys.path)"
+            source virtualenv/bin/activate
             python tests/test_runner.py `gcloud info --format="value(installation.sdk_root)"`
 
   tag:
