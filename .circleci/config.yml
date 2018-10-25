@@ -36,15 +36,9 @@ jobs:
             pip install -t lib -r requirements.txt --ignore-installed
 
       - run:
-          name: Activate virtualenv, install project dependencies, and run tests
+          name: Run tests
           command: |
-            source virtualenv/bin/activate && echo ""
-            export PYTHONPATH=${PYTHONPATH}:$(pwd)/lib && echo ""
-            echo "PYTHONPATH=${PYTHONPATH}" && echo ""
-            echo "Using Python: $(which python)" && echo ""
-            echo "Using pip: $(which pip)" && echo ""
-            pip list && echo ""
-            python -c "import sys; print '\n'.join(sys.path)" && echo ""
+            source virtualenv/bin/activate
             python tests/test_runner.py `gcloud info --format="value(installation.sdk_root)"`
 
   tag:
