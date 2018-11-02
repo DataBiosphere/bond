@@ -53,7 +53,7 @@ jobs:
       - run:
           when: on_success
           command: |
-            echo 'export TAG_NAME=dev_tests_passed_$(date +%s)' >> $BASH_ENV
+            echo 'export TAG_NAME=dev_tests_passed_$(date +%b_%d_%Y-%H_%M_%S)' >> $BASH_ENV
             source $BASH_ENV
             git tag $TAG_NAME
             git push origin $TAG_NAME

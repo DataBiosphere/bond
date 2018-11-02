@@ -3,6 +3,7 @@ from requests_oauthlib import OAuth2Session
 from requests_toolbelt.adapters import appengine
 from google.appengine.api import memcache
 from google.appengine.api import urlfetch
+import requests
 import endpoints
 import json
 import base64
@@ -20,6 +21,21 @@ class OauthAdapter:
         self.open_id_config_url = open_id_config_url
         self.basic_auth = HTTPBasicAuth(self.client_id, self.client_secret)
         self.provider_name = provider_name
+
+    def build_authz_url(self, scopes, redirect_uri, state=None):
+        """
+        Builds an OAuth authorization URL that a user must use to initiate the OAuth dance.
+        :param scopes: Array of scopes (0 to many) that the client requires
+        :param redirect_uri: A URL encoded string representing the URI that the Authorizing Service will redirect the
+        user to after the user successfully authorizes this client
+        :param state: A Base64 encoded string representing a JSON object of state information that the requester
+        requires back with the redirect
+        :return: A plain (not URL encoded) String
+        """
+        fence_authorize_url = requests.get(self.open_id_config_url).json()["authorization_endpoint"]
+        oauth = OAuth2Session(self.client_id, redirect_uri=redirect_uri, scope=scopes, state=state)
+        authorization_url, state = oauth.authorization_url(fence_authorize_url)
+        return authorization_url
 
     def exchange_authz_code(self, authz_code, redirect_uri):
         """

@@ -60,13 +60,21 @@ docker run -v $PWD:/app \
   -e VAULT_TOKEN=$(cat ~/.vault-token) \
   -e ENVIRONMENT=dev \
   -e RUN_CONTEXT=local \
-  -e DNS_DOMAIN=local
+  -e DNS_DOMAIN=local \
   broadinstitute/dsde-toolbox render-templates.sh
 ```
   
 For non-Broad, manually edit the config.ini and app.yaml files in the root of the project to use your desired values.
 
-Then choose one of the options below:
+## Run on your local environment
+
+After installing project dependencies and rendering configs, run the following command from the Bond root directory:
+
+```dev_appserver.py .```
+
+## Run in a Docker container
+
+Choose one of the options below:
 
 a) To run an existing image:
 

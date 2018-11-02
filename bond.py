@@ -14,6 +14,18 @@ class Bond:
         self.provider_name = provider_name
         self.user_name_path_expr = user_name_path_expr
 
+    def build_authz_url(self, scopes, redirect_uri, state=None):
+        """
+        Builds an OAuth authorization URL that a user must use to initiate the OAuth dance.
+        :param scopes: Array of scopes (0 to many) that the client requires
+        :param redirect_uri: A URL encoded string representing the URI that the Authorizing Service will redirect the
+        user to after the user successfully authorizes this client
+        :param state: A URL encoded string representing a JSON object of state information that the requester requires
+        back with the redirect
+        :return: A plain (not URL encoded) String
+        """
+        return self.oauth_adapter.build_authz_url(scopes, redirect_uri, state)
+
     def exchange_authz_code(self, authz_code, redirect_uri, user_info):
         """
         Given an authz_code and user information, exchange that code for an OAuth Access Token and Refresh Token.  Store
