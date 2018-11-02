@@ -20,7 +20,7 @@ class Bond:
         :param scopes: Array of scopes (0 to many) that the client requires
         :param redirect_uri: A URL encoded string representing the URI that the Authorizing Service will redirect the
         user to after the user successfully authorizes this client
-        :param state: A URL encoded string representing a JSON object of state information that the requester requires
+        :param state: A URL encoded Base64 string representing a JSON object of state information that the requester requires
         back with the redirect
         :return: A plain (not URL encoded) String
         """
