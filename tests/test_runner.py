@@ -75,7 +75,7 @@ if __name__ == '__main__':
     parser.add_argument(
         '--test-path',
         help='The path to look for tests, defaults to the current directory.',
-        default=os.getcwd())
+        default=os.getcwd() + "/tests/unit")
     parser.add_argument(
         '--test-pattern',
         help='The file pattern for test modules, defaults to *_test.py.',

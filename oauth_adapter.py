@@ -3,7 +3,6 @@ from requests_oauthlib import OAuth2Session
 from requests_toolbelt.adapters import appengine
 from google.appengine.api import memcache
 from google.appengine.api import urlfetch
-import requests
 import endpoints
 import json
 import base64
@@ -102,18 +101,12 @@ class OauthAdapter:
         elif raise_error:
             raise endpoints.InternalServerErrorException(key + " not found in openid config: " + self.open_id_config_url)
 
-    # TODO: refactor to use _get_open_id_config_value
     def _get_token_info_url(self):
-        config = self._get_open_id_config()
-        if "token_endpoint" in config:
-            return self._get_open_id_config()["token_endpoint"]
-        else:
-            raise endpoints.InternalServerErrorException("token_endpoint not found in openid config: " + self.open_id_config_url)
+        return self._get_open_id_config_value("token_endpoint")
 
-    # TODO: refactor to use _get_open_id_config_value
     def _get_revoke_url(self):
-        config = self._get_open_id_config()
-        if "revocation_endpoint" in config:
-            return config["revocation_endpoint"]
+        revocation_endpoint = self._get_open_id_config_value("revocation_endpoint", False)
+        if revocation_endpoint:
+            return revocation_endpoint
         else:
-            return self._get_open_id_config()["token_endpoint"].replace("token", "revoke")
+            return self._get_token_info_url().replace("token", "revoke")
