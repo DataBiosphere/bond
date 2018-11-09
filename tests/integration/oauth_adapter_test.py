@@ -43,7 +43,7 @@ class OauthAdapterTestCase(unittest.TestCase):
         self.assertIsNone(self.oauth_adapter._get_open_id_config_value("something-that-does-not-exist", False))
 
     def test_get_token_info_url(self):
-        self.assertRegexpMatches(self.oauth_adapter._get_token_info_url(), "^http(s)?:\/\/[a-z0-9]+(\.[a-z0-9]+)+")
+        self.assertRegexpMatches(self.oauth_adapter._get_token_info_url(), "^http(s)?:\/\/[a-z0-9_\-]+(\.[a-z0-9_\-]+)+")
 
     def test_get_revoke_url(self):
         self.assertRegexpMatches(self.oauth_adapter._get_revoke_url(), "^http(s)?:\/\/.+?revoke")
