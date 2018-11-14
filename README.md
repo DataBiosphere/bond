@@ -20,6 +20,18 @@ To run the tests you need to have the Google SDK installed and you need to pass 
 
 `python tests/test_runner.py $(gcloud info --format="value(installation.sdk_root)")`
 
+When writing new tests, do not put any tests in the root `tests/` directory.  Instead, write new unit tests in the 
+`tests/unit` directory.
+
+## Integration tests
+
+To run integration tests, provide the `test-path` parameter to with the path to the integration tests:
+
+`python tests/test_runner.py $(gcloud info --format="value(installation.sdk_root)") --test-path=tests/integration`
+
+When writing new tests, do not put any tests in the root `tests/` directory.  Instead, write new integration tests in 
+the `tests/integration` directory.
+
 ## Nose
 * `pip install nose nosegae nose-exclude`
 * ```nosetests --with-gae --gae-lib-root=`gcloud info --format="value(installation.sdk_root)"`/platform/google_appengine --exclude-dir=lib```
@@ -60,13 +72,21 @@ docker run -v $PWD:/app \
   -e VAULT_TOKEN=$(cat ~/.vault-token) \
   -e ENVIRONMENT=dev \
   -e RUN_CONTEXT=local \
-  -e DNS_DOMAIN=local
+  -e DNS_DOMAIN=local \
   broadinstitute/dsde-toolbox render-templates.sh
 ```
   
 For non-Broad, manually edit the config.ini and app.yaml files in the root of the project to use your desired values.
 
-Then choose one of the options below:
+## Run on your local environment
+
+After installing project dependencies and rendering configs, run the following command from the Bond root directory:
+
+```dev_appserver.py .```
+
+## Run in a Docker container
+
+Choose one of the options below:
 
 a) To run an existing image:
 

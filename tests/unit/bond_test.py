@@ -1,24 +1,22 @@
+import json
 import unittest
 import uuid
-import jwt
 from datetime import datetime
-from google.appengine.api import datastore
-from google.appengine.api import memcache
+
+import endpoints
+import jwt
 from google.appengine.ext import ndb
 from google.appengine.ext import testbed
+from mock import MagicMock
 
-from oauth_adapter import OauthAdapter
+from authentication import UserInfo
 from bond import Bond, FenceKeys
-from refresh_token import RefreshToken
+from fence_api import FenceApi
+from fence_token_vending import FenceTokenVendingMachine
+from oauth_adapter import OauthAdapter
 from sam_api import SamApi
 from sam_api import SamKeys
-from fence_api import FenceApi
-from authentication import UserInfo
-from fence_token_vending import FenceTokenVendingMachine, FenceServiceAccount
-from mock import MagicMock
 from token_store import TokenStore
-import json
-import endpoints
 
 provider_name = "test"
 
@@ -45,9 +43,10 @@ class BondTestCase(unittest.TestCase):
                            FenceKeys.EXPIRES_AT_KEY: self.expires_at_epoch}
 
         mock_oauth_adapter = OauthAdapter("foo", "bar", "baz", "qux")
-        mock_oauth_adapter.exchange_authz_code = MagicMock(return_value=fake_token_dict)
-        mock_oauth_adapter.refresh_access_token = MagicMock(return_value=fake_token_dict)
-        mock_oauth_adapter.revoke_refresh_token = MagicMock()
+        mock_oauth_adapter.exchange_authz_code = MagicMock(return_value=fake_token_dict, name="exchange_authz_code")
+        mock_oauth_adapter.refresh_access_token = MagicMock(return_value=fake_token_dict, name="refresh_access_token")
+        mock_oauth_adapter.revoke_refresh_token = MagicMock(name="revoke_refresh_token")
+        mock_oauth_adapter.build_authz_url = MagicMock(name="build_authz_url")
 
         fence_api = self._mock_fence_api(json.dumps({"private_key_id": "asfasdfasdf"}))
         sam_api = self._mock_sam_api(self.user_id, "email")
@@ -130,6 +129,13 @@ class BondTestCase(unittest.TestCase):
     def test_link_info_not_exists(self):
         link_info = self.bond.get_link_info(UserInfo(str(uuid.uuid4()), "", "", 30))
         self.assertIsNone(link_info)
+
+    def test_build_authz_url(self):
+        scopes = ['foo', 'bar']
+        redirect_uri = 'http://anything.url'
+        state = "baz"
+        self.bond.build_authz_url(scopes, redirect_uri, state)
+        self.bond.oauth_adapter.build_authz_url.assert_called_once_with(scopes, redirect_uri, state)
 
     @staticmethod
     def _mock_fence_api(service_account_json):

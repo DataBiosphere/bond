@@ -54,11 +54,21 @@ class StatusResponse(messages.Message):
     subsystems = messages.MessageField(SubSystemStatusResponse, 2, repeated=True)
 
 
+class AuthorizationUrlResponse(messages.Message):
+    url = messages.StringField(1)
+
+
 OAUTH_CODE_RESOURCE = endpoints.ResourceContainer(provider=messages.StringField(1),
                                                   oauthcode=messages.StringField(2, required=True),
                                                   redirect_uri=messages.StringField(3, required=True))
 
-SCOPES_RESOURCE = endpoints.ResourceContainer(provider=messages.StringField(1), scopes=messages.StringField(2, repeated=True))
+SCOPES_RESOURCE = endpoints.ResourceContainer(provider=messages.StringField(1),
+                                              scopes=messages.StringField(2, repeated=True))
+
+AUTHZ_URL_RESOURCE = endpoints.ResourceContainer(provider=messages.StringField(1),
+                                                 scopes=messages.StringField(2, repeated=True),
+                                                 redirect_uri=messages.StringField(3, required=True),
+                                                 state=messages.StringField(4))
 
 PROVIDER_RESOURCE = endpoints.ResourceContainer(provider=messages.StringField(1))
 
@@ -181,6 +191,18 @@ class BondApi(remote.Service):
     def service_account_accesstoken(self, request):
         user_info = self.auth.require_user_info(self.request_state)
         return ServiceAccountAccessTokenResponse(token=self._get_provider(request.provider).fence_tvm.get_service_account_access_token(user_info, request.scopes))
+
+    @endpoints.method(
+        AUTHZ_URL_RESOURCE,
+        AuthorizationUrlResponse,
+        path='{provider}/authorization-url',
+        http_method='GET',
+        name='getAuthorizationUrl')
+    def authorization_url(self, request):
+        authz_url = self._get_provider(request.provider).bond.build_authz_url(request.scopes,
+                                                                         request.redirect_uri,
+                                                                         request.state)
+        return AuthorizationUrlResponse(url=authz_url)
 
 
 @endpoints.api(name='status', version='v1', base_path="/api/")
