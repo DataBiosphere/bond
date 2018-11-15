@@ -37,10 +37,10 @@ class BondTestCase(unittest.TestCase):
 
         data = {"context": {"user": {"name": self.name}}, 'iat': self.issued_at_epoch}
         encoded_jwt = jwt.encode(data, 'secret', 'HS256')
-        fake_token_dict = {FenceKeys.ACCESS_TOKEN_KEY: self.fake_access_token,
-                           FenceKeys.REFRESH_TOKEN_KEY: str(uuid.uuid4()),
+        fake_token_dict = {FenceKeys.ACCESS_TOKEN: self.fake_access_token,
+                           FenceKeys.REFRESH_TOKEN: str(uuid.uuid4()),
                            FenceKeys.ID_TOKEN: encoded_jwt,
-                           FenceKeys.EXPIRES_AT_KEY: self.expires_at_epoch}
+                           FenceKeys.EXPIRES_AT: self.expires_at_epoch}
 
         mock_oauth_adapter = OauthAdapter("foo", "bar", "baz", "qux")
         mock_oauth_adapter.exchange_authz_code = MagicMock(return_value=fake_token_dict, name="exchange_authz_code")
@@ -66,9 +66,9 @@ class BondTestCase(unittest.TestCase):
     def test_exchange_authz_code_missing_token(self):
         data = {"context": {"user": {"name": self.name}}, 'iat': self.issued_at_epoch}
         encoded_jwt = jwt.encode(data, 'secret', 'HS256')
-        fake_token_dict = {FenceKeys.ACCESS_TOKEN_KEY: self.fake_access_token,
+        fake_token_dict = {FenceKeys.ACCESS_TOKEN: self.fake_access_token,
                            FenceKeys.ID_TOKEN: encoded_jwt,
-                           FenceKeys.EXPIRES_AT_KEY: self.expires_at_epoch}
+                           FenceKeys.EXPIRES_AT: self.expires_at_epoch}
 
         mock_oauth_adapter = OauthAdapter("foo", "bar", "baz", "qux")
         mock_oauth_adapter.exchange_authz_code = MagicMock(return_value=fake_token_dict)

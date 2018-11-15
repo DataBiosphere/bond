@@ -7,6 +7,9 @@ import sys
 import time
 
 from google.appengine.ext import testbed
+
+from bond import FenceKeys
+from jwt_token import JwtToken
 from oauth_adapter import OauthAdapter
 
 
@@ -21,14 +24,14 @@ class OauthAdapterTestCase(unittest.TestCase):
         self.tb.init_urlfetch_stub()
 
         self.url_prefix_regex = "^http(s)?:\/\/[a-z0-9_\-]+(\.[a-z0-9_\-]+)+"
-        config = ConfigParser.ConfigParser()
-        config.read("config.ini")
+        self.config = ConfigParser.ConfigParser()
+        self.config.read("config.ini")
         self.oauth_adapters = {}
-        for section in config.sections():
+        for section in self.config.sections():
             if section != "sam":
-                client_id = config.get(section, 'CLIENT_ID')
-                client_secret = config.get(section, 'CLIENT_SECRET')
-                open_id_config_url = config.get(section, 'OPEN_ID_CONFIG_URL')
+                client_id = self.config.get(section, 'CLIENT_ID')
+                client_secret = self.config.get(section, 'CLIENT_SECRET')
+                open_id_config_url = self.config.get(section, 'OPEN_ID_CONFIG_URL')
                 self.oauth_adapters[section] = OauthAdapter(client_id, client_secret, open_id_config_url, section)
 
     def tearDown(self):
@@ -89,18 +92,21 @@ class OauthAdapterTestCase(unittest.TestCase):
         for provider, oauth_adapter in self.oauth_adapters.iteritems():
             authz_url = oauth_adapter.build_authz_url(scopes, redirect_uri, state)
             print('Please go to %s and authorize access for %s.' % (authz_url, provider))
-            print("Please enter the \"code\" parameter from the resulting URL: ")
+            print("Please copy/paste the \"code\" parameter from the resulting URL: ")
             sys.stdout.flush()
             auth_code = sys.stdin.readline().strip()
             authz = oauth_adapter.exchange_authz_code(auth_code, redirect_uri)
 
-            self.assertEqual("Bearer", authz["token_type"], "Token type should be \"Bearer\" for provider: " + provider)
-            self.assertTrue(authz["refresh_token"], "Missing refresh_token for provider: " + provider)
-            self.assertTrue(authz["access_token"], "Missing access_token for provider: " + provider)
-            self.assertTrue(authz["id_token"], "Missing id_token for provider: " + provider)
-            self.assertIs(type(authz["expires_in"]), int)
-            self.assertGreater(authz["expires_in"], 0)
-            self.assertIs(type(authz["expires_at"]), float)
-            self.assertGreater(authz["expires_at"], 0)
-            calculated_expiry = time.time() + authz["expires_in"]
-            self.assertAlmostEqual(authz["expires_at"], calculated_expiry, delta=60)
+            self.assertEqual("Bearer", authz[FenceKeys.TOKEN_TYPE], "Token type should be \"Bearer\" for provider: " + provider)
+            self.assertTrue(authz[FenceKeys.REFRESH_TOKEN], "Missing refresh_token for provider: " + provider)
+            self.assertTrue(authz[FenceKeys.ACCESS_TOKEN], "Missing access_token for provider: " + provider)
+            self.assertTrue(authz[FenceKeys.ID_TOKEN], "Missing id_token for provider: " + provider)
+            jwt_token = JwtToken(authz[FenceKeys.ID_TOKEN], self.config.get(provider, "USER_NAME_PATH_EXPR"))
+            self.assertIsNotNone(jwt_token.username)
+            self.assertIsNotNone(jwt_token.issued_at)
+            self.assertIs(type(authz[FenceKeys.EXPIRES_IN]), int, "Value of expires_in for provider: " + provider + " should be of type: int")
+            self.assertGreater(authz[FenceKeys.EXPIRES_IN], 0, "Value of expires_in for provider: " + provider + " should be greater than 0")
+            self.assertIs(type(authz[FenceKeys.EXPIRES_AT]), float, "Value of expires_at for provider: " + provider + " should be of type: float")
+            self.assertGreater(authz[FenceKeys.EXPIRES_AT], 0, "Value of expires_at for provider: " + provider + " should be greater than 0")
+            calculated_expiry = time.time() + authz[FenceKeys.EXPIRES_IN]
+            self.assertAlmostEqual(authz[FenceKeys.EXPIRES_AT], calculated_expiry, delta=60, msg="Value of expires_at for provider: " + provider + " should be an epoch time in seconds that is within 60 seconds of the current time plus the value of the expires_in field")

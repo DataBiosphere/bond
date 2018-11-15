@@ -111,7 +111,7 @@ class FenceTokenVendingMachine:
         refresh_token = TokenStore.lookup(user_id, self.provider_name)
         if refresh_token is None:
             raise endpoints.BadRequestException("Fence account not linked")
-        access_token = self.fence_oauth_adapter.refresh_access_token(refresh_token.token).get(FenceKeys.ACCESS_TOKEN_KEY)
+        access_token = self.fence_oauth_adapter.refresh_access_token(refresh_token.token).get(FenceKeys.ACCESS_TOKEN)
         return access_token
 
     def _acquire_lock(self, fsa_key):

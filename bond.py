@@ -40,9 +40,9 @@ class Bond:
         token_response = self.oauth_adapter.exchange_authz_code(authz_code, redirect_uri)
         jwt_token = JwtToken(token_response.get(FenceKeys.ID_TOKEN), self.user_name_path_expr)
         user_id = self.sam_api.user_info(user_info.token)[SamKeys.USER_ID_KEY]
-        if FenceKeys.REFRESH_TOKEN_KEY not in token_response:
-            raise endpoints.BadRequestException("authorization response did not include " + FenceKeys.REFRESH_TOKEN_KEY)
-        TokenStore.save(user_id, token_response.get(FenceKeys.REFRESH_TOKEN_KEY), jwt_token.issued_at,
+        if FenceKeys.REFRESH_TOKEN not in token_response:
+            raise endpoints.BadRequestException("authorization response did not include " + FenceKeys.REFRESH_TOKEN)
+        TokenStore.save(user_id, token_response.get(FenceKeys.REFRESH_TOKEN), jwt_token.issued_at,
                         jwt_token.username, self.provider_name)
         return jwt_token.issued_at, jwt_token.username
 
@@ -58,7 +58,7 @@ class Bond:
         refresh_token = TokenStore.lookup(user_id, self.provider_name)
         if refresh_token is not None:
             token_response = self.oauth_adapter.refresh_access_token(refresh_token.token)
-            expires_at = datetime.fromtimestamp(token_response.get(FenceKeys.EXPIRES_AT_KEY))
+            expires_at = datetime.fromtimestamp(token_response.get(FenceKeys.EXPIRES_AT))
             return token_response.get("access_token"), expires_at
         else:
             raise Bond.MissingTokenError("Could not find refresh token for user")
@@ -94,7 +94,9 @@ class FenceKeys:
     """
     Namespaced set of keys expected to be included in a token response from the Fence OAuth provider.
     """
-    REFRESH_TOKEN_KEY = 'refresh_token'
-    EXPIRES_AT_KEY = 'expires_at'
-    ACCESS_TOKEN_KEY = 'access_token'
+    REFRESH_TOKEN = 'refresh_token'
+    EXPIRES_AT = 'expires_at'
+    EXPIRES_IN = 'expires_in'
+    ACCESS_TOKEN = 'access_token'
     ID_TOKEN = 'id_token'
+    TOKEN_TYPE = 'token_type'
