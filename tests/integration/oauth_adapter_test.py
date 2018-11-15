@@ -11,6 +11,7 @@ from google.appengine.ext import testbed
 from bond import FenceKeys
 from jwt_token import JwtToken
 from oauth_adapter import OauthAdapter
+from open_id_config import OpenIdConfig
 
 
 class OauthAdapterTestCase(unittest.TestCase):
@@ -32,7 +33,8 @@ class OauthAdapterTestCase(unittest.TestCase):
                 client_id = self.config.get(section, 'CLIENT_ID')
                 client_secret = self.config.get(section, 'CLIENT_SECRET')
                 open_id_config_url = self.config.get(section, 'OPEN_ID_CONFIG_URL')
-                self.oauth_adapters[section] = OauthAdapter(client_id, client_secret, open_id_config_url, section)
+                open_id_config = OpenIdConfig(section, open_id_config_url)
+                self.oauth_adapters[section] = OauthAdapter(client_id, client_secret, open_id_config, section)
 
     def tearDown(self):
         self.tb.deactivate()
@@ -42,35 +44,13 @@ class OauthAdapterTestCase(unittest.TestCase):
     def param_regex(key, value):
         return "[\?&]" + re.escape(key) + "=" + re.escape(value) + "[&]?"
 
+    def test_adapters_exist(self):
+        self.assertTrue(self.oauth_adapters, "Failed to create OAuth Adapters - nothing to test")
+
     def test_get_open_id_config(self):
         for provider, oauth_adapter in self.oauth_adapters.iteritems():
-            open_id_config = oauth_adapter._get_open_id_config()
+            open_id_config = oauth_adapter.open_id_config.load_dict()
             self.assertIsNotNone(open_id_config, "Expected open_id_config for " + provider + " to not be None")
-
-    def test_get_open_id_config_value(self):
-        for provider, oauth_adapter in self.oauth_adapters.iteritems():
-            key = "scopes_supported"
-            self.assertTrue(len(oauth_adapter._get_open_id_config_value(key)),
-                            "Expected key \"" + key + "\" to be a non-empty array for provider " + provider)
-
-    def test_get_open_id_config_value_missing(self):
-        for provider, oauth_adapter in self.oauth_adapters.iteritems():
-            with self.assertRaises(endpoints.InternalServerErrorException):
-                oauth_adapter._get_open_id_config_value("something-that-does-not-exist")
-
-    def test_get_open_id_config_value_missing_no_exception(self):
-        for provider, oauth_adapter in self.oauth_adapters.iteritems():
-            self.assertIsNone(oauth_adapter._get_open_id_config_value("something-that-does-not-exist", False))
-
-    def test_get_token_info_url(self):
-        for provider, oauth_adapter in self.oauth_adapters.iteritems():
-            token_info_url = oauth_adapter._get_token_info_url()
-            self.assertRegexpMatches(token_info_url, self.url_prefix_regex, "Token Info URL for provider " + provider)
-
-    def test_get_revoke_url(self):
-        url_regex = "^http(s)?:\/\/.+?revoke"
-        for provider, oauth_adapter in self.oauth_adapters.iteritems():
-            self.assertRegexpMatches(oauth_adapter._get_revoke_url(), url_regex, "Revoke URL for provider " + provider)
 
     def test_build_authz_url(self):
         scopes = ["foo", "bar"]
