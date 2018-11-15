@@ -3,6 +3,8 @@ import unittest
 import endpoints
 import re
 import urllib
+import sys
+import time
 
 from google.appengine.ext import testbed
 from oauth_adapter import OauthAdapter
@@ -79,3 +81,26 @@ class OauthAdapterTestCase(unittest.TestCase):
             self.assertRegexpMatches(authz_url, self.param_regex("scope", "+".join(scopes)), msg)
             self.assertRegexpMatches(authz_url, self.param_regex("redirect_uri", urllib.quote_plus(redirect_uri)), msg)
             self.assertRegexpMatches(authz_url, self.param_regex("state", state), msg)
+
+    def test_exchange_authz_code(self):
+        scopes = ['openid', 'google_credentials']
+        redirect_uri = "http://local.broadinstitute.org/#fence-callback"
+        state = "abc123"
+        for provider, oauth_adapter in self.oauth_adapters.iteritems():
+            authz_url = oauth_adapter.build_authz_url(scopes, redirect_uri, state)
+            print('Please go to %s and authorize access for %s.' % (authz_url, provider))
+            print("Please enter the \"code\" parameter from the resulting URL: ")
+            sys.stdout.flush()
+            auth_code = sys.stdin.readline().strip()
+            authz = oauth_adapter.exchange_authz_code(auth_code, redirect_uri)
+
+            self.assertEqual("Bearer", authz["token_type"], "Token type should be \"Bearer\" for provider: " + provider)
+            self.assertTrue(authz["refresh_token"], "Missing refresh_token for provider: " + provider)
+            self.assertTrue(authz["access_token"], "Missing access_token for provider: " + provider)
+            self.assertTrue(authz["id_token"], "Missing id_token for provider: " + provider)
+            self.assertIs(type(authz["expires_in"]), int)
+            self.assertGreater(authz["expires_in"], 0)
+            self.assertIs(type(authz["expires_at"]), float)
+            self.assertGreater(authz["expires_at"], 0)
+            calculated_expiry = time.time() + authz["expires_in"]
+            self.assertAlmostEqual(authz["expires_at"], calculated_expiry, delta=60)
