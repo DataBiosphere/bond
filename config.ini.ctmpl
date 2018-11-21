@@ -17,7 +17,7 @@ CLIENT_ID=ignored
 CLIENT_SECRET=ignored
 OPEN_ID_CONFIG_URL=https://storage.googleapis.com/wb-dev-mock-provider/well-known.json
 USER_NAME_PATH_EXPR=/username
-FENCE_BASE_URL=https://broadinstitute.org
+FENCE_BASE_URL=https://nci-crdc-staging.datacommons.io
 
 {{else}}
 
