@@ -3,6 +3,24 @@
 {{with $dnsDomain := env "DNS_DOMAIN"}}
 {{with $secrets := vault (printf "secret/dsde/bond/%s/config.ini" $environment)}}
 
+{{if eq $runContext "fiab"}}
+
+[fence]
+CLIENT_ID=ignored
+CLIENT_SECRET=ignored
+OPEN_ID_CONFIG_URL=https://storage.googleapis.com/wb-dev-mock-provider/well-known.json
+USER_NAME_PATH_EXPR=/username
+FENCE_BASE_URL=https://us-central1-broad-dsde-dev.cloudfunctions.net
+
+[dcf-fence]
+CLIENT_ID=ignored
+CLIENT_SECRET=ignored
+OPEN_ID_CONFIG_URL=https://storage.googleapis.com/wb-dev-mock-provider/well-known.json
+USER_NAME_PATH_EXPR=/username
+FENCE_BASE_URL=https://us-central1-broad-dsde-dev.cloudfunctions.net
+
+{{else}}
+
 [fence]
 CLIENT_ID={{ $secrets.Data.client_id }}
 CLIENT_SECRET={{ $secrets.Data.client_secret }}
@@ -16,6 +34,8 @@ CLIENT_SECRET={{ $secrets.Data.dcf_fence_client_secret }}
 OPEN_ID_CONFIG_URL={{if eq $environment "prod"}}https://nci-crdc.datacommons.io/user/.well-known/openid-configuration{{else}}https://nci-crdc-staging.datacommons.io/user/.well-known/openid-configuration{{end}}
 USER_NAME_PATH_EXPR=/context/user/name
 FENCE_BASE_URL={{if eq $environment "prod"}}https://nci-crdc.datacommons.io{{else}}https://nci-crdc-staging.datacommons.io{{end}}
+
+{{end}}
 
 [sam]
 BASE_URL={{if eq $runContext "fiab"}}https://sam-fiab.{{$dnsDomain}}{{else}}https://sam.dsde-{{$environment}}.broadinstitute.org{{end}}

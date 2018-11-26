@@ -10,6 +10,7 @@ import authentication
 from bond import Bond
 from fence_token_vending import FenceTokenVendingMachine
 from fence_api import FenceApi
+from open_id_config import OpenIdConfig
 from sam_api import SamApi
 from oauth_adapter import OauthAdapter
 from status import Status
@@ -93,8 +94,9 @@ class BondApi(remote.Service):
             user_name_path_expr = config.get(provider_name, 'USER_NAME_PATH_EXPR')
 
             sam_base_url = config.get('sam', 'BASE_URL')
-    
-            oauth_adapter = OauthAdapter(client_id, client_secret, open_id_config_url, provider_name)
+
+            open_id_config = OpenIdConfig(provider_name, open_id_config_url)
+            oauth_adapter = OauthAdapter(client_id, client_secret, open_id_config, provider_name)
             fence_api = FenceApi(fence_base_url)
             sam_api = SamApi(sam_base_url)
 
