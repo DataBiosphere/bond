@@ -51,7 +51,7 @@ jobs:
           docker_layer_caching: true
 
       - run:
-          name: Build and test docker image
+          name: Build image
           command: |
             docker build -t databiosphere/bond:foo -f docker/Dockerfile .
 
@@ -59,6 +59,11 @@ jobs:
           name: Run functional tests
           command: |
             docker run --entrypoint /bin/bash --workdir "/app" databiosphere/bond:foo -c "./tests/functional_test.sh"
+
+      - run:
+          name: Push image to quay.io
+          command: |
+            echo "TODO: Implement this step!"
 
   tag:
     docker:
@@ -85,6 +90,7 @@ workflows:
       - tag:
           requires:
             - test
+            - build-docker-image
           filters:
             branches:
               only: develop
