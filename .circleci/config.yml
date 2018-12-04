@@ -44,6 +44,7 @@ jobs:
   build-docker-image:
     docker:
       - image: circleci/python:2.7.14
+
     steps:
       - checkout
 
@@ -58,12 +59,26 @@ jobs:
       - run:
           name: Run functional tests
           command: |
-            docker run --entrypoint /bin/bash --workdir "/app" databiosphere/bond:foo -c "./tests/functional_test.sh"
+            docker run --entrypoint /bin/bash --workdir "/app" databiosphere/bond:foobar -c "./tests/functional_test.sh"
 
       - run:
           name: Push image to quay.io
           command: |
             echo "TODO: Implement this step!"
+
+  run-functional-tests:
+    docker:
+      - image: circleci/python:2.7.14
+
+    steps:
+
+#      - setup_remote_docker:
+#          docker_layer_caching: true
+
+      - run:
+          name: Run functional tests
+          command: |
+            docker run --entrypoint /bin/bash --workdir "/app" databiosphere/bond:foobar -c "./tests/functional_test.sh"
 
   tag:
     docker:
@@ -95,3 +110,6 @@ workflows:
             branches:
               only: develop
       - build-docker-image
+      - run-functional-tests:
+          requires:
+            - build-docker-image
