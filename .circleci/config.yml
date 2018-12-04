@@ -68,7 +68,7 @@ jobs:
           name: Push image to quay.io
           command: |
             docker login -u="${QUAY_USER}" -p="${QUAY_USER_PW}" quay.io
-            docker push databiosphere/bond:${CIRCLE_BRANCH}
+            docker push quay.io/databiosphere/bond:${CIRCLE_BRANCH}
 
   tag:
     docker:
