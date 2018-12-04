@@ -42,6 +42,8 @@ jobs:
             python tests/test_runner.py `gcloud info --format="value(installation.sdk_root)"`
 
   build-docker-image:
+    docker:
+      - image: circleci/python:2.7.14
     steps:
       - checkout
       - setup_remote_docker:
