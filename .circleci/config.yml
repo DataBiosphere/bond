@@ -58,7 +58,7 @@ jobs:
       - run:
           name: Run functional tests
           command: |
-            docker run --entrypoint /bin/bash --workdir "/app" databiosphere/bond:foo -c "python tests/test_runner.py /google-cloud-sdk --test-path=tests/integration"
+            docker run --entrypoint /bin/bash --workdir "/app" databiosphere/bond:foo -c "./tests/functional_test.sh"
 
   tag:
     docker:
