@@ -41,6 +41,17 @@ jobs:
             source virtualenv/bin/activate
             python tests/test_runner.py `gcloud info --format="value(installation.sdk_root)"`
 
+  build-docker-image:
+    steps:
+      - checkout
+      - setup_remote_docker:
+          docker_layer_caching: true
+      - run:
+          name: Build and test docker image
+          command: |
+            docker build -t databiosphere/bond:foo -f docker/Dockerfile .
+            docker run --entrypoint /bin/bash --workdir "/app" databiosphere/bond:foo -c "python tests/test_runner.py /google-cloud-sdk --test-path=tests/integration"
+
   tag:
     docker:
       - image: alpine/git
@@ -69,3 +80,4 @@ workflows:
           filters:
             branches:
               only: develop
+      - build-docker-image

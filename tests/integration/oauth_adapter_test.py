@@ -54,7 +54,7 @@ class OauthAdapterTestCase(unittest.TestCase):
             print("Please go to %s to authorize access: %s" % (provider, authz_url))
             print("Please copy/paste the \"code\" parameter from the resulting URL: ")
             sys.stdout.flush()
-            auth_code = sys.stdin.readline().strip()
+            # auth_code = sys.stdin.readline().strip()
             authz_responses[provider] = oauth_adapter.exchange_authz_code(auth_code, redirect_uri)
         local_tb.deactivate()
         return authz_responses
