@@ -54,7 +54,7 @@ jobs:
       - run:
           name: Build image
           command: |
-            docker build -t databiosphere/bond:foo -f docker/Dockerfile .
+            docker build -t databiosphere/bond:foobar -f docker/Dockerfile .
 
       - run:
           name: Run functional tests
