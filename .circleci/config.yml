@@ -47,7 +47,7 @@ jobs:
 
     environment:
       QUAY_USER: databiosphere+bond_circle_bot
-      IMAGE_ID: quay.io/databiosphere/bond:${CIRCLE_BRANCH}
+      IMAGE_NAME: quay.io/databiosphere/bond
 
     steps:
       - checkout
@@ -58,18 +58,18 @@ jobs:
       - run:
           name: Build image
           command: |
-            docker build -t ${IMAGE_ID} -f docker/Dockerfile .
+            docker build -t ${IMAGE_NAME}:${CIRCLE_BRANCH} -f docker/Dockerfile .
 
       - run:
           name: Run functional tests
           command: |
-            docker run --entrypoint /bin/bash --workdir "/app" ${IMAGE_ID} -c "./tests/functional_test.sh"
+            docker run --entrypoint /bin/bash --workdir "/app" ${IMAGE_NAME}:${CIRCLE_BRANCH} -c "./tests/functional_test.sh"
 
       - run:
           name: Push image to quay.io
           command: |
             docker login -u="${QUAY_USER}" -p="${QUAY_USER_PW}" quay.io
-            docker push ${IMAGE_ID}
+            docker push ${IMAGE_NAME}:${CIRCLE_BRANCH}
 
   tag:
     docker:
