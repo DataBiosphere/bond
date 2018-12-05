@@ -59,6 +59,7 @@ jobs:
           name: Build image
           command: |
             docker build -t ${IMAGE_NAME}:${CIRCLE_BRANCH} -f docker/Dockerfile .
+            if [[ ${CIRCLE_BRANCH} == "develop" ]]; then docker tag ${IMAGE_NAME}:${CIRCLE_BRANCH} ${IMAGE_NAME}:latest ; fi
 
       - run:
           name: Run functional tests
@@ -66,10 +67,11 @@ jobs:
             docker run --entrypoint /bin/bash --workdir "/app" ${IMAGE_NAME}:${CIRCLE_BRANCH} -c "./tests/functional_test.sh"
 
       - run:
-          name: Push image to quay.io
+          # By not specifying a tag in the `docker push` command, this will ensure that all tags/images for the ${IMAGE_NAME} will be pushed
+          name: Push image and tags to quay.io
           command: |
             docker login -u="${QUAY_USER}" -p="${QUAY_USER_PW}" quay.io
-            docker push ${IMAGE_NAME}:${CIRCLE_BRANCH}
+            docker push ${IMAGE_NAME}
 
   tag:
     docker:
