@@ -58,7 +58,7 @@ class PublicApiTestCase(BaseApiTestCase):
         self.assertIsNotNone(query_params["state"])
 
 
-class AuthorizedApiTestCase(BaseApiTestCase):
+class AuthorizedBaseCase(BaseApiTestCase):
     """
     Provides UserCredentials objects for obtaining OAuth2 Access Tokens that we can use as bearer tokens during
     tests.
@@ -72,12 +72,12 @@ class AuthorizedApiTestCase(BaseApiTestCase):
     @staticmethod
     def link(token):
         url = BaseApiTestCase.bond_base_url + "/api/link/v1/" + BaseApiTestCase.provider + "/oauthcode?oauthcode=IgnoredByMockProvider&redirect_uri=http%3A%2F%2Flocal.broadinstitute.org%2F%23fence-callback"
-        return requests.post(url, headers=AuthorizedApiTestCase.bearer_token_header(token))
+        return requests.post(url, headers=AuthorizedBaseCase.bearer_token_header(token))
 
     @staticmethod
     def unlink(token):
         url = BaseApiTestCase.bond_base_url + "/api/link/v1/" + BaseApiTestCase.provider
-        return requests.delete(url, headers=AuthorizedApiTestCase.bearer_token_header(token))
+        return requests.delete(url, headers=AuthorizedBaseCase.bearer_token_header(token))
 
     @staticmethod
     def unlink_all(self):
@@ -91,12 +91,16 @@ class AuthorizedApiTestCase(BaseApiTestCase):
         return {"Authorization": "Bearer %s" % token}
 
 
-class UnlinkedUserTestCase(AuthorizedApiTestCase):
-    """Tests APIs that require a bearer token, but the users' accounts are NOT linked in Bond"""
+class AuthorizedUnlinkedUser(AuthorizedBaseCase):
+    """Base class for setting up test cases that need the user to be logged in but not linked in Bond"""
 
     def setUp(self):
         self.token = self.user_credentials[self.hermione_email].get_access_token()
         self.unlink(self.token)
+
+
+class UnlinkedUserTestCase(AuthorizedUnlinkedUser):
+    """Tests APIs that require a bearer token, but the users' accounts are NOT linked in Bond"""
 
     def test_delete_link_for_unlinked_user(self):
         r = self.unlink(self.token)
@@ -107,16 +111,19 @@ class UnlinkedUserTestCase(AuthorizedApiTestCase):
         r = requests.get(url, headers=self.bearer_token_header(self.token))
         self.assertEqual(404, r.status_code)
 
+    def test_get_link_status_for_invalid_provider(self):
+        url = self.bond_base_url + "/api/link/v1/" + "does_not_exist"
+        r = requests.get(url, headers=self.bearer_token_header(self.token))
+        self.assertEqual(404, r.status_code)
+
     def test_get_access_token_for_unlinked_user(self):
         url = self.bond_base_url + "/api/link/v1/" + self.provider + "/accesstoken"
         r = requests.get(url, headers=self.bearer_token_header(self.token))
         self.assertEqual(400, r.status_code)
 
 
-class ExchangeAuthCodeTestCase(UnlinkedUserTestCase):
+class ExchangeAuthCodeTestCase(AuthorizedUnlinkedUser):
     """Tests the Exchange Auth Code API"""
-    def setUp(self):
-        super(ExchangeAuthCodeTestCase, self).setUp()
 
     def test_exchange_auth_code(self):
         url = self.bond_base_url + "/api/link/v1/" + self.provider + "/oauthcode?oauthcode=IgnoredByMockProvider&redirect_uri=http%3A%2F%2Flocal.broadinstitute.org%2F%23fence-callback"
@@ -127,10 +134,13 @@ class ExchangeAuthCodeTestCase(UnlinkedUserTestCase):
         self.assertIsNotNone(response["username"])
 
 
-class ExchangeAuthCodeNegativeTestCase(UnlinkedUserTestCase):
+class ExchangeAuthCodeNegativeTestCase(AuthorizedUnlinkedUser):
     """
-    Separate class for testing negative test cases that avoids setUp and tearDown that links and unlinks users.
+    Negative test cases that avoids setUp and tearDown that links and unlinks users.
     The process of linking and unlinking slows things down, so these tests are extracted to be on their own.
+
+    Note:  We cannot test an "invalid" oauthcode in these tests because the mock provider does not verification of the
+    oauthcode, it only checks that it is present.
     """
     def test_exchange_auth_code_without_authz_header(self):
         url = self.bond_base_url + "/api/link/v1/" + self.provider + "/oauthcode?oauthcode=IgnoredByMockProvider&redirect_uri=http%3A%2F%2Flocal.broadinstitute.org%2F%23fence-callback"
@@ -148,7 +158,7 @@ class ExchangeAuthCodeNegativeTestCase(UnlinkedUserTestCase):
         self.assertEqual(400, r.status_code)
 
 
-class LinkedUserTestCase(AuthorizedApiTestCase):
+class LinkedUserTestCase(AuthorizedBaseCase):
     """Tests that require the user account to be linked as a precondition to the test"""
 
     @classmethod
@@ -173,8 +183,35 @@ class LinkedUserTestCase(AuthorizedApiTestCase):
         self.assertIsNotNone(response["expires_at"])
         self.assertIsNotNone(response["token"])
 
+    def test_get_serviceaccount_key(self):
+        url = self.bond_base_url + "/api/link/v1/" + self.provider + "/serviceaccount/key"
+        r = requests.get(url, headers=self.bearer_token_header(LinkedUserTestCase.token))
+        self.assertEqual(200, r.status_code)
+        response = json.loads(r.text)
+        # We could assert that more elements are present here in the result, but we're basically just verifying the
+        # structure of a Google Service Account Key, which is probably not something we should test here
+        self.assertIsNotNone(response["data"]["private_key"])
+        self.assertEqual("service_account", response["data"]["type"])
 
-class UserCredentialsTestCase(AuthorizedApiTestCase):
+
+class UnlinkLinkedUserTestCase(AuthorizedBaseCase):
+    """Tests the unlink functionality when a user is already linked"""
+
+    def setUp(self):
+        self.token = self.user_credentials[self.hermione_email].get_access_token()
+        self.link(self.token)
+
+    def test_delete_link_for_linked_user(self):
+        r = self.unlink(self.token)
+        self.assertEqual(204, r.status_code)
+
+    def test_delete_link_for_invalid_provider(self):
+        url = BaseApiTestCase.bond_base_url + "/api/link/v1/" + "some-made-up-provider"
+        r = requests.delete(url, headers=AuthorizedBaseCase.bearer_token_header(self.token))
+        self.assertEqual(404, r.status_code)
+
+
+class UserCredentialsTestCase(AuthorizedBaseCase):
     """
     Tests to confirm that we're able to use the provided service account key to assume generate access tokens for
     test users
@@ -183,7 +220,7 @@ class UserCredentialsTestCase(AuthorizedApiTestCase):
         self.token = UserCredentials("hermione.owner@test.firecloud.org", "key.json").get_access_token()
 
     def test_token(self):
-        self.assertEqual(len(self.token), 185)
+        self.assertAlmostEqual(len(self.token), 185, delta=3)
 
     def test_user_info_for_delegated_user(self):
         r = requests.get("https://www.googleapis.com/oauth2/v1/userinfo?alt=json",
