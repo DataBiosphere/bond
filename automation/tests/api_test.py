@@ -65,7 +65,7 @@ class AuthorizedBaseCase(BaseApiTestCase):
     """
     hermione_email = "hermione.owner@test.firecloud.org"
     harry_email = "harry.potter@test.firecloud.org"
-    path_to_key_file = "key.json"
+    path_to_key_file = "automation/firecloud-account.pem"
     user_credentials = {hermione_email: UserCredentials(hermione_email, path_to_key_file),
                         harry_email: UserCredentials(harry_email, path_to_key_file)}
 
@@ -217,7 +217,7 @@ class UserCredentialsTestCase(AuthorizedBaseCase):
     test users
     """
     def setUp(self):
-        self.token = UserCredentials("hermione.owner@test.firecloud.org", "key.json").get_access_token()
+        self.token = UserCredentials("hermione.owner@test.firecloud.org", "automation/firecloud-account.pem").get_access_token()
 
     def test_token(self):
         self.assertAlmostEqual(len(self.token), 185, delta=3)
