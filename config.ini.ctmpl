@@ -3,7 +3,7 @@
 {{with $dnsDomain := env "DNS_DOMAIN"}}
 {{with $secrets := vault (printf "secret/dsde/bond/%s/config.ini" $environment)}}
 
-{{if eq $runContext "fiab"}}
+{{if or (eq $runContext "fiab") (eq $environment "dev")}}
 
 [fence]
 CLIENT_ID=ignored
