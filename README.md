@@ -152,3 +152,4 @@ git secrets --add --allowed 'REPLACE_ME'
 git secrets --add --allowed '\{\{ \$fenceSecrets\.Data\.client_id \}\}'
 git secrets --add --allowed '\{\{ \$fenceSecrets\.Data\.client_secret \}\}'
 ```
+
