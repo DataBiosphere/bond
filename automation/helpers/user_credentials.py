@@ -5,7 +5,10 @@ import google.auth.transport.requests
 class UserCredentials:
     default_scopes = ['profile',
                       'email',
-                      'openid']
+                      'openid',
+                      'https://www.googleapis.com/auth/devstorage.full_control',
+                      'https://www.googleapis.com/auth/cloud-platform',
+                      'https://www.googleapis.com/auth/userinfo.profile']
 
     def __init__(self, user_email, path_to_key_file, scopes=None):
         if scopes is None:

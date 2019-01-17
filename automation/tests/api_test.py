@@ -7,8 +7,10 @@ from automation.helpers.user_credentials import UserCredentials
 
 
 class BaseApiTestCase(unittest.TestCase):
-    bond_base_url = "https://bond-fiab.dsde-%s.broadinstitute.org:31443" % os.getenv("ENV", "dev")
+    env = os.getenv("ENV", "dev")
+    bond_base_url = "https://bond-fiab.dsde-%s.broadinstitute.org:31443" % env
     provider = "fence"
+    email_domain = "quality.firecloud.org" if (env == "qa") else "test.firecloud.org"
 
 
 class PublicApiTestCase(BaseApiTestCase):
@@ -64,8 +66,8 @@ class AuthorizedBaseCase(BaseApiTestCase):
     Provides UserCredentials objects for obtaining OAuth2 Access Tokens that we can use as bearer tokens during
     tests.
     """
-    hermione_email = "hermione.owner@test.firecloud.org"
-    harry_email = "harry.potter@test.firecloud.org"
+    hermione_email = "hermione.owner@%s" % BaseApiTestCase.email_domain
+    harry_email = "harry.potter@%s" % BaseApiTestCase.email_domain
     path_to_key_file = "automation/firecloud-account.json"
     user_credentials = {hermione_email: UserCredentials(hermione_email, path_to_key_file),
                         harry_email: UserCredentials(harry_email, path_to_key_file)}
@@ -218,7 +220,7 @@ class UserCredentialsTestCase(AuthorizedBaseCase):
     test users
     """
     def setUp(self):
-        self.token = UserCredentials("hermione.owner@test.firecloud.org", "automation/firecloud-account.json").get_access_token()
+        self.token = UserCredentials(AuthorizedBaseCase.hermione_email, "automation/firecloud-account.json").get_access_token()
 
     def test_token(self):
         self.assertGreaterEqual(len(self.token), 100)
