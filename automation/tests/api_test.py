@@ -2,11 +2,12 @@ import json
 import unittest
 import requests
 import urlparse
+import os
 from automation.helpers.user_credentials import UserCredentials
 
 
 class BaseApiTestCase(unittest.TestCase):
-    bond_base_url = "https://bond-fiab.dsde-dev.broadinstitute.org:31443"
+    bond_base_url = os.getenv("BOND_BASE_URL", "https://bond-fiab.dsde-dev.broadinstitute.org:31443")
     provider = "fence"
 
 
