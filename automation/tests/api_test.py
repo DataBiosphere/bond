@@ -7,7 +7,7 @@ from automation.helpers.user_credentials import UserCredentials
 
 
 class BaseApiTestCase(unittest.TestCase):
-    bond_base_url = os.getenv("BOND_BASE_URL", "https://bond-fiab.dsde-dev.broadinstitute.org:31443")
+    bond_base_url = "https://bond-fiab.dsde-%s.broadinstitute.org:31443" % os.getenv("ENV", "dev")
     provider = "fence"
 
 
