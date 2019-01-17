@@ -221,7 +221,7 @@ class UserCredentialsTestCase(AuthorizedBaseCase):
         self.token = UserCredentials("hermione.owner@test.firecloud.org", "automation/firecloud-account.json").get_access_token()
 
     def test_token(self):
-        self.assertAlmostEqual(len(self.token), 185, delta=3)
+        self.assertGreaterEqual(len(self.token), 100)
 
     def test_user_info_for_delegated_user(self):
         r = requests.get("https://www.googleapis.com/oauth2/v1/userinfo?alt=json",
