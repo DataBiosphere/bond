@@ -1,7 +1,7 @@
 {{with $environment := env "ENVIRONMENT"}}
 {{with $runContext := env "RUN_CONTEXT"}}
 {{with $dnsDomain := env "DNS_DOMAIN"}}
-{{with $secrets := vault (printf "secret/dsde/bond/%s/config.ini" $environment)}}
+{{with $secrets := secret (printf "secret/dsde/bond/%s/config.ini" $environment)}}
 
 {{if or (eq $runContext "fiab") (eq $environment "dev")}}
 

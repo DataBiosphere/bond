@@ -1,5 +1,5 @@
 {{with $environment := env "ENVIRONMENT"}}
-{{with $commonSecrets := vault (printf "secret/dsde/firecloud/common/oauth_client_id")}}
+{{with $commonSecrets := secret (printf "secret/dsde/firecloud/common/oauth_client_id")}}
 {{with $googleProject := env "GOOGLE_PROJ"}}
 
 runtime: python27
