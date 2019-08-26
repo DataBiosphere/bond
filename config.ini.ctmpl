@@ -15,9 +15,9 @@ FENCE_BASE_URL=https://us-central1-broad-dsde-dev.cloudfunctions.net
 [dcf-fence]
 CLIENT_ID=ignored
 CLIENT_SECRET=ignored
-OPEN_ID_CONFIG_URL=https://storage.googleapis.com/wb-dev-mock-provider/well-known.json
+OPEN_ID_CONFIG_URL=https://staging.datastage.io/user/.well-known/openid-configuration
 USER_NAME_PATH_EXPR=/username
-FENCE_BASE_URL=https://us-central1-broad-dsde-dev.cloudfunctions.net
+FENCE_BASE_URL=https://staging.datastage.io/
 
 {{else}}
 
