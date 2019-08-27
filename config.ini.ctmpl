@@ -26,7 +26,7 @@ FENCE_BASE_URL=https://us-central1-broad-dsde-dev.cloudfunctions.net
 CLIENT_ID=ignored
 CLIENT_SECRET=ignored
 OPEN_ID_CONFIG_URL=https://storage.googleapis.com/wb-dev-mock-provider/well-known.json
-USER_NAME_PATH_EXPR=/context/user/name
+USER_NAME_PATH_EXPR=/username
 FENCE_BASE_URL=https://us-central1-broad-dsde-dev.cloudfunctions.net
 
 [dcf-fence]
