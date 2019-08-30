@@ -24,9 +24,9 @@ FENCE_BASE_URL=https://us-central1-broad-dsde-dev.cloudfunctions.net
 [fence]
 CLIENT_ID={{ $secrets.Data.client_id }}
 CLIENT_SECRET={{ $secrets.Data.client_secret }}
-OPEN_ID_CONFIG_URL=https://datastage.io/user/.well-known/openid-configuration
+OPEN_ID_CONFIG_URL=https://dcp.bionimbus.org/user/.well-known/openid-configuration
 USER_NAME_PATH_EXPR=/context/user/name
-FENCE_BASE_URL=https://datastage.io
+FENCE_BASE_URL=https://dcp.bionimbus.org
 
 [dcf-fence]
 CLIENT_ID={{ $secrets.Data.dcf_fence_client_id }}
