@@ -131,7 +131,7 @@ class ExchangeAuthCodeTestCase(AuthorizedUnlinkedUser):
     def test_exchange_auth_code(self):
         url = self.bond_base_url + "/api/link/v1/" + self.provider + "/oauthcode?oauthcode=IgnoredByMockProvider&redirect_uri=http%3A%2F%2Flocal.broadinstitute.org%2F%23fence-callback"
         r = requests.post(url, headers=self.bearer_token_header(self.token))
-        self.assertEqual(200, r.status_code)
+        self.assertEqual(200, r.status_code, "Response code was not 200.  Response Body: %s" % r.text)
         response = json.loads(r.text)
         self.assertIsNotNone(response["issued_at"])
         self.assertIsNotNone(response["username"])
@@ -176,12 +176,12 @@ class LinkedUserTestCase(AuthorizedBaseCase):
     def test_get_link_status(self):
         url = self.bond_base_url + "/api/link/v1/" + self.provider
         r = requests.get(url, headers=self.bearer_token_header(LinkedUserTestCase.token))
-        self.assertEqual(200, r.status_code)
+        self.assertEqual(200, r.status_code, "Response code was not 200.  Response Body: %s" % r.text)
 
     def test_get_access_token(self):
         url = self.bond_base_url + "/api/link/v1/" + self.provider + "/accesstoken"
         r = requests.get(url, headers=self.bearer_token_header(LinkedUserTestCase.token))
-        self.assertEqual(200, r.status_code)
+        self.assertEqual(200, r.status_code, "Response code was not 200.  Response Body: %s" % r.text)
         response = json.loads(r.text)
         self.assertIsNotNone(response["expires_at"])
         self.assertIsNotNone(response["token"])
@@ -189,7 +189,7 @@ class LinkedUserTestCase(AuthorizedBaseCase):
     def test_get_serviceaccount_key(self):
         url = self.bond_base_url + "/api/link/v1/" + self.provider + "/serviceaccount/key"
         r = requests.get(url, headers=self.bearer_token_header(LinkedUserTestCase.token))
-        self.assertEqual(200, r.status_code)
+        self.assertEqual(200, r.status_code, "Response code was not 200.  Response Body: %s" % r.text)
         response = json.loads(r.text)
         # We could assert that more elements are present here in the result, but we're basically just verifying the
         # structure of a Google Service Account Key, which is probably not something we should test here
