@@ -20,31 +20,13 @@ OPEN_ID_CONFIG_URL=https://storage.googleapis.com/wb-dev-mock-provider/well-know
 USER_NAME_PATH_EXPR=/username
 FENCE_BASE_URL=https://us-central1-broad-dsde-dev.cloudfunctions.net
 
-{{else if eq $environment "dev"}}
-# dev configs may point to dev instances
-[fence]
-CLIENT_ID=ignored
-CLIENT_SECRET=ignored
-OPEN_ID_CONFIG_URL=https://storage.googleapis.com/wb-dev-mock-provider/well-known.json
-USER_NAME_PATH_EXPR=/username
-FENCE_BASE_URL=https://us-central1-broad-dsde-dev.cloudfunctions.net
-
-[dcf-fence]
-CLIENT_ID={{ $secrets.Data.dcf_fence_client_id }}
-CLIENT_SECRET={{ $secrets.Data.dcf_fence_client_secret }}
-OPEN_ID_CONFIG_URL=https://staging.datastage.io/user/.well-known/openid-configuration
-USER_NAME_PATH_EXPR=/context/user/name
-FENCE_BASE_URL=https://staging.datastage.io/
-
-{{else}}
-# other things point to real productiony instances
-
+{{else if eq $environment "prod"}}
 [fence]
 CLIENT_ID={{ $secrets.Data.client_id }}
 CLIENT_SECRET={{ $secrets.Data.client_secret }}
-OPEN_ID_CONFIG_URL=https://dcp.bionimbus.org/user/.well-known/openid-configuration
+OPEN_ID_CONFIG_URL=https://datastage.io/user/.well-known/openid-configuration
 USER_NAME_PATH_EXPR=/context/user/name
-FENCE_BASE_URL=https://dcp.bionimbus.org
+FENCE_BASE_URL=https://datastage.io
 
 [dcf-fence]
 CLIENT_ID={{ $secrets.Data.dcf_fence_client_id }}
@@ -52,6 +34,22 @@ CLIENT_SECRET={{ $secrets.Data.dcf_fence_client_secret }}
 OPEN_ID_CONFIG_URL=https://nci-crdc.datacommons.io/user/.well-known/openid-configuration
 USER_NAME_PATH_EXPR=/context/user/name
 FENCE_BASE_URL=https://nci-crdc.datacommons.io
+
+{{else}}
+# Non-production environments
+[fence]
+CLIENT_ID={{ $secrets.Data.client_id }}
+CLIENT_SECRET={{ $secrets.Data.client_secret }}
+OPEN_ID_CONFIG_URL=https://staging.datastage.io/user/.well-known/openid-configuration
+USER_NAME_PATH_EXPR=/context/user/name
+FENCE_BASE_URL=https://staging.datastage.io
+
+[dcf-fence]
+CLIENT_ID={{ $secrets.Data.dcf_fence_client_id }}
+CLIENT_SECRET={{ $secrets.Data.dcf_fence_client_secret }}
+OPEN_ID_CONFIG_URL=https://nci-crdc-staging.datacommons.io/user/.well-known/openid-configuration
+USER_NAME_PATH_EXPR=/context/user/name
+FENCE_BASE_URL=https://nci-crdc-staging.datacommons.io
 
 {{end}}
 
