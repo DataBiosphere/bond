@@ -14,11 +14,11 @@ USER_NAME_PATH_EXPR=/username
 FENCE_BASE_URL=https://us-central1-broad-dsde-dev.cloudfunctions.net
 
 [dcf-fence]
-CLIENT_ID={{ $secrets.Data.dcf_fence_client_id }}
-CLIENT_SECRET={{ $secrets.Data.dcf_fence_client_secret }}
-OPEN_ID_CONFIG_URL=https://staging.datastage.io/user/.well-known/openid-configuration
-USER_NAME_PATH_EXPR=/context/user/name
-FENCE_BASE_URL=https://staging.datastage.io/
+CLIENT_ID=ignored
+CLIENT_SECRET=ignored
+OPEN_ID_CONFIG_URL=https://storage.googleapis.com/wb-dev-mock-provider/well-known.json
+USER_NAME_PATH_EXPR=/username
+FENCE_BASE_URL=https://us-central1-broad-dsde-dev.cloudfunctions.net
 
 {{else if eq $environment "dev"}}
 # dev configs may point to dev instances
