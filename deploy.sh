@@ -65,6 +65,8 @@ export CLOUDSDK_CONFIG=${BUILD_TMP}
 gcloud auth activate-service-account --key-file=deploy_account.json
 SERVICE_VERSION=$(curl --silent --header "Authorization: Bearer `gcloud auth print-access-token`" https://servicemanagement.googleapis.com/v1/services/$GOOGLE_PROJECT.appspot.com/config | jq --raw-output .id)
 
+export DSDE_TOOLBOX_DOCKER_IMG=broadinstitute/dsde-toolbox:consul-0.20.0
+docker pull $DSDE_TOOLBOX_DOCKER_IMG
 #render config.ini and app.yaml for environment with SERVICE_VERSION and GOOGLE_PROJECT
 docker run -v $PWD:/app \
   -e GOOGLE_PROJ=${GOOGLE_PROJECT} \
@@ -75,7 +77,7 @@ docker run -v $PWD:/app \
   -e ENVIRONMENT=${ENVIRONMENT} \
   -e RUN_CONTEXT=live \
   -e DNS_DOMAIN=NULL \
-  broadinstitute/dsde-toolbox render-templates.sh
+  $DSDE_TOOLBOX_DOCKER_IMG render-templates.sh
 
 #deploy the app to the specified project
 docker run -v $PWD/app.yaml:/app/app.yaml \
