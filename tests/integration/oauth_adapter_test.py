@@ -50,8 +50,12 @@ class OauthAdapterTestCase(unittest.TestCase):
         state = "abc123"
         authz_responses = {}
         for provider, oauth_adapter in oauth_adapters.iteritems():
-            authz_url = oauth_adapter.build_authz_url(scopes, redirect_uri, state)
+            authz_url = oauth_adapter.build_authz_url(scopes,
+                                                      redirect_uri,
+                                                      state,
+                                                      extra_authz_url_params={"foo": "bar"})
             print("Please go to %s to authorize access: %s" % (provider, authz_url))
+            print("YOU WILL BE REDIRECTED TO %s WHICH WILL PROBABLY UNREACHABLE -- THIS IS EXPECTED!" % redirect_uri)
             print("Please copy/paste the \"code\" parameter from the resulting URL: ")
             sys.stdout.flush()
             # auth_code = sys.stdin.readline().strip()

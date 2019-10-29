@@ -19,7 +19,7 @@ class OauthAdapter:
         self.basic_auth = HTTPBasicAuth(self.client_id, self.client_secret)
         self.provider_name = provider_name
 
-    def build_authz_url(self, scopes, redirect_uri, state=None):
+    def build_authz_url(self, scopes, redirect_uri, state=None, extra_authz_url_params={}):
         """
         Builds an OAuth authorization URL that a user must use to initiate the OAuth dance.
         :param scopes: Array of scopes (0 to many) that the client requires
@@ -27,11 +27,13 @@ class OauthAdapter:
         user to after the user successfully authorizes this client
         :param state: A URL encoded Base64 string representing a JSON object of state information that the requester
         requires back with the redirect
+        :param extra_authz_url_params: Optional list of additional url query parameters we want appended to the
+        resulting authz url
         :return: A plain (not URL encoded) String
         """
         authz_endpoint = self.open_id_config.get_config_value("authorization_endpoint")
         oauth = OAuth2Session(self.client_id, redirect_uri=redirect_uri, scope=scopes, state=state)
-        authorization_url, state = oauth.authorization_url(authz_endpoint)
+        authorization_url, state = oauth.authorization_url(authz_endpoint, **extra_authz_url_params)
         return authorization_url
 
     def exchange_authz_code(self, authz_code, redirect_uri):

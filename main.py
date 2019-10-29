@@ -15,6 +15,7 @@ from sam_api import SamApi
 from oauth_adapter import OauthAdapter
 from status import Status
 import json
+import ast
 from status import Subsystems
 
 
@@ -95,13 +96,25 @@ class BondApi(remote.Service):
 
             sam_base_url = config.get('sam', 'BASE_URL')
 
+            extra_authz_url_params = {}
+            extra_params_key = 'EXTRA_AUTHZ_URL_PARAMS'
+            if config.has_option(provider_name, extra_params_key):
+                extra_params_raw = config.get(provider_name, extra_params_key)
+                extra_authz_url_params = ast.literal_eval(extra_params_raw)
+
             open_id_config = OpenIdConfig(provider_name, open_id_config_url)
             oauth_adapter = OauthAdapter(client_id, client_secret, open_id_config, provider_name)
             fence_api = FenceApi(fence_base_url)
             sam_api = SamApi(sam_base_url)
 
             fence_tvm = FenceTokenVendingMachine(fence_api, sam_api, oauth_adapter, provider_name)
-            return BondProvider(fence_tvm, Bond(oauth_adapter, fence_api, sam_api, fence_tvm, provider_name, user_name_path_expr))
+            return BondProvider(fence_tvm, Bond(oauth_adapter,
+                                                fence_api,
+                                                sam_api,
+                                                fence_tvm,
+                                                provider_name,
+                                                user_name_path_expr,
+                                                extra_authz_url_params))
 
         self.providers = {provider_name: create_provider(provider_name) 
                           for provider_name in config.sections() if provider_name != 'sam'}

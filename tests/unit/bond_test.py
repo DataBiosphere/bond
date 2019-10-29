@@ -50,9 +50,13 @@ class BondTestCase(unittest.TestCase):
 
         fence_api = self._mock_fence_api(json.dumps({"private_key_id": "asfasdfasdf"}))
         sam_api = self._mock_sam_api(self.user_id, "email")
-        self.bond = Bond(mock_oauth_adapter, fence_api, sam_api,
+        self.bond = Bond(mock_oauth_adapter,
+                         fence_api,
+                         sam_api,
                          FenceTokenVendingMachine(fence_api, sam_api, mock_oauth_adapter, provider_name),
-                         provider_name, "/context/user/name")
+                         provider_name,
+                         "/context/user/name",
+                         {})
 
     def tearDown(self):
         ndb.get_context().clear_cache()  # Ensure data is truly flushed from datastore/memcache
@@ -77,9 +81,13 @@ class BondTestCase(unittest.TestCase):
 
         fence_api = self._mock_fence_api(json.dumps({"private_key_id": "asfasdfasdf"}))
         sam_api = self._mock_sam_api(self.user_id, "email")
-        bond = Bond(mock_oauth_adapter, fence_api, sam_api,
-                         FenceTokenVendingMachine(fence_api, sam_api, mock_oauth_adapter, provider_name),
-                         provider_name, "/context/user/name")
+        bond = Bond(mock_oauth_adapter,
+                    fence_api,
+                    sam_api,
+                    FenceTokenVendingMachine(fence_api, sam_api, mock_oauth_adapter, provider_name),
+                    provider_name,
+                    "/context/user/name",
+                    {})
 
         with self.assertRaises(endpoints.BadRequestException):
             bond.exchange_authz_code("irrelevantString", "redirect", UserInfo(str(uuid.uuid4()), "", "", 30))
@@ -130,12 +138,21 @@ class BondTestCase(unittest.TestCase):
         link_info = self.bond.get_link_info(UserInfo(str(uuid.uuid4()), "", "", 30))
         self.assertIsNone(link_info)
 
-    def test_build_authz_url(self):
+    def test_build_authz_url_without_extra_params(self):
         scopes = ['foo', 'bar']
         redirect_uri = 'http://anything.url'
         state = "baz"
         self.bond.build_authz_url(scopes, redirect_uri, state)
-        self.bond.oauth_adapter.build_authz_url.assert_called_once_with(scopes, redirect_uri, state)
+        self.bond.oauth_adapter.build_authz_url.assert_called_once_with(scopes, redirect_uri, state, {})
+
+    def test_build_authz_url_with_extra_params(self):
+        scopes = ['foo', 'bar']
+        redirect_uri = 'http://anything.url'
+        state = "baz"
+        extra_params = {"bar": "foo"}
+        self.bond.extra_authz_url_params = extra_params
+        self.bond.build_authz_url(scopes, redirect_uri, state)
+        self.bond.oauth_adapter.build_authz_url.assert_called_once_with(scopes, redirect_uri, state, extra_params)
 
     @staticmethod
     def _mock_fence_api(service_account_json):
