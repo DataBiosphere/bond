@@ -27,6 +27,7 @@ CLIENT_SECRET={{ $secrets.Data.client_secret }}
 OPEN_ID_CONFIG_URL=https://dcp.bionimbus.org/user/.well-known/openid-configuration
 USER_NAME_PATH_EXPR=/context/user/name
 FENCE_BASE_URL=https://dcp.bionimbus.org
+EXTRA_AUTHZ_URL_PARAMS={"idp": "fence"}
 
 [dcf-fence]
 CLIENT_ID={{ $secrets.Data.dcf_fence_client_id }}
@@ -43,6 +44,7 @@ CLIENT_SECRET={{ $secrets.Data.client_secret }}
 OPEN_ID_CONFIG_URL=https://staging.datastage.io/user/.well-known/openid-configuration
 USER_NAME_PATH_EXPR=/context/user/name
 FENCE_BASE_URL=https://staging.datastage.io
+EXTRA_AUTHZ_URL_PARAMS={"idp": "fence"}
 
 [dcf-fence]
 CLIENT_ID={{ $secrets.Data.dcf_fence_client_id }}

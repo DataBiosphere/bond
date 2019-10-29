@@ -6,17 +6,27 @@ import endpoints
 
 
 class Bond:
-    def __init__(self, oauth_adapter, fence_api, sam_api, fence_tvm, provider_name, user_name_path_expr):
+    def __init__(self,
+                 oauth_adapter,
+                 fence_api,
+                 sam_api,
+                 fence_tvm,
+                 provider_name,
+                 user_name_path_expr,
+                 extra_authz_url_params):
+
         self.oauth_adapter = oauth_adapter
         self.fence_api = fence_api
         self.sam_api = sam_api
         self.fence_tvm = fence_tvm
         self.provider_name = provider_name
         self.user_name_path_expr = user_name_path_expr
+        self.extra_authz_url_params = extra_authz_url_params
 
     def build_authz_url(self, scopes, redirect_uri, state=None):
         """
-        Builds an OAuth authorization URL that a user must use to initiate the OAuth dance.
+        Builds an OAuth authorization URL that a user must use to initiate the OAuth dance.  Will automatically append
+        all `self.extra_authz_url_params` to the resulting url.
         :param scopes: Array of scopes (0 to many) that the client requires
         :param redirect_uri: A URL encoded string representing the URI that the Authorizing Service will redirect the
         user to after the user successfully authorizes this client
@@ -24,7 +34,7 @@ class Bond:
         back with the redirect
         :return: A plain (not URL encoded) String
         """
-        return self.oauth_adapter.build_authz_url(scopes, redirect_uri, state)
+        return self.oauth_adapter.build_authz_url(scopes, redirect_uri, state, self.extra_authz_url_params)
 
     def exchange_authz_code(self, authz_code, redirect_uri, user_info):
         """
