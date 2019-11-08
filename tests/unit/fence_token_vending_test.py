@@ -193,4 +193,4 @@ class FenceTokenVendingMachineTestCase(unittest.TestCase):
 
     @staticmethod
     def _random_subject_id():
-        return ''.join(random.choice(string.digits) for _ in range(21))
+        return ''.join(random.choice(string.digits) for _ in list(range(21)))

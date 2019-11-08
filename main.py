@@ -1,4 +1,4 @@
-import ConfigParser
+import configparser
 from datetime import datetime
 
 import endpoints
@@ -74,7 +74,7 @@ AUTHZ_URL_RESOURCE = endpoints.ResourceContainer(provider=messages.StringField(1
 
 PROVIDER_RESOURCE = endpoints.ResourceContainer(provider=messages.StringField(1))
 
-config = ConfigParser.ConfigParser()
+config = configparser.ConfigParser()
 config.read("config.ini")
 
 
@@ -133,7 +133,7 @@ class BondApi(remote.Service):
         http_method='GET',
         name='listProviders')
     def providers(self, request):
-        return ListProvidersResponse(providers=self.providers.keys())
+        return ListProvidersResponse(providers=list(self.providers.keys()))
 
     @endpoints.method(
         OAUTH_CODE_RESOURCE,

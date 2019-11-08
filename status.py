@@ -17,7 +17,7 @@ class Status:
             else:
                 # if we got this far memcache is ok
                 provider_statuses = [(provider_name, provider_api.status())
-                                     for (provider_name, provider_api) in self.provider_status_apis_by_name.items()]
+                                     for (provider_name, provider_api) in list(self.provider_status_apis_by_name.items())]
                 provider_status_messages = [{"ok": ok, "message": message, "subsystem": provider_name}
                                             for (provider_name, (ok, message)) in provider_statuses]
 
