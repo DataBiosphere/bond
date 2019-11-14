@@ -4,6 +4,7 @@
 configure.rb
 /config/
 env/
+venv/
 lib/
 linkv1openapi.json
 statusv1openapi.json
