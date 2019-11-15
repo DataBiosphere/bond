@@ -16,19 +16,11 @@
 import datetime
 from . import authentication
 
-from flask import Flask, jsonify, abort, make_response, request
+from flask import Flask, jsonify, abort, request
+import error_handler
 
 app = Flask(__name__)
-
-
-@app.errorhandler(404)
-def not_found(error):
-    return make_response(jsonify({'error': 'Not found'}), 404)
-
-
-@app.errorhandler(401)
-def unauthorized(error):
-    return make_response(jsonify({'error': 'Unauthorized'}, 401))
+app.register_blueprint(error_handler.blueprint)
 
 
 @app.route('/')
