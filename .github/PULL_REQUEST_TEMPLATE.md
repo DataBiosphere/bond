@@ -1,12 +1,12 @@
 \<your comments for this PR go here\>
 
-Have you read [CONTRIBUTING.md](../CONTRIBUTING.md) lately? If not, do that first.
+Have you read [CONTRIBUTING.md](https://github.com/DataBiosphere/bond/blob/develop/CONTRIBUTING.md) lately? If not, do that first.
 
 I, the developer opening this PR, do solemnly pinky swear that:
 
-- [ ] I've followed [the instructions](https://github.com/broadinstitute/sam/blob/develop/CONTRIBUTING.md#api-changes) if I've made any changes to the API, _especially_ if they're breaking changes
+- [ ] I've followed [the instructions](https://github.com/DataBiosphere/bond/blob/develop/CONTRIBUTING.md#api-changes) if I've made any changes to the API, _especially_ if they're breaking changes
 - [ ] I've updated the RC_XXX release ticket with any manual steps required to release this change
-- [ ] I've updated the [FISMA documentation](https://github.com/broadinstitute/sam/blob/develop/CONTRIBUTING.md#fisma-documentation-changes) if I've made any security-related changes, including auth, encryption, or auditing
+- [ ] I've updated the [FISMA documentation](https://github.com/DataBiosphere/bond/blob/develop/CONTRIBUTING.md#fisma-documentation-changes) if I've made any security-related changes, including auth, encryption, or auditing
 
 In all cases:
 
