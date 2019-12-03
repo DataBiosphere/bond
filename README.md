@@ -19,7 +19,7 @@ of Python installed)
 1. `cd` to the Bond root directory
 1. Set up virtualenv for Bond: `virtualenv -p python env` 
 (**Note**: Ensure that you pass the correct Python 2.7 executable to the [`-p` parameter](https://virtualenv.pypa.io/en/stable/reference/#cmdoption-p)) 
-1. Activate virtualenv: `souce env/bin/activate`
+1. Activate virtualenv: `source env/bin/activate`
 1. Install project dependencies: `pip install -r requirements.txt -t lib --ignore-installed`
 
 You may now run tests or run the application server normally.
