@@ -3,9 +3,29 @@
 Service for linking [Sam](https://github.com/broadinstitute/sam) User accounts with registered 3rd party services via
 Oauth2. Bond is a [Google Endpoints](https://cloud.google.com/endpoints/) application written in Python 2.7.
 
-# Dependencies
+# Setup
 
 In order to run tests or run the local development app server, you need to install Python 2.7, Pip, and [Google Cloud SDK](https://cloud.google.com/sdk/install).
+
+## Virtualenv
+
+[Virtualenv](https://virtualenv.pypa.io/en/stable/) is a tool that helps you manage multiple Python versions and your 
+project dependencies.  We recommend you setup Virtualenv for development and testing of Bond.
+
+1. Verify that you have Python 2.7 installed: `python --version`
+(**Note**: The name of your Python 2.7 command may be something different like `python2` if you have multiple versions 
+of Python installed)
+1. Install virtualenv: `pip install virtualenv`
+1. `cd` to the Bond root directory
+1. Set up virtualenv for Bond: `virtualenv -p python env` 
+(**Note**: Ensure that you pass the correct Python 2.7 executable to the [`-p` parameter](https://virtualenv.pypa.io/en/stable/reference/#cmdoption-p)) 
+1. Activate virtualenv: `source env/bin/activate`
+1. Install project dependencies: `pip install -r requirements.txt -t lib --ignore-installed`
+
+You may now run tests or run the application server normally.
+
+When you are ready to exit or deactivate your Bond virtualenv, just type the command `deactivate` on your command line.
+
 
 # Running Tests
 
@@ -35,25 +55,6 @@ the `tests/integration` directory.
 ## Nose
 * `pip install nose nosegae nose-exclude`
 * ```nosetests --with-gae --gae-lib-root=`gcloud info --format="value(installation.sdk_root)"`/platform/google_appengine --exclude-dir=lib```
-
-# Virtualenv
-
-[Virtualenv](https://virtualenv.pypa.io/en/stable/) is a tool that helps you manage multiple Python versions and your 
-project dependencies.  We recommend you setup Virtualenv for development and testing of Bond.
-
-1. Verify that you have Python 2.7 installed: `python --version`
-(**Note**: The name of your Python 2.7 command may be something different like `python2` if you have multiple versions 
-of Python installed)
-1. Install virtualenv: `pip install virtualenv`
-1. `cd` to the Bond root directory
-1. Set up virtualenv for Bond: `virtualenv -p python env` 
-(**Note**: Ensure that you pass the correct Python 2.7 executable to the [`-p` parameter](https://virtualenv.pypa.io/en/stable/reference/#cmdoption-p)) 
-1. Activate virtualenv: `source env/bin/activate`
-1. Install project dependencies: `pip install -r requirements.txt -t lib --ignore-installed`
-
-You may now run tests or run the application server normally.
-
-When you are ready to exit or deactivate your Bond virtualenv, just type the command `deactivate` on your command line.
 
 # Running locally
 
