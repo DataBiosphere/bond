@@ -53,12 +53,16 @@ When writing new tests, do not put any tests in the root `tests/` directory.  In
 the `tests/integration` directory.
 
 ## Nose
+
+Install nose:
 * `pip install nose nosegae nose-exclude`
+
+Run tests:
 * ```nosetests --with-gae --gae-lib-root=`gcloud info --format="value(installation.sdk_root)"`/platform/google_appengine --exclude-dir=lib```
 
 # Running locally
 
-## Docker
+## Render configs
 
 Before you run locally, you will need to render configs:
 
@@ -81,9 +85,31 @@ For non-Broad, manually edit the config.ini and app.yaml files in the root of th
 
 ## Run on your local environment
 
-After installing project dependencies and rendering configs, run the following command from the Bond root directory:
+### Setting up paths for Google Cloud SDK
+
+Run the following steps to add `dev_appserver.py` from Google Cloud SDK to your PATH.
+
+First, find where your SDK is. Run:
+```
+gcloud info --format="value(installation.sdk_root)
+```
+
+Then, add it to your PATH:
+```
+# add gcloud to PATH for Bond usage
+export PATH=$PATH:<copy the result of the previous command here>/bin
+```
+
+To persist the change to your PATH, add the above lines to your ~/.profile, ~/.bash_profile, or ~/.zshrc. 
+
+
+### Run locally
+After installing project dependencies, rendering configs, and setting up paths, run the following command from the Bond root directory:
 
 ```dev_appserver.py .```
+
+You can check http://localhost:8080/api/status/v1/status to make sure you're up and running.
+
 
 ## Run in a Docker container
 
@@ -92,7 +118,7 @@ Choose one of the options below:
 a) To run an existing image:
 
 1) Browse the available tags [here](https://quay.io/repository/databiosphere/bond?tag=latest&tab=tags)
-2) With your tag of choice, run `docker run -v $PWD/config.ini:/app/config.ini -v $PWD/app.yaml:/app/app.yaml -p=8080:8080 quay.io/databiosphere/bond:{TAG}`
+2) With your tag of choice (such as `develop`), run `docker run -v $PWD/config.ini:/app/config.ini -v $PWD/app.yaml:/app/app.yaml -p=8080:8080 quay.io/databiosphere/bond:{TAG}`
 3) Check http://localhost:8080/api/status/v1/status to make sure you're up and running
 
 b) Run your local code:
