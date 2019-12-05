@@ -74,7 +74,7 @@ docker run -v $PWD:/app \
   -e ENVIRONMENT=dev \
   -e RUN_CONTEXT=local \
   -e DNS_DOMAIN=local \
-  broadinstitute/dsde-toolbox render-templates.sh
+  broadinstitute/dsde-toolbox:master render-templates.sh
 ```
   
 For non-Broad, manually edit the config.ini and app.yaml files in the root of the project to use your desired values.
