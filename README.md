@@ -91,7 +91,7 @@ Run the following steps to add `dev_appserver.py` from Google Cloud SDK to your 
 
 First, find where your SDK is. Run:
 ```
-gcloud info --format="value(installation.sdk_root)
+gcloud info --format="value(installation.sdk_root)"
 ```
 
 Then, add it to your PATH:
