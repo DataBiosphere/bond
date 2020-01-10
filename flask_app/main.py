@@ -17,7 +17,7 @@ import datetime
 from . import authentication
 
 from flask import Flask, jsonify, abort, request
-import error_handler
+from . import error_handler
 
 app = Flask(__name__)
 app.register_blueprint(error_handler.blueprint)

@@ -1,7 +1,7 @@
 import json
 import unittest
 import requests
-import urlparse
+import urllib.parse
 import os
 from automation.helpers.user_credentials import UserCredentials
 
@@ -34,8 +34,8 @@ class PublicApiTestCase(BaseApiTestCase):
         r = requests.get(url)
         self.assertEqual(200, r.status_code)
         response = json.loads(r.text)
-        authz_url = urlparse.urlparse(response["url"])
-        query_params = urlparse.parse_qs(authz_url.query)
+        authz_url = urllib.parse.urlparse(response["url"])
+        query_params = urllib.parse.parse_qs(authz_url.query)
         self.assertEqual("https", authz_url.scheme)
         self.assertIsNotNone(authz_url.netloc)
         self.assertIsNotNone(query_params["redirect_uri"])
@@ -53,8 +53,8 @@ class PublicApiTestCase(BaseApiTestCase):
         r = requests.get(url)
         self.assertEqual(200, r.status_code)
         response = json.loads(r.text)
-        authz_url = urlparse.urlparse(response["url"])
-        query_params = urlparse.parse_qs(authz_url.query)
+        authz_url = urllib.parse.urlparse(response["url"])
+        query_params = urllib.parse.parse_qs(authz_url.query)
         self.assertIsNotNone(query_params["redirect_uri"])
         self.assertIsNotNone(query_params["response_type"])
         self.assertIsNotNone(query_params["client_id"])
@@ -84,7 +84,7 @@ class AuthorizedBaseCase(BaseApiTestCase):
 
     @staticmethod
     def unlink_all(self):
-        for credential in self.user_credentials.values():
+        for credential in list(self.user_credentials.values()):
             token = credential.get_access_token()
             r = self.unlink(token)
             self.assertIn(r.status_code, [204, 400])

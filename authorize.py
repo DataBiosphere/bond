@@ -1,9 +1,9 @@
-import ConfigParser
+import configparser
 from requests_oauthlib import OAuth2Session
 import requests
 import json
 
-config = ConfigParser.ConfigParser()
+config = configparser.ConfigParser()
 config.read("config.ini")
 
 provider = 'fence'
@@ -21,4 +21,4 @@ def auth_code_with_basic_auth():
 
 
 url = auth_code_with_basic_auth()
-print('Please go to %s and authorize access.' % url)
+print(('Please go to %s and authorize access.' % url))
