@@ -1,9 +1,8 @@
-from google.appengine.api import memcache
-
 class Status:
-    def __init__(self, sam_api, provider_status_apis_by_name):
+    def __init__(self, sam_api, provider_status_apis_by_name, cache_api):
         self.provider_status_apis_by_name = provider_status_apis_by_name
         self.sam_api = sam_api
+        self.cache_api = cache_api
 
     def get(self):
         """
@@ -25,23 +24,21 @@ class Status:
                 sam_ok, sam_message = self.sam_api.status()
 
                 status = provider_status_messages + [
-                    {"ok": True, "message": "", "subsystem": Subsystems.memcache},
+                    {"ok": True, "message": "", "subsystem": Subsystems.cache},
                     {"ok": datastore_ok, "message": datastore_message, "subsystem": Subsystems.datastore},
                     {"ok": sam_ok, "message": sam_message, "subsystem": Subsystems.sam}
                 ]
                 self._cache_status(status)
             return status
         except Exception as e:
-            # any exception at this point is memcache
-            return [{"ok": False, "message": e.message, "subsystem": Subsystems.memcache}]
+            # any exception at this point is the cache cache
+            return [{"ok": False, "message": e.message, "subsystem": Subsystems.cache}]
 
-    @staticmethod
-    def _cache_status(status):
-        memcache.add(namespace='bond', key="status", value=status, time=60)
+    def _cache_status(self, status):
+        self.cache_api.add(namespace='bond', key="status", value=status, expires_in=60)
 
-    @staticmethod
-    def _get_cached_status():
-        return memcache.get(namespace='bond', key="status")
+    def _get_cached_status(self):
+        return self.cache_api.get(namespace='bond', key="status")
 
     @staticmethod
     def _datastore_status():
@@ -54,6 +51,6 @@ class Status:
 
 
 class Subsystems:
-    memcache = "memcache"
+    cache = "cache"
     datastore = "datastore"
     sam = "sam"

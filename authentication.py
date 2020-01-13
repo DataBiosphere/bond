@@ -4,7 +4,6 @@ import endpoints
 import os
 import logging
 
-from google.appengine.api import memcache
 from google.appengine.api import urlfetch
 
 _TOKENINFO_URL = 'https://www.googleapis.com/oauth2/v1/tokeninfo'
@@ -53,8 +52,13 @@ def default_config():
 
 
 class Authentication:
-    def __init__(self, config):
+    def __init__(self, config, cache_api):
+        """
+        :param config: An AuthenticationConfig instance.
+        :param cache_api: A CacheApi instance.
+        """
         self.config = config
+        self.cache_api = cache_api
 
     def require_user_info(self, request_state, token_info_fn=_token_info):
         """Get the user's info from cache or from google if not in cache, throwing unauthorized errors as appropriate
@@ -74,13 +78,13 @@ class Authentication:
 
         token = auth_header_parts[1]
 
-        user_info = memcache.get(key='access_token:' + token)
+        user_info = self.cache_api.get(key='access_token:' + token)
         if user_info is None:
             user_info = self._fetch_user_info(token, token_info_fn)
             # cache for 10 minutes or until token expires
             expires_in = min([user_info.expires_in, self.config.max_token_life])
             logging.debug("caching token %s for %s seconds", token, expires_in)
-            memcache.add(key='access_token:' + token, value=user_info, time=expires_in)
+            self.cache_api.add(key='access_token:' + token, value=user_info, expires_in=expires_in)
         else:
             logging.debug("auth token cache hit for token %s", token)
 
