@@ -1,6 +1,6 @@
 from google.appengine.api import urlfetch
 import json
-import endpoints
+# import endpoints
 
 
 class SamApi:
@@ -19,8 +19,8 @@ class SamApi:
             return json.loads(result.content)["userInfo"]
         elif result.status_code == 404:
             return None
-        else:
-            raise endpoints.InternalServerErrorException("sam status code {}, error body {}".format(result.status_code, result.content))
+        # else:
+        #     raise endpoints.InternalServerErrorException("sam status code {}, error body {}".format(result.status_code, result.content))
 
     def status(self):
         """

@@ -19,8 +19,8 @@ class FenceApi:
         result = urlfetch.fetch(url=self.credentials_google_url, headers=headers, method=urlfetch.POST)
         if result.status_code // 100 == 2:
             return result.content
-        else:
-            raise endpoints.InternalServerErrorException("fence status code {}, error body {}".format(result.status_code, result.content))
+        # else:
+        #     raise endpoints.InternalServerErrorException("fence status code {}, error body {}".format(result.status_code, result.content))
 
     def delete_credentials_google(self, access_token, key_id):
         """
@@ -31,13 +31,13 @@ class FenceApi:
         """
         headers = {'Authorization': 'Bearer ' + access_token}
         result = urlfetch.fetch(url=self.delete_service_account_url + key_id, headers=headers, method=urlfetch.DELETE)
-        if result.status_code // 100 != 2:
-            raise endpoints.InternalServerErrorException("fence status code {}, error body {}".format(result.status_code, result.content))
+        # if result.status_code // 100 != 2:
+        #     raise endpoints.InternalServerErrorException("fence status code {}, error body {}".format(result.status_code, result.content))
 
     def revoke_refresh_token(self, refresh_token):
         result = urlfetch.fetch(url=self.revoke_url, method=urlfetch.POST, payload=refresh_token)
-        if result.status_code // 100 != 2:
-            raise endpoints.InternalServerErrorException("fence status code {}, error body {}".format(result.status_code, result.content))
+        # if result.status_code // 100 != 2:
+        #     raise endpoints.InternalServerErrorException("fence status code {}, error body {}".format(result.status_code, result.content))
 
     def status(self):
         """

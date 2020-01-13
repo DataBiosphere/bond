@@ -1,5 +1,4 @@
 import json
-import endpoints
 import datetime
 from google.appengine.api import memcache
 from google.appengine.ext import ndb
@@ -76,8 +75,8 @@ class FenceTokenVendingMachine:
 
     def _fetch_real_user_info(self, user_info):
         real_user_info = self.sam_api.user_info(user_info.token)
-        if real_user_info is None:
-            raise endpoints.UnauthorizedException("user not found in sam")
+        # if real_user_info is None:
+        #     raise endpoints.UnauthorizedException("user not found in sam")
         return real_user_info
 
     def _fetch_service_account(self, real_user_info, fsa_key):
@@ -109,8 +108,8 @@ class FenceTokenVendingMachine:
 
     def _get_oauth_access_token(self, user_id):
         refresh_token = TokenStore.lookup(user_id, self.provider_name)
-        if refresh_token is None:
-            raise endpoints.BadRequestException("Fence account not linked")
+        # if refresh_token is None:
+        #     raise endpoints.BadRequestException("Fence account not linked")
         access_token = self.fence_oauth_adapter.refresh_access_token(refresh_token.token).get(FenceKeys.ACCESS_TOKEN)
         return access_token
 
