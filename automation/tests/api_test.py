@@ -1,10 +1,12 @@
+import collections
 import json
 import unittest
 import requests
 import urlparse
 import os
 from automation.helpers.user_credentials import UserCredentials
-
+from jsonschema import validate
+from automation.helpers.json_responses import *
 
 class BaseApiTestCase(unittest.TestCase):
     env = os.getenv("ENV", "dev")
@@ -17,10 +19,12 @@ class PublicApiTestCase(BaseApiTestCase):
     """Tests Bond APIs that are publicly available and do not require a bearer token"""
 
     def test_status(self):
-        r = requests.get(self.bond_base_url + "/api/status/v1/status")
+        url = self.bond_base_url + "/api/status/v1/status"
+        r = requests.get(url)
         self.assertEqual(200, r.status_code)
-        status = json.loads(r.text)
-        self.assertTrue(status['ok'])
+        response_json_dict = json.loads(r.text)  # sorted??
+        self.assertTrue(response_json_dict['ok'])
+        validate(instance=response_json_dict, schema=json_schema_test_list_providers)
 
     def test_list_providers(self):
         url = self.bond_base_url + "/api/link/v1/providers"
@@ -28,8 +32,10 @@ class PublicApiTestCase(BaseApiTestCase):
         self.assertEqual(200, r.status_code)
         providers = json.loads(r.text)
         self.assertIsNotNone(providers["providers"])
+        validate(instance=providers, schema=json_schema_test_status)
 
     def test_get_auth_url(self):
+        expected_json = {u'url': u'https://staging.datastage.io/user/oauth2/authorize?response_type=code&client_id=4EmZnWKVMoPyhdJMh7EB8SSl3Uojo20QfsAR77gu&redirect_uri=http%3A%2F%2Flocal.broadinstitute.org%2F%23fence-callback&scope=openid+google_credentials&state=eyJmb28iPSJiYXIifQ%3D%3D&idp=fence'}
         url = self.bond_base_url + "/api/link/v1/" + self.provider + "/authorization-url" + "?scopes=openid&scopes=google_credentials&redirect_uri=http%3A%2F%2Flocal.broadinstitute.org%2F%23fence-callback&state=eyJmb28iPSJiYXIifQ=="
         r = requests.get(url)
         self.assertEqual(200, r.status_code)
@@ -42,13 +48,19 @@ class PublicApiTestCase(BaseApiTestCase):
         self.assertIsNotNone(query_params["response_type"])
         self.assertIsNotNone(query_params["client_id"])
         self.assertIsNotNone(query_params["state"])
+        assert response == expected_json
+        self.assertDictEqual(response, expected_json)
 
     def test_get_auth_url_without_params(self):
+        expected_json = {u'url': u'https://staging.datastage.io/user/oauth2/authorize?response_type=code&client_id=4EmZnWKVMoPyhdJMh7EB8SSl3Uojo20QfsAR77gu&redirect_uri=http%3A%2F%2Flocal.broadinstitute.org%2F%23fence-callback&state=FfuEMeu4yIyUlk3RhrhjYMaWF84rQR&idp=fence'}
         url = self.bond_base_url + "/api/link/v1/" + self.provider + "/authorization-url"
         r = requests.get(url)
         self.assertEqual(400, r.status_code)
+        response = json.loads(r.text)
+        self.assertDictEqual(response, expected_json)
 
     def test_get_auth_url_with_only_redirect_param(self):
+        expected_json = {u'url': u'https://staging.datastage.io/user/oauth2/authorize?response_type=code&client_id=4EmZnWKVMoPyhdJMh7EB8SSl3Uojo20QfsAR77gu&redirect_uri=http%3A%2F%2Flocal.broadinstitute.org%2F%23fence-callback&state=tyM3PomDKtGPAHYUHs0FJooIorBZ3N&idp=fence'}
         url = self.bond_base_url + "/api/link/v1/" + self.provider + "/authorization-url" + "?redirect_uri=http%3A%2F%2Flocal.broadinstitute.org%2F%23fence-callback"
         r = requests.get(url)
         self.assertEqual(200, r.status_code)
@@ -59,6 +71,7 @@ class PublicApiTestCase(BaseApiTestCase):
         self.assertIsNotNone(query_params["response_type"])
         self.assertIsNotNone(query_params["client_id"])
         self.assertIsNotNone(query_params["state"])
+        self.assertDictEqual(response, expected_json)
 
 
 class AuthorizedBaseCase(BaseApiTestCase):
