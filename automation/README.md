@@ -10,3 +10,7 @@ To run the tests from the Bond root directory:
 
 You can optionally specify the environment variable, `BOND_BASE_URL` to specify the host you want to test against.  This
 variable will default to `https://bond-fiab.dsde-dev.broadinstitute.org:31443` unless otherwise specified.
+
+// TODO:  This seems out of date ^ -- 
+`    bond_base_url = "localhost:8080"`
+ 

@@ -10,7 +10,8 @@ from automation.helpers.json_responses import *
 
 class BaseApiTestCase(unittest.TestCase):
     env = os.getenv("ENV", "dev")
-    bond_base_url = "https://bond-fiab.dsde-%s.broadinstitute.org:31443" % env
+    # bond_base_url = "https://bond-fiab.dsde-%s.broadinstitute.org:31443" % env
+    bond_base_url = "http://localhost:8080"
     provider = "fence"
     email_domain = "quality.firecloud.org" if (env == "qa") else "test.firecloud.org"
 
