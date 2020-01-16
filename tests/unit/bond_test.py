@@ -14,6 +14,7 @@ from memcache_api import MemcacheApi
 from bond import Bond, FenceKeys
 from fence_api import FenceApi
 from fence_token_vending import FenceTokenVendingMachine
+import locked_storage
 from oauth_adapter import OauthAdapter
 from sam_api import SamApi
 from sam_api import SamKeys
@@ -54,7 +55,8 @@ class BondTestCase(unittest.TestCase):
         self.bond = Bond(mock_oauth_adapter,
                          fence_api,
                          sam_api,
-                         FenceTokenVendingMachine(fence_api, sam_api, MemcacheApi(), mock_oauth_adapter, provider_name),
+                         FenceTokenVendingMachine(fence_api, sam_api, MemcacheApi(), mock_oauth_adapter, provider_name,
+                                                  locked_storage.DatastoreLockedStorage()),
                          provider_name,
                          "/context/user/name",
                          {})
@@ -85,7 +87,8 @@ class BondTestCase(unittest.TestCase):
         bond = Bond(mock_oauth_adapter,
                     fence_api,
                     sam_api,
-                    FenceTokenVendingMachine(fence_api, sam_api, MemcacheApi(), mock_oauth_adapter, provider_name),
+                    FenceTokenVendingMachine(fence_api, sam_api, MemcacheApi(), mock_oauth_adapter, provider_name,
+                                             locked_storage.DatastoreLockedStorage()),
                     provider_name,
                     "/context/user/name",
                     {})
