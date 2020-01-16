@@ -11,7 +11,7 @@ from bond import Bond
 from cache_api import create_cache_api
 from fence_token_vending import FenceTokenVendingMachine
 from fence_api import FenceApi
-import locked_storage
+import fence_token_storage
 from open_id_config import OpenIdConfig
 from sam_api import SamApi
 from oauth_adapter import OauthAdapter
@@ -111,7 +111,7 @@ class BondApi(remote.Service):
             sam_api = SamApi(sam_base_url)
 
             fence_tvm = FenceTokenVendingMachine(fence_api, sam_api, cache_api, oauth_adapter, provider_name,
-                                                 locked_storage.DatastoreLockedStorage())
+                                                 fence_token_storage.FenceTokenStorage())
             return BondProvider(fence_tvm, Bond(oauth_adapter,
                                                 fence_api,
                                                 sam_api,

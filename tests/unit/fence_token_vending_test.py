@@ -3,15 +3,15 @@ from google.appengine.api import memcache
 from google.appengine.ext import ndb
 from google.appengine.ext import testbed
 import threading
-from fence_token_vending import FenceTokenVendingMachine, FenceServiceAccount
+from fence_token_vending import FenceTokenVendingMachine
 from authentication import UserInfo
 from memcache_api import MemcacheApi
 from mock import MagicMock
 from fence_api import FenceApi
 from sam_api import SamApi
 from oauth_adapter import OauthAdapter
-from locked_storage import DatastoreLockedStorage
-from locked_storage import ServiceAccountNotUpdatedException
+from fence_token_storage import create_fence_service_account_key, FenceServiceAccount, FenceTokenStorage
+from fence_token_storage import ServiceAccountNotUpdatedException
 from token_store import TokenStore
 import datetime
 import string
@@ -48,12 +48,12 @@ class FenceTokenVendingMachineTestCase(unittest.TestCase):
                                         self._mock_sam_api(real_user_id, "foo@bar.com"),
                                         self.cache_api,
                                         self._mock_oauth_adapter("fake_token"), provider_name,
-                                        DatastoreLockedStorage())
+                                        FenceTokenStorage())
 
         TokenStore.save(real_user_id, "fake_refresh_token", datetime.datetime.now(), "foo@bar.com", provider_name)
 
         self.assertIsNone(self.cache_api.get(namespace=provider_name, key=caller_uid))
-        fsa_key = ftvm._fence_service_account_key(real_user_id)
+        fsa_key = create_fence_service_account_key(ftvm.provider_name, real_user_id)
         self.assertIsNone(fsa_key.get())
 
         service_account_json = ftvm.get_service_account_key_json(
@@ -74,11 +74,11 @@ class FenceTokenVendingMachineTestCase(unittest.TestCase):
 
         ftvm = FenceTokenVendingMachine(self._mock_fence_api(None), self._mock_sam_api(real_user_id, "foo@bar.com"),
                                         self.cache_api, self._mock_oauth_adapter("fake_token"), provider_name,
-                                        DatastoreLockedStorage())
+                                        FenceTokenStorage())
 
         TokenStore.save(real_user_id, "fake_refresh_token", datetime.datetime.now(), "foo@bar.com", provider_name)
 
-        fsa_key = ftvm._fence_service_account_key(real_user_id)
+        fsa_key = create_fence_service_account_key(ftvm.provider_name, real_user_id)
         stored_fsa = FenceServiceAccount(key_json=expected_json,
                                          expires_at=datetime.datetime.now() + datetime.timedelta(days=5),
                                          update_lock_timeout=None,
@@ -103,7 +103,7 @@ class FenceTokenVendingMachineTestCase(unittest.TestCase):
 
         self.cache_api.add(namespace=provider_name, key=caller_uid, value=expected_json, expires_in=20)
 
-        fsa_key = ftvm._fence_service_account_key(real_user_id)
+        fsa_key = create_fence_service_account_key(ftvm.provider_name, real_user_id)
         self.assertIsNone(fsa_key.get())
 
         service_account_json = ftvm.get_service_account_key_json(
@@ -142,11 +142,11 @@ class FenceTokenVendingMachineTestCase(unittest.TestCase):
 
         ftvm = FenceTokenVendingMachine(self._mock_fence_api(api_json), self._mock_sam_api(real_user_id, "foo@bar.com"),
                                         self.cache_api, self._mock_oauth_adapter("fake_token"), provider_name,
-                                        DatastoreLockedStorage())
+                                        FenceTokenStorage())
 
         TokenStore.save(real_user_id, "fake_refresh_token", datetime.datetime.now(), "foo@bar.com", provider_name)
 
-        fsa_key = ftvm._fence_service_account_key(real_user_id)
+        fsa_key = create_fence_service_account_key(ftvm.provider_name, real_user_id)
         stored_fsa = FenceServiceAccount(key_json="expired json",
                                          expires_at=datetime.datetime.now() - datetime.timedelta(days=5),
                                          update_lock_timeout=lock_timeout,
@@ -174,10 +174,10 @@ class FenceTokenVendingMachineTestCase(unittest.TestCase):
         real_user_id = self._random_subject_id()
 
         ftvm = FenceTokenVendingMachine(self._mock_fence_api(None), self._mock_sam_api(real_user_id, "foo@bar.com"),
-                                        self.cache_api, None, provider_name, DatastoreLockedStorage())
+                                        self.cache_api, None, provider_name, FenceTokenStorage())
 
         self.assertIsNone(self.cache_api.get(namespace=provider_name, key=caller_uid))
-        fsa_key = ftvm._fence_service_account_key(real_user_id)
+        fsa_key = create_fence_service_account_key(ftvm.provider_name, real_user_id)
         self.assertIsNone(fsa_key.get())
 
         with self.assertRaises(endpoints.BadRequestException):

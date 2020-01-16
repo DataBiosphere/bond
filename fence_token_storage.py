@@ -3,26 +3,51 @@ import time
 from google.appengine.ext import ndb
 from google.appengine.api.datastore_errors import TransactionFailedError
 
-# How long to use a created value before it is considered expired.
-_VALUE_LIFETIME = datetime.timedelta(days=5)
+# How long to keep a fence service account key before expiring it.
+_FSA_KEY_LIFETIME = datetime.timedelta(days=5)
 
 
-class ServiceAccountNotUpdatedException(Exception):
-    pass
+def create_fence_service_account_key(provider_name, user_id):
+    """Creates a datastore key to associate a (user, provier) to the credentials of a service account fetched from a Fence.
+    :return Returns an ndb Key for the fence service account, i.e. a "fsa_key"
+    """
+    return ndb.Key("User", user_id, FenceServiceAccount, provider_name)
 
 
 class FenceServiceAccount(ndb.Model):
+    """Datastore model for storing fence service account json key and metadata for expiration and generation."""
+    # The string json key token for the fence service account.
     key_json = ndb.TextProperty()
+    # The datetime when to expire the service account key. Only set when the key_json is not None.
     expires_at = ndb.DateTimeProperty()
+    # The datetime of when the current lock on updating this model expires. The model should only be updated by
+    # a service that holds a lock. Only set when the key_json is not set or has expired.
     update_lock_timeout = ndb.DateTimeProperty()
 
 
-class DatastoreLockedStorage:
-    """TODO write me"""
+class ServiceAccountNotUpdatedException(Exception):
+    """An exception for when a fence service account was not updated after some service had grabbed the lock to update it."""
+    pass
+
+
+class FenceTokenStorage:
+    """
+    Stores service account tokens retrieved from fences and manages distributed concurrent updates so that only one access
+    per (user, provider) occurs at a time.
+
+    This is important to prevent many simultaneous requests from overloading a fence when they are all seeking the same
+    service account credentials. Storage of the fence credentials (with an expiration time) allows the retrieved
+    credentials to be shared.
+
+    N.B. "fsa_key" refers to a Datastore key of the (user, provider_name) which is used to look up the fence service
+    account credentials, i.e. "key_json."
+
+    This is abstracted as its own class so that we can stub out the Datastore dependency in tests.
+    """
 
     def delete(self, fsa_key):
         """
-        Delete the stored value for the key.
+        Delete the stored fence service account info for the fsa_key.
         ":return returns the stored value for the key or None if it did not exist.
         """
         fence_service_account = fsa_key.get()
@@ -30,25 +55,27 @@ class DatastoreLockedStorage:
             fsa_key.delete()
         return fence_service_account.key_json if fence_service_account else None
 
-    def get_or_create(self, fsa_key, prep_key_fn, create_value_fn):
-        """Retrieve the stored value for key, waiting as needed, or create and store the value for the key.
+    def get_or_create(self, fsa_key, prep_key_fn, fence_fetch_fn):
+        """Retrieve the stored for key, waiting as needed, or create and store the value for the key.
 
-        :param prep_key_fn The function to create the input to create_value_fn from 'key' once we know create_value_fn
-        will be called. This is separated from create_value_fn so that this can be slow but not spend as much time locking.
-        :param create_value_fn: The function to create a value that should not be called multiple times. Arguments should work as
-        creaet_value_fn(prep_key_fn(key)) -> returns the string value.
-        :return (value, expiration_datetime) returns the value and the expiration time for that value.
+        :param prep_key_fn The function to create the input to fence_fetch_fn from 'fsa_key' once we know
+        fence_fetch_fn will be called. This is separated from fence_fetch_fn so that this can be slow but not spend as
+         much time locking.
+        :param fence_fetch_fn: The function to fetch the credentials from the fence. This function will ensure that
+        fence_fetch_fn is not called multiple times concurrently. Arguments should work as
+        fence_fetch_fn(prep_key_fn(key)) -> returns the string fence account credentials.
+        :return returns the fence service account json key and the expiration time for that value.
         """
         fence_service_account = fsa_key.get()
         now = datetime.datetime.now()
         if fence_service_account is None or \
                 fence_service_account.expires_at is None or \
                 fence_service_account.expires_at < now:
-            fence_service_account = self._fetch_service_account(fsa_key, prep_key_fn, create_value_fn)
+            fence_service_account = self._fetch_service_account(fsa_key, prep_key_fn, fence_fetch_fn)
 
         return (fence_service_account.key_json, fence_service_account.expires_at)
 
-    def _fetch_service_account(self, fsa_key, prep_key_fn, create_value_fn):
+    def _fetch_service_account(self, fsa_key, prep_key_fn, fence_fetch_fn):
         """
         Fetch a new service account from fence. We must be careful that concurrent requests result in only one
         key request to fence so the service account does not run out of keys (google limits to 10).
@@ -57,18 +84,22 @@ class DatastoreLockedStorage:
         prepped_key = prep_key_fn(fsa_key)
 
         if self._acquire_lock(fsa_key):
-            key_json = create_value_fn(prepped_key)
+            key_json = fence_fetch_fn(prepped_key)
             fence_service_account = FenceServiceAccount(key_json=key_json,
-                                                        expires_at=datetime.datetime.now() + _VALUE_LIFETIME,
+                                                        expires_at=datetime.datetime.now() + _FSA_KEY_LIFETIME,
                                                         update_lock_timeout=None,
                                                         key=fsa_key)
             fence_service_account.put()
 
         else:
             fence_service_account = self._wait_for_update(fsa_key)
-            if fence_service_account.expires_at and fence_service_account.expires_at < datetime.datetime.now():
+            if not fence_service_account.key_json or (
+                    fence_service_account.expires_at and fence_service_account.expires_at < datetime.datetime.now()):
+                # We waited for a fence service account update since someone else was holding the lock, but the
+                # lock expired without a valid update.
                 # we could recursively call _fetch_service_account_json at this point but let's start with failure
-                raise ServiceAccountNotUpdatedException("lock on key {} expired but value was not updated".format(fsa_key))
+                raise ServiceAccountNotUpdatedException(
+                    "lock on key {} expired but value was not updated".format(fsa_key))
 
         return fence_service_account
 
@@ -124,38 +155,3 @@ class DatastoreLockedStorage:
             fence_service_account.update_lock_timeout = update_lock_timeout
         fence_service_account.put()
         return True
-
-
-class InMemoryLockedStorage:
-    """
-    An in-memory implementation of the DatastoreLockedStorage class for use as a fake in testing. Not thread safe, only
-    works in a single thread, so does not do real locking.
-    """
-
-    @staticmethod
-    def create(prep_key_fn, create_value_fn):
-        return InMemoryLockedStorage(prep_key_fn=prep_key_fn, create_value_fn=create_value_fn)
-
-    def __init__(self, prep_key_fn, create_value_fn, ):
-        self.prep_key_fn = prep_key_fn
-        self.create_value_fn = create_value_fn
-        # Dict from fsa_keys to FenceServiceAccounts.
-        self.accounts = {}
-
-    def delete(self, fsa_key):
-        if fsa_key not in self.accounts:
-            return None
-        account = self.accounts.pop(fsa_key)
-        return account.json_key
-
-    def get_or_create(self, fsa_key):
-        if fsa_key in self.accounts:
-            return self.accounts[fsa_key]
-
-        json_key = self.create_value_fn(self.prep_key_fn(fsa_key))
-        fence_service_account = FenceServiceAccount(key_json=json_key,
-                                                    expires_at=datetime.datetime.now() + _VALUE_LIFETIME,
-                                                    update_lock_timeout=None,
-                                                    key=fsa_key)
-        self.accounts[fsa_key] = fence_service_account
-        return fence_service_account

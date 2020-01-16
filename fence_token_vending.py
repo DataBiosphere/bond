@@ -1,35 +1,31 @@
 import json
 import endpoints
 import datetime
-from google.appengine.ext import ndb
 
 from bond import FenceKeys
 from token_store import TokenStore
-from locked_storage import FenceServiceAccount
+from fence_token_storage import create_fence_service_account_key
 from oauth2client.service_account import ServiceAccountCredentials
 from sam_api import SamKeys
 
 
 class FenceTokenVendingMachine:
-    def __init__(self, fence_api, sam_api, cache_api, fence_oauth_adapter, provider_name, locked_storage):
+    def __init__(self, fence_api, sam_api, cache_api, fence_oauth_adapter, provider_name, fence_token_storage):
         self.fence_api = fence_api
         self.sam_api = sam_api
         self.cache_api = cache_api
         self.fence_oauth_adapter = fence_oauth_adapter
         self.provider_name = provider_name
-        self.locked_storage = locked_storage
+        self.fence_token_storage = fence_token_storage
 
     def remove_service_account(self, user_id):
-        fsa_key = self._fence_service_account_key(user_id)
-        key_json = self.locked_storage.delete(fsa_key)
+        fsa_key = create_fence_service_account_key(self.provider_name, user_id)
+        key_json = self.fence_token_storage.delete(fsa_key)
         if key_json:
             access_token = self._get_oauth_access_token(fsa_key)
             key_id = json.loads(key_json)["private_key_id"]
             # deleting the key will invalidate anything cached
             self.fence_api.delete_credentials_google(access_token, key_id)
-
-    def _fence_service_account_key(self, user_id):
-        return ndb.Key("User", user_id, FenceServiceAccount, self.provider_name)
 
     def get_service_account_access_token(self, user_info, scopes=None):
         """
@@ -56,10 +52,10 @@ class FenceTokenVendingMachine:
             return key_json
 
         real_user_info = self._fetch_real_user_info(user_info)
-        fsa_key = self._fence_service_account_key(real_user_info[SamKeys.USER_ID_KEY])
-        (key_json, expiration_datetime) = self.locked_storage.get_or_create(fsa_key,
-                                                                            prep_key_fn=self._get_oauth_access_token,
-                                                                            create_value_fn=self.fence_api.get_credentials_google)
+        fsa_key = create_fence_service_account_key(self.provider_name, real_user_info[SamKeys.USER_ID_KEY])
+        (key_json, expiration_datetime) = self.fence_token_storage.get_or_create(fsa_key,
+                                                                                 prep_key_fn=self._get_oauth_access_token,
+                                                                                 fence_fetch_fn=self.fence_api.get_credentials_google)
 
         seconds_to_expire = (expiration_datetime - datetime.datetime.now()).total_seconds()
         self.cache_api.add(namespace=self.provider_name, key=user_info.id, value=key_json, expires_in=seconds_to_expire)
