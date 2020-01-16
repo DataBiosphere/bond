@@ -3,6 +3,9 @@ from google.appengine.api import memcache
 from google.appengine.ext import ndb
 from google.appengine.ext import testbed
 import threading
+
+from werkzeug import exceptions
+
 from fence_token_vending import FenceTokenVendingMachine, FenceServiceAccount, ServiceAccountNotUpdatedException
 from authentication import UserInfo
 from mock import MagicMock
@@ -13,7 +16,6 @@ from token_store import TokenStore
 import datetime
 import string
 import random
-import endpoints
 import time
 from sam_api import SamKeys
 
@@ -170,7 +172,7 @@ class FenceTokenVendingMachineTestCase(unittest.TestCase):
         fsa_key = ftvm._fence_service_account_key(real_user_id)
         self.assertIsNone(fsa_key.get())
 
-        with self.assertRaises(endpoints.BadRequestException):
+        with self.assertRaises(exceptions.BadRequest):
             ftvm.get_service_account_key_json(UserInfo(caller_uid, "splat@bar.com", "fake_token_too", 10))
 
     @staticmethod

@@ -7,14 +7,13 @@ from google.appengine.ext import testbed
 from google.appengine.ext import ndb
 
 
-
-class MainTestCase(unittest.TestCase):
+class RoutesTestCase(unittest.TestCase):
     """
     Tests the main Google Endpoints methods
     """
 
     def setUp(self):
-        super(MainTestCase, self).setUp()
+        super(RoutesTestCase, self).setUp()
         self.tb = testbed.Testbed()
         self.tb.setup_env(
             current_version_id='testbed.version',
@@ -25,11 +24,11 @@ class MainTestCase(unittest.TestCase):
 
     def tearDown(self):
         self.tb.deactivate()
-        super(MainTestCase, self).tearDown()
+        super(RoutesTestCase, self).tearDown()
 
     def test_nothing(self):
         self.assertTrue(True)
 
     # def test_api_call(self):
-        # response = self.bond_api.link_info(message_types.VoidMessage)
-        # print("\n\nResponse was: {}\n\n".format(response))
+    # response = self.bond_api.link_info(message_types.VoidMessage)
+    # print("\n\nResponse was: {}\n\n".format(response))

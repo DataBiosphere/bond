@@ -2,9 +2,10 @@ import unittest
 
 from google.appengine.api import memcache
 from google.appengine.ext import testbed
+from werkzeug import exceptions
+
 import authentication
 import json
-import endpoints
 
 
 class TestRequestState:
@@ -139,14 +140,14 @@ class AuthenticationTestCase(unittest.TestCase):
         def token_fn(token):
             raise Exception("shouldn't be called")
 
-        with self.assertRaises(endpoints.UnauthorizedException):
+        with self.assertRaises(exceptions.Unauthorized):
             self.auth.require_user_info(TestRequestState(None), token_fn)
 
     def _unauthorized_test(self, token_data):
         def token_fn(token):
             return json.dumps(token_data)
 
-        with self.assertRaises(endpoints.UnauthorizedException):
+        with self.assertRaises(exceptions.Unauthorized):
             self.auth.require_user_info(TestRequestState('bearer testtoken'), token_fn)
 
     def test_missing_email(self):

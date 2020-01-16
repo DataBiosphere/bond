@@ -1,6 +1,6 @@
 import base64
+from werkzeug import exceptions
 
-import endpoints
 from google.appengine.api import urlfetch
 from requests.auth import HTTPBasicAuth
 from requests_oauthlib import OAuth2Session
@@ -70,5 +70,5 @@ class OauthAdapter:
                                 payload="token=" + refresh_token,
                                 headers={"Authorization": "Basic %s" % base64.b64encode("{}:{}".format(self.client_id, self.client_secret))})
         if result.status_code // 100 != 2:
-            raise endpoints.InternalServerErrorException("revoke url {}, status code {}, error body {}".
+            raise exceptions.InternalServerError("revoke url {}, status code {}, error body {}".
                                                          format(revoke_url, result.status_code, result.content))

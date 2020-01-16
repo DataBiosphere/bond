@@ -1,9 +1,9 @@
 import json
-import endpoints
 import datetime
 from google.appengine.api import memcache
 from google.appengine.ext import ndb
 
+from werkzeug import exceptions
 from bond import FenceKeys
 from token_store import TokenStore
 import time
@@ -65,8 +65,8 @@ class FenceTokenVendingMachine:
             fence_service_account = fsa_key.get()
             now = datetime.datetime.now()
             if fence_service_account is None or \
-                            fence_service_account.expires_at is None or \
-                            fence_service_account.expires_at < now:
+                    fence_service_account.expires_at is None or \
+                    fence_service_account.expires_at < now:
                 fence_service_account = self._fetch_service_account(real_user_info, fsa_key)
 
             key_json = fence_service_account.key_json
@@ -77,7 +77,7 @@ class FenceTokenVendingMachine:
     def _fetch_real_user_info(self, user_info):
         real_user_info = self.sam_api.user_info(user_info.token)
         if real_user_info is None:
-            raise endpoints.UnauthorizedException("user not found in sam")
+            raise exceptions.Unauthorized("user not found in sam")
         return real_user_info
 
     def _fetch_service_account(self, real_user_info, fsa_key):
@@ -110,7 +110,7 @@ class FenceTokenVendingMachine:
     def _get_oauth_access_token(self, user_id):
         refresh_token = TokenStore.lookup(user_id, self.provider_name)
         if refresh_token is None:
-            raise endpoints.BadRequestException("Fence account not linked")
+            raise exceptions.BadRequest("Fence account not linked")
         access_token = self.fence_oauth_adapter.refresh_access_token(refresh_token.token).get(FenceKeys.ACCESS_TOKEN)
         return access_token
 
@@ -161,8 +161,7 @@ class FenceTokenVendingMachine:
         if fence_service_account is None:
             fence_service_account = FenceServiceAccount(key=fsa_key, update_lock_timeout=update_lock_timeout)
         elif fence_service_account.update_lock_timeout and fence_service_account.update_lock_timeout > datetime.datetime.now():
-            # TODO: Perhaps we should raise a specific/custom exception here so we can be precise in handling
-            raise Exception("already locked")
+            raise ServiceAccountLockedException()
         else:
             fence_service_account.update_lock_timeout = update_lock_timeout
         fence_service_account.put()
@@ -177,3 +176,8 @@ class FenceServiceAccount(ndb.Model):
 
 class ServiceAccountNotUpdatedException(Exception):
     pass
+
+
+class ServiceAccountLockedException(exceptions.HTTPException):
+    code = 500
+    description = "already locked"

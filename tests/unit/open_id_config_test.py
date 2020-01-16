@@ -1,7 +1,8 @@
 import unittest
-import endpoints
 
 from mock import MagicMock
+from werkzeug import exceptions
+
 from open_id_config import OpenIdConfig
 
 
@@ -25,7 +26,7 @@ class OpenIdConfigTestCase(unittest.TestCase):
         self.assertIsNotNone(self.open_id_config.get_config_value(key))
 
     def test_get_open_id_config_value_missing(self):
-        with self.assertRaises(endpoints.InternalServerErrorException):
+        with self.assertRaises(exceptions.InternalServerError):
             self.open_id_config.get_config_value("something-that-does-not-exist")
 
     def test_get_open_id_config_value_missing_no_exception(self):

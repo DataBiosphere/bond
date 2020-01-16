@@ -22,7 +22,6 @@ import error_handler
 app = Flask(__name__)
 app.register_blueprint(error_handler.blueprint)
 
-
 @app.route('/')
 def root():
     auth_config = authentication.default_config()
