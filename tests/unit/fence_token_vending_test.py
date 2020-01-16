@@ -4,6 +4,8 @@ from google.appengine.ext import ndb
 from google.appengine.ext import testbed
 import threading
 from fence_token_vending import FenceTokenVendingMachine
+from werkzeug import exceptions
+
 from authentication import UserInfo
 from memcache_api import MemcacheApi
 from mock import MagicMock
@@ -16,7 +18,6 @@ from token_store import TokenStore
 import datetime
 import string
 import random
-import endpoints
 import time
 from sam_api import SamKeys
 
@@ -183,7 +184,7 @@ class FenceTokenVendingMachineTestCase(unittest.TestCase):
         fsa_key = build_fence_service_account_key(ftvm.provider_name, real_user_id)
         self.assertIsNone(fsa_key.get())
 
-        with self.assertRaises(endpoints.BadRequestException):
+        with self.assertRaises(exceptions.BadRequest):
             ftvm.get_service_account_key_json(UserInfo(caller_uid, "splat@bar.com", "fake_token_too", 10))
 
     @staticmethod

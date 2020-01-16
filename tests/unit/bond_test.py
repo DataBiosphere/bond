@@ -3,11 +3,11 @@ import unittest
 import uuid
 from datetime import datetime
 
-import endpoints
 import jwt
 from google.appengine.ext import ndb
 from google.appengine.ext import testbed
 from mock import MagicMock
+from werkzeug import exceptions
 
 from authentication import UserInfo
 from fence_token_storage import build_fence_service_account_key
@@ -100,7 +100,7 @@ class BondTestCase(unittest.TestCase):
                     "/context/user/name",
                     {})
 
-        with self.assertRaises(endpoints.BadRequestException):
+        with self.assertRaises(exceptions.BadRequest):
             bond.exchange_authz_code("irrelevantString", "redirect", UserInfo(str(uuid.uuid4()), "", "", 30))
 
     def test_generate_access_token(self):
