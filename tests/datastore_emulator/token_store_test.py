@@ -2,8 +2,6 @@ import unittest
 
 # Imports might be highlighted as "unused" by IntelliJ, but they are used, see setUp()
 from google.appengine.api import datastore
-from google.appengine.api import memcache
-from google.appengine.ext import testbed
 from google.appengine.ext import ndb
 from token_store import TokenStore
 from refresh_token import RefreshToken
@@ -23,7 +21,6 @@ class TokenStoreTestCase(unittest.TestCase):
 
     def tearDown(self):
         ndb.get_context().clear_cache()  # Ensure data is truly flushed from datastore/memcache
-        self.testbed.deactivate()
 
     def test_save(self):
         token_store = TokenStore()
