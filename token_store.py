@@ -4,8 +4,7 @@ from refresh_token import RefreshToken
 
 class TokenStore:
 
-    @staticmethod
-    def save(user_id, refresh_token_str, issued_at, username, provider_name):
+    def save(self, user_id, refresh_token_str, issued_at, username, provider_name):
         """
         Persists a RefreshToken by creating a new entity or updating an existing entity with the same id
         :param provider_name:
@@ -21,8 +20,7 @@ class TokenStore:
                                      username=username)
         return refresh_token.put()
 
-    @staticmethod
-    def lookup(user_id, provider_name):
+    def lookup(self, user_id, provider_name):
         """
         Retrieves an entity out of Google Datastore of the "RefreshToken" type with the specified user_id
         :param provider_name:
@@ -31,8 +29,7 @@ class TokenStore:
         """
         return TokenStore._token_store_key(user_id, provider_name).get()
 
-    @staticmethod
-    def delete(user_id, provider_name):
+    def delete(self, user_id, provider_name):
         TokenStore._token_store_key(user_id, provider_name).delete()
 
     @staticmethod
