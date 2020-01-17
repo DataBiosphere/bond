@@ -13,6 +13,11 @@ provider_name = "test"
 class TokenStoreTestCase(unittest.TestCase):
 
     def setUp(self):
+        # Datastore uses memcache by default, so set up memcache stub.
+        self.testbed = testbed.Testbed()
+        self.testbed.activate()
+        self.testbed.init_memcache_stub()
+
         self.user_id = "abc123"
         self.token_str = "aaaaaabbbbbbcccccccddddddd"
         self.issued_at = datetime.now()
@@ -21,6 +26,7 @@ class TokenStoreTestCase(unittest.TestCase):
 
     def tearDown(self):
         ndb.get_context().clear_cache()  # Ensure data is truly flushed from datastore/memcache
+        self.testbed.deactivate()
 
     def test_save(self):
         token_store = TokenStore()
