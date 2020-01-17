@@ -56,6 +56,9 @@ class StatusResponse(messages.Message):
 class AuthorizationUrlResponse(messages.Message):
     url = messages.StringField(1)
 
+def __init__(self):
+    self.auth = authentication.Authentication(authentication.default_config())
+
 
 config = ConfigParser.ConfigParser()
 config.read("config.ini")
@@ -92,9 +95,9 @@ def create_provider(provider_name):
                                         extra_authz_url_params))
 
 
-def _get_provider(self, provider_name):
-    if provider_name in self.providers:
-        return self.providers[provider_name]
+def _get_provider(provider_name):
+    if provider_name in bond_providers:
+        return bond_providers[provider_name]
     else:
         raise exceptions.NotFound("provider {} not found".format(provider_name))
 
@@ -109,24 +112,22 @@ routes = Blueprint('bond', __name__, '/')
 
 bond_providers = {provider_name: create_provider(provider_name)
                   for provider_name in config.sections() if provider_name != 'sam'}
-auth = authentication.Authentication(authentication.default_config())
-
 
 @routes.route('/api/link/v1/providers', methods=["GET"])
-def providers():
+def list_providers():
     return protojson.encode_message(ListProvidersResponse(providers=list(bond_providers.keys())))
 
 
 @routes.route('/api/link/v1/<provider>/oauthcode', methods=["POST"])
-def oauthcode(provider):
-    user_info = auth.require_user_info(request)
+def oauthcode(self, provider):
+    user_info = self.auth.require_user_info(request)
     issued_at, username = _get_provider(provider).bond.exchange_authz_code(request.args.get('oauthcode'), request.args.get('redirect_uri'), user_info)
     return protojson.encode_message(LinkInfoResponse(issued_at=issued_at, username=username))
 
 
 @routes.route('/api/link/v1/<provider>', methods=["GET"])
-def link_info(provider):
-    user_info = auth.require_user_info(request)
+def link_info(self, provider):
+    user_info = self.auth.require_user_info(request)
     refresh_token = _get_provider(provider).bond.get_link_info(user_info)
     if refresh_token:
         return protojson.encode_message(LinkInfoResponse(issued_at=refresh_token.issued_at, username=refresh_token.username))
@@ -135,15 +136,15 @@ def link_info(provider):
 
 
 @routes.route('/api/link/v1/<provider>', methods=["DELETE"])
-def delete_link(provider):
-    user_info = auth.require_user_info(request)
+def delete_link(self, provider):
+    user_info = self.auth.require_user_info(request)
     _get_provider(provider).bond.unlink_account(user_info)
     return protojson.encode_message(message_types.VoidMessage())
 
 
 @routes.route('/api/link/v1/<provider>/accesstoken', methods=["GET"])
-def accesstoken(provider):
-    user_info = auth.require_user_info(request)
+def accesstoken(self, provider):
+    user_info = self.auth.require_user_info(request)
     try:
         access_token, expires_at = _get_provider(provider).bond.generate_access_token(user_info)
         return protojson.encode_message(AccessTokenResponse(token=access_token, expires_at=expires_at))
@@ -153,20 +154,22 @@ def accesstoken(provider):
 
 
 @routes.route('/api/link/v1/<provider>/serviceaccount/key', methods=["GET"])
-def service_account_key(provider):
-    user_info = auth.require_user_info(request)
+def service_account_key(self, provider):
+    user_info = self.auth.require_user_info(request)
     return protojson.encode_message(ServiceAccountKeyResponse(data=json.loads(
         _get_provider(provider).fence_tvm.get_service_account_key_json(user_info))))
 
 
 @routes.route('/api/link/v1/<provider>/serviceaccount/accesstoken', methods=["GET"])
-def service_account_accesstoken(provider):
-    user_info = auth.require_user_info(request)
+def service_account_accesstoken(self, provider):
+    user_info = self.auth.require_user_info(request)
     return protojson.encode_message(ServiceAccountAccessTokenResponse(token=_get_provider(provider).fence_tvm.get_service_account_access_token(user_info, request.args.getlist('scopes'))))
 
 
-@routes.route('/api/link/v1/<provider>/authorization-url', methods=["GET"])
+@routes.route('/api/link/v1/<string:provider>/authorization-url', methods=["GET"])
 def authorization_url(provider):
+    print("1##########")
+    print(type(provider))
     authz_url = _get_provider(provider).bond.build_authz_url(request.args.getlist('scopes'), request.args.get('redirect_uri'), request.args.get('state'))
     return protojson.encode_message((AuthorizationUrlResponse(url=authz_url)))
 
