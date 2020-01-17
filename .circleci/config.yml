@@ -34,7 +34,7 @@ jobs:
           command: |
             source virtualenv/bin/activate
             pip install -t lib -r requirements.txt --ignore-installed
-            sudo apt-get install google-cloud-sdk-datastore-emulator
+            apt-get install google-cloud-sdk-datastore-emulator
 
       - run:
           name: Run tests
