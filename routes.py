@@ -126,7 +126,7 @@ def oauthcode(self, provider):
     return protojson.encode_message(LinkInfoResponse(issued_at=issued_at, username=username))
 
 
-@routes.route('/api/link/v1/<provider>', methods=["GET"])
+@routes.route(api_routes_base + '/<provider>', methods=["GET"])
 def link_info(self, provider):
     user_info = self.auth.require_user_info(request)
     refresh_token = _get_provider(provider).bond.get_link_info(user_info)
@@ -136,14 +136,14 @@ def link_info(self, provider):
         raise exceptions.NotFound("{} link does not exist".format(provider))
 
 
-@routes.route('/api/link/v1/<provider>', methods=["DELETE"])
+@routes.route((api_routes_base + '/<provider>', methods=["DELETE"])
 def delete_link(self, provider):
     user_info = self.auth.require_user_info(request)
     _get_provider(provider).bond.unlink_account(user_info)
     return protojson.encode_message(message_types.VoidMessage())
 
 
-@routes.route('/api/link/v1/<provider>/accesstoken', methods=["GET"])
+@routes.route((api_routes_base + '/<provider>/accesstoken', methods=["GET"])
 def accesstoken(self, provider):
     user_info = self.auth.require_user_info(request)
     try:
@@ -154,20 +154,20 @@ def accesstoken(self, provider):
         raise exceptions.BadRequest(err.message)
 
 
-@routes.route('/api/link/v1/<provider>/serviceaccount/key', methods=["GET"])
+@routes.route(api_routes_base + '<provider>/serviceaccount/key', methods=["GET"])
 def service_account_key(self, provider):
     user_info = self.auth.require_user_info(request)
     return protojson.encode_message(ServiceAccountKeyResponse(data=json.loads(
         _get_provider(provider).fence_tvm.get_service_account_key_json(user_info))))
 
 
-@routes.route('/api/link/v1/<provider>/serviceaccount/accesstoken', methods=["GET"])
+@routes.route(api_routes_base + '/<provider>/serviceaccount/accesstoken', methods=["GET"])
 def service_account_accesstoken(self, provider):
     user_info = self.auth.require_user_info(request)
     return protojson.encode_message(ServiceAccountAccessTokenResponse(token=_get_provider(provider).fence_tvm.get_service_account_access_token(user_info, request.args.getlist('scopes'))))
 
 
-@routes.route('/api/link/v1/<string:provider>/authorization-url', methods=["GET"])
+@routes.route(api_routes_base + '/<provider>/authorization-url', methods=["GET"])
 def authorization_url(provider):
     print("1##########")
     print(type(provider))
