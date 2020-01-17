@@ -7,3 +7,4 @@ pyjwt==1.6.4
 mock==2.0.0
 dpath==1.4.2
 google-auth==1.6.1
+googledatastore==7.1.0
