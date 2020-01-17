@@ -6,7 +6,7 @@ version: 2
 jobs:
   test:
     docker:
-      - image: google/cloud-sdk:218.0.0
+      - image: google/cloud-sdk:latest
 
     environment:
       - PYTHONPATH: /usr/local/google_appengine
