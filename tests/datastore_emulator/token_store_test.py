@@ -3,6 +3,7 @@ import unittest
 # Imports might be highlighted as "unused" by IntelliJ, but they are used, see setUp()
 from google.appengine.api import datastore
 from google.appengine.ext import ndb
+from google.appengine.ext import testbed
 from token_store import TokenStore
 from refresh_token import RefreshToken
 from datetime import datetime
