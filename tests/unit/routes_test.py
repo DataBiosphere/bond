@@ -1,7 +1,7 @@
 import unittest
 
 import flask
-import main
+import routes
 from protorpc import remote
 from protorpc import messages
 from protorpc import message_types
@@ -32,16 +32,26 @@ class RoutesTestCase(unittest.TestCase):
         self.assertTrue(True)
 
     def test_api_call(self):
-        # Test API routes exists. If not exists, it will return 404 error code.
-        app = main.create_app()
+        # Test API routes exists. If not exists, it will return 404 error code. As long as it is not 404,
+        # that means the API do exist
+        app = flask.Flask(__name__)
+        app.register_blueprint(routes.routes)
         app.testing = True
+
         with app.test_client() as c:
+
+            response = c.get('/api/does/not/exist')
+            self.assertEquals(response.status_code, 404)
+
             response = c.get('/api/status/v1/status')
             self.assertEquals(response.status_code, 500)
 
             response = c.get('/api/link/v1/providers')
             self.assertEquals(response.status_code, 200)
 
-            response = c.get('/api/does/not/exist')
-            self.assertEquals(response.status_code, 404)
+            response = c.get('/api/link/v1/foo')
+            self.assertEquals(response.status_code, 401)
+
+            response = c.post('/api/link/v1/foo/oauthcode')
+            self.assertEquals(response.status_code, 401)
 

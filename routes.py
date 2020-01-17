@@ -17,8 +17,10 @@ from status import Status
 import json
 import ast
 
+
 class JsonField(messages.StringField):
     type = dict
+
 
 class ListProvidersResponse(messages.Message):
     providers = messages.StringField(1, repeated=True)
@@ -55,9 +57,6 @@ class StatusResponse(messages.Message):
 
 class AuthorizationUrlResponse(messages.Message):
     url = messages.StringField(1)
-
-def __init__(self):
-    self.auth = authentication.Authentication(authentication.default_config())
 
 
 config = ConfigParser.ConfigParser()
@@ -112,23 +111,26 @@ routes = Blueprint('bond', __name__, '/')
 
 bond_providers = {provider_name: create_provider(provider_name)
                   for provider_name in config.sections() if provider_name != 'sam'}
+auth = authentication.Authentication(authentication.default_config())
 
 api_routes_base = '/api/link/v1'
+
+
 @routes.route(api_routes_base + '/providers', methods=["GET"])
 def list_providers():
     return protojson.encode_message(ListProvidersResponse(providers=list(bond_providers.keys())))
 
 
 @routes.route('/api/link/v1/<provider>/oauthcode', methods=["POST"])
-def oauthcode(self, provider):
-    user_info = self.auth.require_user_info(request)
+def oauthcode(provider):
+    user_info = auth.require_user_info(request)
     issued_at, username = _get_provider(provider).bond.exchange_authz_code(request.args.get('oauthcode'), request.args.get('redirect_uri'), user_info)
     return protojson.encode_message(LinkInfoResponse(issued_at=issued_at, username=username))
 
 
 @routes.route(api_routes_base + '/<provider>', methods=["GET"])
-def link_info(self, provider):
-    user_info = self.auth.require_user_info(request)
+def link_info(provider):
+    user_info = auth.require_user_info(request)
     refresh_token = _get_provider(provider).bond.get_link_info(user_info)
     if refresh_token:
         return protojson.encode_message(LinkInfoResponse(issued_at=refresh_token.issued_at, username=refresh_token.username))
@@ -136,14 +138,14 @@ def link_info(self, provider):
         raise exceptions.NotFound("{} link does not exist".format(provider))
 
 
-@routes.route((api_routes_base + '/<provider>', methods=["DELETE"])
-def delete_link(self, provider):
+@routes.route(api_routes_base + '/<provider>', methods=["DELETE"])
+def delete_link(provider):
     user_info = self.auth.require_user_info(request)
     _get_provider(provider).bond.unlink_account(user_info)
     return protojson.encode_message(message_types.VoidMessage())
 
 
-@routes.route((api_routes_base + '/<provider>/accesstoken', methods=["GET"])
+@routes.route(api_routes_base + '/<provider>/accesstoken', methods=["GET"])
 def accesstoken(self, provider):
     user_info = self.auth.require_user_info(request)
     try:
@@ -169,8 +171,6 @@ def service_account_accesstoken(self, provider):
 
 @routes.route(api_routes_base + '/<provider>/authorization-url', methods=["GET"])
 def authorization_url(provider):
-    print("1##########")
-    print(type(provider))
     authz_url = _get_provider(provider).bond.build_authz_url(request.args.getlist('scopes'), request.args.get('redirect_uri'), request.args.get('state'))
     return protojson.encode_message((AuthorizationUrlResponse(url=authz_url)))
 
