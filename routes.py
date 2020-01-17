@@ -113,7 +113,8 @@ routes = Blueprint('bond', __name__, '/')
 bond_providers = {provider_name: create_provider(provider_name)
                   for provider_name in config.sections() if provider_name != 'sam'}
 
-@routes.route('/api/link/v1/providers', methods=["GET"])
+api_routes_base = '/api/link/v1'
+@routes.route(api_routes_base + '/providers', methods=["GET"])
 def list_providers():
     return protojson.encode_message(ListProvidersResponse(providers=list(bond_providers.keys())))
 
