@@ -1,9 +1,10 @@
-from flask import Flask, Blueprint, request
+from flask import Blueprint, request
 import ConfigParser
 from werkzeug import exceptions
 
 from protorpc import message_types
 from protorpc import messages
+from protorpc import protojson
 
 import authentication
 from bond import Bond
@@ -113,14 +114,14 @@ auth = authentication.Authentication(authentication.default_config())
 
 @routes.route('/api/link/v1/providers', methods=["GET"])
 def providers():
-    return ListProvidersResponse(providers=list(bond_providers.keys()))
+    return protojson.encode_message(ListProvidersResponse(providers=list(bond_providers.keys())))
 
 
 @routes.route('/api/link/v1/<provider>/oauthcode', methods=["POST"])
 def oauthcode(provider):
     user_info = auth.require_user_info(request)
     issued_at, username = _get_provider(provider).bond.exchange_authz_code(request.args.get('oauthcode'), request.args.get('redirect_uri'), user_info)
-    return LinkInfoResponse(issued_at=issued_at, username=username)
+    return protojson.encode_message(LinkInfoResponse(issued_at=issued_at, username=username))
 
 
 @routes.route('/api/link/v1/<provider>', methods=["GET"])
@@ -128,7 +129,7 @@ def link_info(provider):
     user_info = auth.require_user_info(request)
     refresh_token = _get_provider(provider).bond.get_link_info(user_info)
     if refresh_token:
-        return LinkInfoResponse(issued_at=refresh_token.issued_at, username=refresh_token.username)
+        return protojson.encode_message(LinkInfoResponse(issued_at=refresh_token.issued_at, username=refresh_token.username))
     else:
         raise exceptions.NotFound("{} link does not exist".format(provider))
 
@@ -137,7 +138,7 @@ def link_info(provider):
 def delete_link(provider):
     user_info = auth.require_user_info(request)
     _get_provider(provider).bond.unlink_account(user_info)
-    return message_types.VoidMessage()
+    return protojson.encode_message(message_types.VoidMessage())
 
 
 @routes.route('/api/link/v1/<provider>/accesstoken', methods=["GET"])
@@ -145,7 +146,7 @@ def accesstoken(provider):
     user_info = auth.require_user_info(request)
     try:
         access_token, expires_at = _get_provider(provider).bond.generate_access_token(user_info)
-        return AccessTokenResponse(token=access_token, expires_at=expires_at)
+        return protojson.encode_message(AccessTokenResponse(token=access_token, expires_at=expires_at))
     except Bond.MissingTokenError as err:
         # TODO: I don't like throwing and rethrowing exceptions
         raise exceptions.BadRequest(err.message)
@@ -154,20 +155,20 @@ def accesstoken(provider):
 @routes.route('/api/link/v1/<provider>/serviceaccount/key', methods=["GET"])
 def service_account_key(provider):
     user_info = auth.require_user_info(request)
-    return ServiceAccountKeyResponse(data=json.loads(
-        _get_provider(request.provider).fence_tvm.get_service_account_key_json(user_info)))
+    return protojson.encode_message(ServiceAccountKeyResponse(data=json.loads(
+        _get_provider(provider).fence_tvm.get_service_account_key_json(user_info))))
 
 
 @routes.route('/api/link/v1/<provider>/serviceaccount/accesstoken', methods=["GET"])
 def service_account_accesstoken(provider):
     user_info = auth.require_user_info(request)
-    return ServiceAccountAccessTokenResponse(token=_get_provider(provider).fence_tvm.get_service_account_access_token(user_info, request.args.getlist('scopes')))
+    return protojson.encode_message(ServiceAccountAccessTokenResponse(token=_get_provider(provider).fence_tvm.get_service_account_access_token(user_info, request.args.getlist('scopes'))))
 
 
 @routes.route('/api/link/v1/<provider>/authorization-url', methods=["GET"])
 def authorization_url(provider):
     authz_url = _get_provider(provider).bond.build_authz_url(request.args.getlist('scopes'), request.args.get('redirect_uri'), request.args.get('state'))
-    return AuthorizationUrlResponse(url=authz_url)
+    return protojson.encode_message((AuthorizationUrlResponse(url=authz_url)))
 
 
 @routes.route('/api/status/v1/status', methods=["GET"])
@@ -182,11 +183,11 @@ def get_status():
 
     subsystems = status_service.get()
     ok = all(subsystem["ok"] for subsystem in subsystems)
-    response = StatusResponse(ok=ok,
+    response = protojson.encode_message(StatusResponse(ok=ok,
                               subsystems=[SubSystemStatusResponse(ok=subsystem["ok"],
                                                                   message=subsystem["message"],
                                                                   subsystem=subsystem["subsystem"])
-                                          for subsystem in subsystems])
+                                          for subsystem in subsystems]))
     if ok:
         return response
     else:
