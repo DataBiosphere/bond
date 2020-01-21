@@ -23,8 +23,7 @@ class PublicApiTestCase(BaseApiTestCase):
         url = self.bond_base_url + "/api/status/v1/status"
         r = requests.get(url)
         self.assertEqual(200, r.status_code)
-        response_json_dict = json.loads(r.text)  # sorted??
-        self.assertTrue(response_json_dict['ok'])
+        response_json_dict = json.loads(r.text)
         validate(instance=response_json_dict, schema=json_schema_test_status)
 
     def test_list_providers(self):
@@ -32,7 +31,6 @@ class PublicApiTestCase(BaseApiTestCase):
         r = requests.get(url)
         self.assertEqual(200, r.status_code)
         response_json_dict = json.loads(r.text)
-        self.assertIsNotNone(response_json_dict["providers"])
         validate(instance=response_json_dict, schema=json_schema_test_list_providers)
 
     def test_get_auth_url(self):
@@ -40,14 +38,6 @@ class PublicApiTestCase(BaseApiTestCase):
         r = requests.get(url)
         self.assertEqual(200, r.status_code)
         response_json_dict = json.loads(r.text)
-        authz_url = urlparse.urlparse(response_json_dict["url"])
-        query_params = urlparse.parse_qs(authz_url.query)
-        self.assertEqual("https", authz_url.scheme)
-        self.assertIsNotNone(authz_url.netloc)
-        self.assertIsNotNone(query_params["redirect_uri"])
-        self.assertIsNotNone(query_params["response_type"])
-        self.assertIsNotNone(query_params["client_id"])
-        self.assertIsNotNone(query_params["state"])
         validate(instance=response_json_dict, schema=json_schema_test_get_auth_url)
 
     def test_get_auth_url_without_params(self):
@@ -62,12 +52,6 @@ class PublicApiTestCase(BaseApiTestCase):
         r = requests.get(url)
         self.assertEqual(200, r.status_code)
         response_json_dict = json.loads(r.text)
-        authz_url = urlparse.urlparse(response_json_dict["url"])
-        query_params = urlparse.parse_qs(authz_url.query)
-        self.assertIsNotNone(query_params["redirect_uri"])
-        self.assertIsNotNone(query_params["response_type"])
-        self.assertIsNotNone(query_params["client_id"])
-        self.assertIsNotNone(query_params["state"])
         validate(instance=response_json_dict, schema=json_schema_test_get_auth_url_with_only_redirect_param)
 
 
@@ -123,15 +107,15 @@ class UnlinkedUserTestCase(AuthorizedUnlinkedUser):
     def test_get_link_status_for_unlinked_user(self):
         url = self.bond_base_url + "/api/link/v1/" + self.provider
         r = requests.get(url, headers=self.bearer_token_header(self.token))
-        response_json_dict = json.loads(r.text)
         self.assertEqual(404, r.status_code)
+        response_json_dict = json.loads(r.text)
         validate(instance=response_json_dict, schema=json_schema_test_get_link_status_for_unlinked_user)
 
     def test_get_link_status_for_invalid_provider(self):
         url = self.bond_base_url + "/api/link/v1/" + "does_not_exist"
         r = requests.get(url, headers=self.bearer_token_header(self.token))
-        response_json_dict = json.loads(r.text)
         self.assertEqual(404, r.status_code)
+        response_json_dict = json.loads(r.text)
         validate(instance=response_json_dict, schema=json_schema_test_get_link_status_for_invalid_provider)
 
     def test_get_access_token_for_unlinked_user(self):
@@ -150,8 +134,6 @@ class ExchangeAuthCodeTestCase(AuthorizedUnlinkedUser):
         r = requests.post(url, headers=self.bearer_token_header(self.token))
         self.assertEqual(200, r.status_code, "Response code was not 200.  Response Body: %s" % r.text)
         response_json_dict = json.loads(r.text)
-        self.assertIsNotNone(response_json_dict["issued_at"])
-        self.assertIsNotNone(response_json_dict["username"])
         validate(instance=response_json_dict, schema=json_schema_test_exchange_auth_code)
 
 
@@ -213,8 +195,6 @@ class LinkedUserTestCase(AuthorizedBaseCase):
         r = requests.get(url, headers=self.bearer_token_header(LinkedUserTestCase.token))
         self.assertEqual(200, r.status_code, "Response code was not 200.  Response Body: %s" % r.text)
         response_json_dict = json.loads(r.text)
-        self.assertIsNotNone(response_json_dict["expires_at"])
-        self.assertIsNotNone(response_json_dict["token"])
         validate(instance=response_json_dict, schema=json_schema_test_get_access_token)
 
     def test_get_serviceaccount_key(self):
@@ -222,10 +202,6 @@ class LinkedUserTestCase(AuthorizedBaseCase):
         r = requests.get(url, headers=self.bearer_token_header(LinkedUserTestCase.token))
         self.assertEqual(200, r.status_code, "Response code was not 200.  Response Body: %s" % r.text)
         response_json_dict = json.loads(r.text)
-        # We could assert that more elements are present here in the result, but we are basically just verifying the
-        # structure of a Google Service Account Key, which is probably not something we should test here
-        self.assertIsNotNone(response_json_dict["data"]["private_key"])
-        self.assertEqual("service_account", response_json_dict["data"]["type"])
         validate(instance=response_json_dict, schema=json_schema_test_get_serviceaccount_key)
 
 
@@ -264,7 +240,5 @@ class UserCredentialsTestCase(AuthorizedBaseCase):
     def test_user_info_for_delegated_user(self):
         r = requests.get("https://www.googleapis.com/oauth2/v1/userinfo?alt=json",
                          headers=self.bearer_token_header(self.token))
-        user_info = json.loads(r.text)
-        self.assertEqual(self.hermione_email, user_info["email"])
         response_json_dict = json.loads(r.text)
         validate(instance=response_json_dict, schema=json_schema_test_user_info_for_delegated_user)
