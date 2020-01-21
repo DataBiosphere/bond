@@ -1,7 +1,6 @@
 import json
 import endpoints
 import datetime
-from google.appengine.api import memcache
 from google.appengine.ext import ndb
 
 from bond import FenceKeys
@@ -12,9 +11,10 @@ from sam_api import SamKeys
 
 
 class FenceTokenVendingMachine:
-    def __init__(self, fence_api, sam_api, fence_oauth_adapter, provider_name):
+    def __init__(self, fence_api, sam_api, cache_api, fence_oauth_adapter, provider_name):
         self.fence_api = fence_api
         self.sam_api = sam_api
+        self.cache_api = cache_api
         self.fence_oauth_adapter = fence_oauth_adapter
         self.provider_name = provider_name
 
@@ -50,15 +50,15 @@ class FenceTokenVendingMachine:
         Get a service account key json to access objects protected by fence
 
         implementation:
-        first see if there is a service account for the user id in memcache,
+        first see if there is a service account for the user id in cache_api,
            if so, return it
         else, lookup who the user really is in sam and see if there is a service account for the real user in data store
-           if so, put it in memcache under the passed in user and return it
-        else, initiate a lock for the real user, fetch a service account from fence, put it in datastore, put it in memcache
+           if so, put it in cache_api under the passed in user and return it
+        else, initiate a lock for the real user, fetch a service account from fence, put it in datastore, put it in cache_api
         :param user_info:
         :return: fence service account key_json
         """
-        key_json = memcache.get(namespace=self.provider_name, key=user_info.id)
+        key_json = self.cache_api.get(namespace=self.provider_name, key=user_info.id)
         if key_json is None:
             real_user_info = self._fetch_real_user_info(user_info)
             fsa_key = self._fence_service_account_key(real_user_info[SamKeys.USER_ID_KEY])
@@ -71,7 +71,7 @@ class FenceTokenVendingMachine:
 
             key_json = fence_service_account.key_json
             seconds_to_expire = (fence_service_account.expires_at - now).total_seconds()
-            memcache.add(namespace=self.provider_name, key=user_info.id, value=key_json, time=seconds_to_expire)
+            self.cache_api.add(namespace=self.provider_name, key=user_info.id, value=key_json, expires_in=seconds_to_expire)
         return key_json
 
     def _fetch_real_user_info(self, user_info):

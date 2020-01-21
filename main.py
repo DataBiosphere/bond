@@ -8,6 +8,7 @@ from protorpc import remote
 
 import authentication
 from bond import Bond
+from cache_api import create_cache_api
 from fence_token_vending import FenceTokenVendingMachine
 from fence_api import FenceApi
 from open_id_config import OpenIdConfig
@@ -87,6 +88,7 @@ class BondProvider:
 @endpoints.api(name='link', version='v1', base_path="/api/")
 class BondApi(remote.Service):
     def __init__(self):
+        cache_api = create_cache_api()
         def create_provider(provider_name):
             client_id = config.get(provider_name, 'CLIENT_ID')
             client_secret = config.get(provider_name, 'CLIENT_SECRET')
@@ -102,12 +104,12 @@ class BondApi(remote.Service):
                 extra_params_raw = config.get(provider_name, extra_params_key)
                 extra_authz_url_params = ast.literal_eval(extra_params_raw)
 
-            open_id_config = OpenIdConfig(provider_name, open_id_config_url)
+            open_id_config = OpenIdConfig(provider_name, open_id_config_url, cache_api)
             oauth_adapter = OauthAdapter(client_id, client_secret, open_id_config, provider_name)
             fence_api = FenceApi(fence_base_url)
             sam_api = SamApi(sam_base_url)
 
-            fence_tvm = FenceTokenVendingMachine(fence_api, sam_api, oauth_adapter, provider_name)
+            fence_tvm = FenceTokenVendingMachine(fence_api, sam_api, cache_api, oauth_adapter, provider_name)
             return BondProvider(fence_tvm, Bond(oauth_adapter,
                                                 fence_api,
                                                 sam_api,
@@ -118,7 +120,7 @@ class BondApi(remote.Service):
 
         self.providers = {provider_name: create_provider(provider_name) 
                           for provider_name in config.sections() if provider_name != 'sam'}
-        self.auth = authentication.Authentication(authentication.default_config())
+        self.auth = authentication.Authentication(authentication.default_config(), cache_api)
 
     def _get_provider(self, provider_name):
         if provider_name in self.providers:
@@ -229,7 +231,8 @@ class BondStatusApi(remote.Service):
                      for provider_name in config.sections() if provider_name != 'sam'}
 
         sam_api = SamApi(sam_base_url)
-        self.status_service = Status(sam_api, providers)
+        cache_api = create_cache_api()
+        self.status_service = Status(sam_api, providers, cache_api)
 
     @endpoints.method(
         message_types.VoidMessage,

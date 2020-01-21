@@ -1,18 +1,18 @@
 import json
 import endpoints
 
-from google.appengine.api import memcache
 from google.appengine.api import urlfetch
 
 
 class OpenIdConfig:
 
-    def __init__(self, provider_name, open_id_config_url):
+    def __init__(self, provider_name, open_id_config_url, cache_api):
         self.provider_name = provider_name
         self.open_id_config_url = open_id_config_url
+        self.cache_api = cache_api
 
     def load_dict(self):
-        open_id_dict = memcache.get(namespace="OauthAdapter", key=self.provider_name)
+        open_id_dict = self.cache_api.get(namespace="OauthAdapter", key=self.provider_name)
         if not open_id_dict:
             open_id_config_response = urlfetch.fetch(self.open_id_config_url)
             if open_id_config_response.status_code != 200:
@@ -22,7 +22,7 @@ class OpenIdConfig:
                                                                                     open_id_config_response.content))
             else:
                 open_id_dict = json.loads(open_id_config_response.content)
-                memcache.add(namespace="OauthAdapter", key=self.provider_name, value=open_id_dict, time=60*60*24)
+                self.cache_api.add(namespace="OauthAdapter", key=self.provider_name, value=open_id_dict, expires_in=60*60*24)
         return open_id_dict
 
     def get_config_value(self, key, raise_error=True):
