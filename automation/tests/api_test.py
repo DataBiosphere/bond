@@ -1,8 +1,6 @@
-import collections
 import json
 import unittest
 import requests
-import urlparse
 import os
 from automation.helpers.user_credentials import UserCredentials
 from jsonschema import validate
