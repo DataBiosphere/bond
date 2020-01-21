@@ -10,8 +10,8 @@ from automation.helpers.json_responses import *
 
 class BaseApiTestCase(unittest.TestCase):
     env = os.getenv("ENV", "dev")
-    # bond_base_url = "https://bond-fiab.dsde-%s.broadinstitute.org:31443" % env
-    bond_base_url = "http://localhost:8080"
+    bond_base_url = "https://bond-fiab.dsde-%s.broadinstitute.org:31443" % env
+    # bond_base_url = "http://localhost:8080" # put this back -- to be fixed in Marc's PR.
     provider = "fence"
     email_domain = "quality.firecloud.org" if (env == "qa") else "test.firecloud.org"
 
@@ -48,7 +48,7 @@ class PublicApiTestCase(BaseApiTestCase):
         self.assertIsNotNone(query_params["response_type"])
         self.assertIsNotNone(query_params["client_id"])
         self.assertIsNotNone(query_params["state"])
-        validate(instance=response_json_dict, schema=json_schema_test_get_auth_url)  #todo: check for ONLY the query params in the regex
+        validate(instance=response_json_dict, schema=json_schema_test_get_auth_url)
 
     def test_get_auth_url_without_params(self):
         url = self.bond_base_url + "/api/link/v1/" + self.provider + "/authorization-url"
@@ -154,7 +154,6 @@ class ExchangeAuthCodeTestCase(AuthorizedUnlinkedUser):
         self.assertIsNotNone(response_json_dict["username"])
         validate(instance=response_json_dict, schema=json_schema_test_exchange_auth_code)
 
-## TODO: try crashing bond again locally by making all these fail.
 
 class ExchangeAuthCodeNegativeTestCase(AuthorizedUnlinkedUser):
     """

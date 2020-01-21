@@ -2,6 +2,8 @@
 Json Schemas for api_test.py
 
 Generate, modify, or validate a schema from json here: https://jsonschema.net/
+
+Use "enum" to ensure exact values.
  """
 
 # todo: clean up these lists -- remove all extraneous fields.
@@ -65,7 +67,7 @@ json_schema_test_list_providers = {
             "$id": "#/properties/subsystems/items/properties/ok",
             "type": "boolean",
             "title": "The Ok Schema",
-            "enum": [True]  # todo: add comments to these. or to the top description.
+            "enum": [True]
           },
           "subsystem": {
             "$id": "#/properties/subsystems/items/properties/subsystem",
