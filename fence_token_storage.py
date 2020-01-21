@@ -93,8 +93,7 @@ class FenceTokenStorage:
 
         else:
             fence_service_account = self._wait_for_update(fsa_key)
-            if not fence_service_account.key_json or (
-                    fence_service_account.expires_at and fence_service_account.expires_at < datetime.datetime.now()):
+            if not fence_service_account.expires_at or fence_service_account.expires_at < datetime.datetime.now():
                 # We waited for a fence service account update since someone else was holding the lock, but the
                 # lock expired without a valid update.
                 # we could recursively call _fetch_service_account_json at this point but let's start with failure
