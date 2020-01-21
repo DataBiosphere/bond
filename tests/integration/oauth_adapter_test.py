@@ -49,17 +49,21 @@ class OauthAdapterTestCase(unittest.TestCase):
         redirect_uri = "http://local.broadinstitute.org/#fence-callback"
         state = "abc123"
         authz_responses = {}
+        # Whether this test is being run manually or for by automated integration.
+        # The integration run uses a fake provider. The manual run allows testing against real providers with real
+        # authentication. There's not a good way to run integration tests against real providers, so we have this
+        # flag to manually change the tests.
+        manual_run = False
         for provider, oauth_adapter in oauth_adapters.iteritems():
             authz_url = oauth_adapter.build_authz_url(scopes,
                                                       redirect_uri,
                                                       state,
-                                                      extra_authz_url_params={"idp": "google"})
+                                                      extra_authz_url_params={"idp": "google"} if manual_run else {"foo": "bar"})
             print("Please go to %s to authorize access: %s" % (provider, authz_url))
             print("YOU WILL BE REDIRECTED TO %s WHICH WILL PROBABLY UNREACHABLE -- THIS IS EXPECTED!" % redirect_uri)
             print("Please copy/paste the \"code\" parameter from the resulting URL: ")
             sys.stdout.flush()
-            auth_code = sys.stdin.readline().strip()
-            # auth_code = "X"
+            auth_code = sys.stdin.readline().strip() if manual_run else "X"
             authz_responses[provider] = oauth_adapter.exchange_authz_code(auth_code, redirect_uri)
         local_tb.deactivate()
         return authz_responses
