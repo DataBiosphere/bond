@@ -769,7 +769,7 @@ json_schema_test_user_info_for_delegated_user = {
     },
     "picture": {
       "type": "string",
-      "enum": [
+      "example": [
         "https://lh3.googleusercontent.com/-vd-xJM0bRSk/AAAAAAAAAAI/AAAAAAAAAAA/ACHi3rc7YyU2qNlHlydOOxp68LcWSB22tw/photo.jpg"
       ],
     },
