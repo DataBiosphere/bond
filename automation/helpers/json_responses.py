@@ -13,23 +13,6 @@ json_schema_test_status = {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "type": "object",
   "required": [
-    "providers"
-  ],
-    "properties": {
-        "providers": {
-            "type": "array",
-            "items": {
-                "type": "string",
-                "minItems": 2,
-                "enum": ["fence", "dcf-fence"]
-            }
-        }
-    },
-}
-json_schema_test_list_providers = {
-  "$schema": "http://json-schema.org/draft-07/schema#",
-  "type": "object",
-  "required": [
     "ok",
     "subsystems"
   ],
@@ -70,6 +53,23 @@ json_schema_test_list_providers = {
       }
     }
   }
+}
+json_schema_test_list_providers = {
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "required": [
+    "providers"
+  ],
+    "properties": {
+        "providers": {
+            "type": "array",
+            "items": {
+                "type": "string",
+                "minItems": 2,
+                "enum": ["fence", "dcf-fence"]
+            }
+        }
+    },
 }
 json_schema_test_get_auth_url = {
   "$schema": "http://json-schema.org/draft-07/schema#",

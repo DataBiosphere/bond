@@ -25,7 +25,7 @@ class PublicApiTestCase(BaseApiTestCase):
         self.assertEqual(200, r.status_code)
         response_json_dict = json.loads(r.text)  # sorted??
         self.assertTrue(response_json_dict['ok'])
-        validate(instance=response_json_dict, schema=json_schema_test_list_providers)
+        validate(instance=response_json_dict, schema=json_schema_test_status)
 
     def test_list_providers(self):
         url = self.bond_base_url + "/api/link/v1/providers"
@@ -33,7 +33,7 @@ class PublicApiTestCase(BaseApiTestCase):
         self.assertEqual(200, r.status_code)
         response_json_dict = json.loads(r.text)
         self.assertIsNotNone(response_json_dict["providers"])
-        validate(instance=response_json_dict, schema=json_schema_test_status)
+        validate(instance=response_json_dict, schema=json_schema_test_list_providers)
 
     def test_get_auth_url(self):
         url = self.bond_base_url + "/api/link/v1/" + self.provider + "/authorization-url" + "?scopes=openid&scopes=google_credentials&redirect_uri=http%3A%2F%2Flocal.broadinstitute.org%2F%23fence-callback&state=eyJmb28iPSJiYXIifQ=="
