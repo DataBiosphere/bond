@@ -187,6 +187,9 @@ class LinkedUserTestCase(AuthorizedBaseCase):
     def tearDownClass(cls):
         cls.unlink(cls.token)
 
+    # The lack of a fence testing environment (See: https://broadworkbench.atlassian.net/browse/CA-303) is preventing
+    #  4 test cases from running as integration tests - the 3 below as well as test_exchange_auth_code. We are running
+    #  these tests against mocks due to this.
     def test_get_link_status(self):
         url = self.bond_base_url + "/api/link/v1/" + self.provider
         r = requests.get(url, headers=self.bearer_token_header(LinkedUserTestCase.token))
