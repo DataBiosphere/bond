@@ -13,7 +13,7 @@ Do the one time setup of installing the Datastore Emulator.
 ### Testing 
 Start the emulator:
 
-`gcloud beta emulators datastore start --no-store-on-disk --project="broad-bond-dev" --host-port=0.0.0.0:8432`
+`gcloud beta emulators datastore start --no-store-on-disk --project="test" --host-port=0.0.0.0:8432`
 
 In another terminal, run the test script. Note that this sets (and attempts to unset) environment variables.
 
