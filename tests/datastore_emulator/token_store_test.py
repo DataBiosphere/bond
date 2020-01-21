@@ -2,7 +2,6 @@ import unittest
 
 from google.appengine.ext import ndb
 from token_store import TokenStore
-from refresh_token import RefreshToken
 from datetime import datetime
 
 provider_name = "test"
@@ -11,6 +10,9 @@ provider_name = "test"
 class TokenStoreTestCase(unittest.TestCase):
 
     def setUp(self):
+        # Make sure to run these tests with a Datastore Emulator running or else they will fail with 'InternalError.'
+        # See the README in this directory.
+
         # Disable memcache for this test as we're not emulating a memcache environment and we will raise errors
         # as ndb tries to use memcache by default.
         ndb.get_context().set_memcache_policy(False)

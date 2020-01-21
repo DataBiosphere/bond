@@ -11,6 +11,8 @@ Do the one time setup of installing the Datastore Emulator.
 `gcloud components install cloud-datastore-emulator`
 
 ### Testing 
+Testing should be done in a virtualenv python environment. See project README.
+
 Start the emulator:
 
 `gcloud beta emulators datastore start --no-store-on-disk --project="test" --host-port=0.0.0.0:8432`
