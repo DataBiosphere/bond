@@ -1,7 +1,6 @@
 from fence_token_storage import create_fence_service_account_key, FenceServiceAccount, FenceTokenStorage, \
     ServiceAccountNotUpdatedException, _FSA_KEY_LIFETIME
 from google.appengine.ext import ndb
-from google.appengine.ext import testbed
 import datetime
 import threading
 import time
@@ -11,13 +10,12 @@ import unittest
 class FenceTokenStorageTestCase(unittest.TestCase):
 
     def setUp(self):
-        # First, create an instance of the Testbed class.
-        self.testbed = testbed.Testbed()
-        # Then activate the testbed, which prepares the service stubs for use.
-        self.testbed.activate()
-        # Next, declare which service stubs you want to use.
-        self.testbed.init_memcache_stub()
-        self.testbed.init_datastore_v3_stub()
+        # Make sure to run these tests with a Datastore Emulator running or else they will fail with 'InternalError.'
+        # See the README in this directory.
+
+        # Disable memcache for this test as we're not emulating a memcache environment and we will raise errors
+        # as ndb tries to use memcache by default.
+        ndb.get_context().set_memcache_policy(False)
 
         # How many times fence_fetch has been called.
         self.fence_fetches = 0
@@ -41,8 +39,7 @@ class FenceTokenStorageTestCase(unittest.TestCase):
         self.assertEqual(key_json, "json_value: prepped: default_provider")
 
     def tearDown(self):
-        ndb.get_context().clear_cache()  # Ensure data is truly flushed from datastore/memcache
-        self.testbed.deactivate()
+        self.fsa_key.delete()
 
     def test_create(self):
         token_storage = FenceTokenStorage()
