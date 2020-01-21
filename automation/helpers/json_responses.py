@@ -793,7 +793,7 @@ json_schema_test_user_info_for_delegated_user = {
     },
     "id": {
       "type": "string",
-      "enum": [
+      "example": [
         "110530393451290928813"
       ],
     },
