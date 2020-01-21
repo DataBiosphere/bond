@@ -3,14 +3,18 @@ Json Schemas for api_test.py
 
 Generate, modify, or validate a schema from json here: https://jsonschema.net/
 
-Use "enum" to ensure exact values.
+Use "enum" to ensure exact values. Remove superfluous fields.
  """
 
 DATE_REGEX = "20..-..-..T..:..:.."  # valid through 2099
 
 """Json Schemas for PublicApiTestCase tests"""
 json_schema_test_status = {
-    "type": "object",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "required": [
+    "providers"
+  ],
     "properties": {
         "providers": {
             "type": "array",
