@@ -6,7 +6,7 @@ Generate, modify, or validate a schema from json here: https://jsonschema.net/
 Use "enum" to ensure exact values.
  """
 
-DATE_REGEX = "20..-..-..T..:..:.."  #valid through 2099
+DATE_REGEX = "20..-..-..T..:..:.."  # valid through 2099
 
 """Json Schemas for PublicApiTestCase tests"""
 json_schema_test_status = {
