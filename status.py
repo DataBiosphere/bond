@@ -31,7 +31,7 @@ class Status:
                 self._cache_status(status)
             return status
         except Exception as e:
-            # any exception at this point is the cache cache
+            # any exception at this point is the cache
             return [{"ok": False, "message": e.message, "subsystem": Subsystems.cache}]
 
     def _cache_status(self, status):
