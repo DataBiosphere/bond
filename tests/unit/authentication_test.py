@@ -1,9 +1,7 @@
 import unittest
 
-from google.appengine.api import memcache
-from google.appengine.ext import testbed
 import authentication
-from memcache_api import MemcacheApi
+from tests.unit.fake_cache_api import FakeCacheApi
 import json
 import endpoints
 
@@ -18,17 +16,8 @@ class TestRequestState:
 class AuthenticationTestCase(unittest.TestCase):
 
     def setUp(self):
-        # First, create an instance of the Testbed class.
-        self.testbed = testbed.Testbed()
-        # Then activate the testbed, which prepares the service stubs for use.
-        self.testbed.activate()
-        # Next, declare which service stubs you want to use.
-        self.testbed.init_memcache_stub()
-        self.cache_api = MemcacheApi()
+        self.cache_api = FakeCacheApi()
         self.auth = authentication.Authentication(authentication.AuthenticationConfig(['32555940559'], ['.gserviceaccount.com'], 600), self.cache_api)
-
-    def tearDown(self):
-        self.testbed.deactivate()
 
     def test_good_user(self):
         token = "testtoken"

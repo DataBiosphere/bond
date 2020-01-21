@@ -1,5 +1,5 @@
 import unittest
-from cache_api import LocalCacheApi
+from tests.unit.fake_cache_api import FakeCacheApi
 from fence_api import FenceApi
 from sam_api import SamApi
 from mock import MagicMock
@@ -17,7 +17,7 @@ class StatusTestCase(unittest.TestCase):
         # Next, declare which service stubs you want to use.
         self.testbed.init_datastore_v3_stub()
 
-        self.cache_api = LocalCacheApi()
+        self.cache_api = FakeCacheApi()
 
     def tearDown(self):
         ndb.get_context().clear_cache()  # Ensure data is truly flushed from datastore

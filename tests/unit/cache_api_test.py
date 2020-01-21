@@ -1,7 +1,7 @@
 import time
 import unittest
 
-from cache_api import LocalCacheApi
+from tests.unit.fake_cache_api import FakeCacheApi
 
 
 class CacheApiTest(object):
@@ -40,4 +40,4 @@ class CacheApiTest(object):
 
 class LocalCacheApiTestCase(unittest.TestCase, CacheApiTest):
     def setUp(self):
-        self.setUpCache(LocalCacheApi())
+        self.setUpCache(FakeCacheApi())

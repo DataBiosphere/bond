@@ -6,20 +6,19 @@ from datetime import datetime
 import endpoints
 import jwt
 from google.appengine.ext import ndb
-from google.appengine.ext import testbed
 from mock import MagicMock
 
 from authentication import UserInfo
 from fence_token_storage import create_fence_service_account_key
-from memcache_api import MemcacheApi
 from bond import Bond, FenceKeys
 from fence_api import FenceApi
 from fence_token_vending import FenceTokenVendingMachine
-import fence_token_storage
 from oauth_adapter import OauthAdapter
 from sam_api import SamApi
 from sam_api import SamKeys
-from token_store import TokenStore
+from tests.unit.fake_token_store import  FakeTokenStore
+from tests.unit.fake_cache_api import FakeCacheApi
+from tests.unit.fake_fence_token_storage import FakeFenceTokenStorage
 
 provider_name = "test"
 
@@ -27,10 +26,6 @@ provider_name = "test"
 class BondTestCase(unittest.TestCase):
     def setUp(self):
         super(BondTestCase, self).setUp()
-        self.testbed = testbed.Testbed()
-        self.testbed.activate()
-        self.testbed.init_datastore_v3_stub()
-        self.testbed.init_memcache_stub()
 
         self.name = "Bob McBob"
         self.issued_at_epoch = 1528896868
@@ -53,21 +48,17 @@ class BondTestCase(unittest.TestCase):
 
         fence_api = self._mock_fence_api(json.dumps({"private_key_id": "asfasdfasdf"}))
         sam_api = self._mock_sam_api(self.user_id, "email")
-        self.token_store = TokenStore()
+        self.token_store = FakeTokenStore()
         self.bond = Bond(mock_oauth_adapter,
                          fence_api,
                          sam_api,
                          self.token_store,
-                         FenceTokenVendingMachine(fence_api, sam_api, MemcacheApi(), self.token_store,
+                         FenceTokenVendingMachine(fence_api, sam_api, FakeCacheApi(), self.token_store,
                                                   mock_oauth_adapter,
-                                                  provider_name, fence_token_storage.FenceTokenStorage()),
+                                                  provider_name, FakeFenceTokenStorage()),
                          provider_name,
                          "/context/user/name",
                          {})
-
-    def tearDown(self):
-        ndb.get_context().clear_cache()  # Ensure data is truly flushed from datastore/memcache
-        self.testbed.deactivate()
 
     def test_exchange_authz_code(self):
         issued_at, username = self.bond.exchange_authz_code("irrelevantString", "redirect",
@@ -93,9 +84,9 @@ class BondTestCase(unittest.TestCase):
                     fence_api,
                     sam_api,
                     self.token_store,
-                    FenceTokenVendingMachine(fence_api, sam_api, MemcacheApi(), self.token_store,
+                    FenceTokenVendingMachine(fence_api, sam_api, FakeCacheApi(), self.token_store,
                                              mock_oauth_adapter, provider_name,
-                                             fence_token_storage.FenceTokenStorage()),
+                                             FakeFenceTokenStorage()),
                     provider_name,
                     "/context/user/name",
                     {})
