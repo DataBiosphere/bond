@@ -782,8 +782,9 @@ json_schema_test_user_info_for_delegated_user = {
     "email": {
       "type": "string",
       "enum": [
-        "hermione.owner@test.firecloud.org"
-      ],
+        "hermione.owner@test.firecloud.org",
+        "hermione.owner@quality.firecloud.org"
+      ]
     },
     "given_name": {
       "type": "string",
@@ -800,7 +801,8 @@ json_schema_test_user_info_for_delegated_user = {
     "hd": {
       "type": "string",
       "enum": [
-        "test.firecloud.org"
+        "test.firecloud.org",
+        "quality.firecloud.org"
       ],
     },
     "verified_email": {
