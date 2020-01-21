@@ -6,9 +6,7 @@ Generate, modify, or validate a schema from json here: https://jsonschema.net/
 Use "enum" to ensure exact values.
  """
 
-# todo: clean up these lists -- remove all extraneous fields.
-
-date_regex = "20..-..-..T..:..:.."  #valid through 2099
+DATE_REGEX = "20..-..-..T..:..:.."  #valid through 2099
 
 """Json Schemas for PublicApiTestCase tests"""
 json_schema_test_status = {
@@ -493,7 +491,7 @@ json_schema_test_exchange_auth_code = {
       "examples": [
         "2020-01-21T15:17:54"
       ],
-      "pattern": date_regex
+      "pattern": DATE_REGEX
     },
     "username": {
       "$id": "#/properties/username",
@@ -811,7 +809,7 @@ json_schema_test_get_access_token = {
       "examples": [
         "2020-01-17T22:36:46.479670"
       ],
-      "pattern": date_regex
+      "pattern": DATE_REGEX
     }
   }
 }
