@@ -58,7 +58,7 @@ class OauthAdapterTestCase(unittest.TestCase):
             authz_url = oauth_adapter.build_authz_url(scopes,
                                                       redirect_uri,
                                                       state,
-                                                      extra_authz_url_params={"idp": "google"} if manual_run else {"foo": "bar"})
+                                                      extra_authz_url_params={"idp": "google"})
             print("Please go to %s to authorize access: %s" % (provider, authz_url))
             print("YOU WILL BE REDIRECTED TO %s WHICH WILL PROBABLY UNREACHABLE -- THIS IS EXPECTED!" % redirect_uri)
             print("Please copy/paste the \"code\" parameter from the resulting URL: ")
