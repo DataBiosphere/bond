@@ -93,8 +93,7 @@ class FenceTokenStorage:
 
         else:
             fence_service_account = self._wait_for_update(fsa_key)
-            if not fence_service_account.key_json or (
-                    fence_service_account.expires_at and fence_service_account.expires_at < datetime.datetime.now()):
+            if not fence_service_account.expires_at or fence_service_account.expires_at < datetime.datetime.now():
                 # We waited for a fence service account update since someone else was holding the lock, but the
                 # lock expired without a valid update.
                 # we could recursively call _fetch_service_account_json at this point but let's start with failure
@@ -110,9 +109,12 @@ class FenceTokenStorage:
         """
         try:
             return self._lock_fence_service_account(fsa_key)
-        # We expect a transaction failure when someone else acquires the lock instead of us. That's fine, it's just
-        # a different way we could fail to acquire the lock.
-        except TransactionFailedError:
+        # We expect a transaction failure or timeout when someone else acquires the lock instead of us. That's fine,
+        # it's just a different way we could fail to acquire the lock. Unfortunately, docs imply it's possible to
+        # receive an exception even when a transaction completes. In that case, we'll have acquired the lock but
+        # will not update it. The lock will eventually time out.
+        # https://cloud.google.com/appengine/docs/standard/python/datastore/transactions#using_transactions
+        except:
             return False
 
     def _wait_for_update(self, fsa_key):
