@@ -52,6 +52,4 @@ class RoutesTestCase(unittest.TestCase):
             response = c.get('/api/link/v1/foo')
             self.assertEquals(response.status_code, 401)
 
-            response = c.post('/api/link/v1/foo/oauthcode')
-            self.assertEquals(response.status_code, 401)
 
