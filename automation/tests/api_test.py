@@ -8,7 +8,7 @@ from automation.helpers.user_credentials import UserCredentials
 
 class BaseApiTestCase(unittest.TestCase):
     env = os.getenv("ENV", "dev")
-    bond_base_url = "https://bond-fiab.dsde-%s.broadinstitute.org:31443" % env
+    bond_base_url = os.getenv("BOND_BASE_URL", "https://bond-fiab.dsde-%s.broadinstitute.org:31443" % env)
     provider = "fence"
     email_domain = "quality.firecloud.org" if (env == "qa") else "test.firecloud.org"
 

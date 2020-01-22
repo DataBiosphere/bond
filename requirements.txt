@@ -8,3 +8,4 @@ dpath==1.4.2
 google-auth==1.6.1
 Flask==1.1.1
 Werkzeug==0.16.0
+webargs==5.5.2

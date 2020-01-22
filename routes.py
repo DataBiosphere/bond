@@ -1,6 +1,8 @@
 from flask import Blueprint, request
 import ConfigParser
 from werkzeug import exceptions
+from webargs import fields
+from webargs.flaskparser import FlaskParser
 
 from protorpc import message_types
 from protorpc import messages
@@ -16,6 +18,14 @@ from oauth_adapter import OauthAdapter
 from status import Status
 import json
 import ast
+
+
+class Parser(FlaskParser):
+    DEFAULT_VALIDATION_STATUS = 400
+
+
+parser = Parser()
+use_args = parser.use_args
 
 
 class JsonField(messages.StringField):
@@ -122,9 +132,12 @@ def list_providers():
 
 
 @routes.route('/api/link/v1/<provider>/oauthcode', methods=["POST"])
-def oauthcode(provider):
+@use_args({"oauthcode": fields.Str(required=True),
+           "redirect_uri": fields.Str(required=True)},
+          locations=("querystring",))
+def oauthcode(args, provider):
     user_info = auth.require_user_info(request)
-    issued_at, username = _get_provider(provider).bond.exchange_authz_code(request.args.get('oauthcode'), request.args.get('redirect_uri'), user_info)
+    issued_at, username = _get_provider(provider).bond.exchange_authz_code(args['oauthcode'], args['redirect_uri'], user_info)
     return protojson.encode_message(LinkInfoResponse(issued_at=issued_at, username=username))
 
 
@@ -140,14 +153,14 @@ def link_info(provider):
 
 @routes.route(api_routes_base + '/<provider>', methods=["DELETE"])
 def delete_link(provider):
-    user_info = self.auth.require_user_info(request)
+    user_info = auth.require_user_info(request)
     _get_provider(provider).bond.unlink_account(user_info)
-    return protojson.encode_message(message_types.VoidMessage())
+    return protojson.encode_message(message_types.VoidMessage()), 204
 
 
 @routes.route(api_routes_base + '/<provider>/accesstoken', methods=["GET"])
-def accesstoken(self, provider):
-    user_info = self.auth.require_user_info(request)
+def accesstoken(provider):
+    user_info = auth.require_user_info(request)
     try:
         access_token, expires_at = _get_provider(provider).bond.generate_access_token(user_info)
         return protojson.encode_message(AccessTokenResponse(token=access_token, expires_at=expires_at))
@@ -156,22 +169,28 @@ def accesstoken(self, provider):
         raise exceptions.BadRequest(err.message)
 
 
-@routes.route(api_routes_base + '<provider>/serviceaccount/key', methods=["GET"])
-def service_account_key(self, provider):
-    user_info = self.auth.require_user_info(request)
+@routes.route(api_routes_base + '/<provider>/serviceaccount/key', methods=["GET"])
+def service_account_key(provider):
+    user_info = auth.require_user_info(request)
     return protojson.encode_message(ServiceAccountKeyResponse(data=json.loads(
         _get_provider(provider).fence_tvm.get_service_account_key_json(user_info))))
 
 
 @routes.route(api_routes_base + '/<provider>/serviceaccount/accesstoken', methods=["GET"])
-def service_account_accesstoken(self, provider):
-    user_info = self.auth.require_user_info(request)
-    return protojson.encode_message(ServiceAccountAccessTokenResponse(token=_get_provider(provider).fence_tvm.get_service_account_access_token(user_info, request.args.getlist('scopes'))))
+@use_args({"scopes": fields.Str(repeated=True, missing=None)},
+          locations=("querystring",))
+def service_account_accesstoken(args, provider):
+    user_info = auth.require_user_info(request)
+    return protojson.encode_message(ServiceAccountAccessTokenResponse(token=_get_provider(provider).fence_tvm.get_service_account_access_token(user_info, args['scopes'])))
 
 
 @routes.route(api_routes_base + '/<provider>/authorization-url', methods=["GET"])
-def authorization_url(provider):
-    authz_url = _get_provider(provider).bond.build_authz_url(request.args.getlist('scopes'), request.args.get('redirect_uri'), request.args.get('state'))
+@use_args({"scopes": fields.Str(repeated=True, missing=None),
+           "redirect_uri": fields.Str(required=True),
+           "state": fields.Str(missing=None)},
+          locations=("querystring",))
+def authorization_url(args, provider):
+    authz_url = _get_provider(provider).bond.build_authz_url(args['scopes'], args['redirect_uri'], args['state'])
     return protojson.encode_message((AuthorizationUrlResponse(url=authz_url)))
 
 

@@ -31,7 +31,7 @@ class UserInfo:
 
 def _token_info(token):
     result = urlfetch.fetch(
-        '{}?{}'.format(_TOKENINFO_URL, urllib.parse.urlencode({'access_token': token})))
+        '{}?{}'.format(_TOKENINFO_URL, urllib.urlencode({'access_token': token})))
 
     if result.status_code == 400:
         raise exceptions.Unauthorized("Invalid authorization token")
