@@ -9,7 +9,6 @@ from google.appengine.ext import ndb
 from mock import MagicMock
 
 from authentication import UserInfo
-from fence_token_storage import create_fence_service_account_key
 from bond import Bond, FenceKeys
 from fence_api import FenceApi
 from fence_token_vending import FenceTokenVendingMachine
@@ -114,11 +113,9 @@ class BondTestCase(unittest.TestCase):
         self.token_store.save(self.user_id, token, datetime.now(), self.name, provider_name)
         user_info = UserInfo(str(uuid.uuid4()), "", "", 30)
         self.bond.fence_tvm.get_service_account_key_json(user_info)
-        self.assertIsNotNone(create_fence_service_account_key(self.bond.fence_tvm.provider_name, self.user_id).get())
 
         self.bond.unlink_account(user_info)
 
-        self.assertIsNone(create_fence_service_account_key(self.bond.fence_tvm.provider_name, self.user_id).get())
         self.assertIsNone(self.token_store.lookup(self.user_id, provider_name))
         self.bond.oauth_adapter.revoke_refresh_token.assert_called_once()
         self.bond.fence_api.delete_credentials_google.assert_called_once()
