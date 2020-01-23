@@ -10,10 +10,12 @@ from google.appengine.ext import testbed
 from mock import MagicMock
 
 from authentication import UserInfo
+from fence_token_storage import build_fence_service_account_key
 from memcache_api import MemcacheApi
 from bond import Bond, FenceKeys
 from fence_api import FenceApi
 from fence_token_vending import FenceTokenVendingMachine
+import fence_token_storage
 from oauth_adapter import OauthAdapter
 from sam_api import SamApi
 from sam_api import SamKeys
@@ -54,7 +56,8 @@ class BondTestCase(unittest.TestCase):
         self.bond = Bond(mock_oauth_adapter,
                          fence_api,
                          sam_api,
-                         FenceTokenVendingMachine(fence_api, sam_api, MemcacheApi(), mock_oauth_adapter, provider_name),
+                         FenceTokenVendingMachine(fence_api, sam_api, MemcacheApi(), mock_oauth_adapter, provider_name,
+                                                  fence_token_storage.FenceTokenStorage()),
                          provider_name,
                          "/context/user/name",
                          {})
@@ -85,7 +88,8 @@ class BondTestCase(unittest.TestCase):
         bond = Bond(mock_oauth_adapter,
                     fence_api,
                     sam_api,
-                    FenceTokenVendingMachine(fence_api, sam_api, MemcacheApi(), mock_oauth_adapter, provider_name),
+                    FenceTokenVendingMachine(fence_api, sam_api, MemcacheApi(), mock_oauth_adapter, provider_name,
+                                             fence_token_storage.FenceTokenStorage()),
                     provider_name,
                     "/context/user/name",
                     {})
@@ -112,11 +116,11 @@ class BondTestCase(unittest.TestCase):
         TokenStore.save(self.user_id, token, datetime.now(), self.name, provider_name)
         user_info = UserInfo(str(uuid.uuid4()), "", "", 30)
         self.bond.fence_tvm.get_service_account_key_json(user_info)
-        self.assertIsNotNone(self.bond.fence_tvm._fence_service_account_key(self.user_id).get())
+        self.assertIsNotNone(build_fence_service_account_key(self.bond.fence_tvm.provider_name, self.user_id).get())
 
         self.bond.unlink_account(user_info)
 
-        self.assertIsNone(self.bond.fence_tvm._fence_service_account_key(self.user_id).get())
+        self.assertIsNone(build_fence_service_account_key(self.bond.fence_tvm.provider_name, self.user_id).get())
         self.assertIsNone(TokenStore.lookup(self.user_id, provider_name))
         self.bond.oauth_adapter.revoke_refresh_token.assert_called_once()
         self.bond.fence_api.delete_credentials_google.assert_called_once()
