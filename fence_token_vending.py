@@ -3,18 +3,17 @@ import endpoints
 import datetime
 
 from bond import FenceKeys
-from token_store import TokenStore
 from fence_token_storage import build_fence_service_account_key
 from oauth2client.service_account import ServiceAccountCredentials
 from sam_api import SamKeys
 
 
 class FenceTokenVendingMachine:
-    def __init__(self, fence_api, sam_api, cache_api, token_store, fence_oauth_adapter, provider_name, fence_token_storage):
+    def __init__(self, fence_api, sam_api, cache_api, refresh_token_store, fence_oauth_adapter, provider_name, fence_token_storage):
         self.fence_api = fence_api
         self.sam_api = sam_api
         self.cache_api = cache_api
-        self.token_store = token_store
+        self.refresh_token_store = refresh_token_store
         self.fence_oauth_adapter = fence_oauth_adapter
         self.provider_name = provider_name
         self.fence_token_storage = fence_token_storage
@@ -70,7 +69,7 @@ class FenceTokenVendingMachine:
     def _get_oauth_access_token(self, fsa_key):
         # The user id is the first id. fsa_key.flat() -> ("User", user_id, "FenceServiceAccount", fence_service_account)
         user_id = fsa_key.flat()[1]
-        refresh_token = self.token_store.lookup(user_id, self.provider_name)
+        refresh_token = self.refresh_token_store.lookup(user_id, self.provider_name)
         if refresh_token is None:
             raise endpoints.BadRequestException("Fence account not linked")
         access_token = self.fence_oauth_adapter.refresh_access_token(refresh_token.token).get(FenceKeys.ACCESS_TOKEN)
