@@ -7,7 +7,7 @@ from google.appengine.api.datastore_errors import TransactionFailedError
 _FSA_KEY_LIFETIME = datetime.timedelta(days=5)
 
 
-def create_fence_service_account_key(provider_name, user_id):
+def build_fence_service_account_key(provider_name, user_id):
     """Creates a datastore key to associate a (user, provier) to the credentials of a service account fetched from a Fence.
     :return Returns an ndb Key for the fence service account, i.e. a "fsa_key"
     """
@@ -55,9 +55,12 @@ class FenceTokenStorage:
             fsa_key.delete()
         return fence_service_account.key_json if fence_service_account else None
 
-    def get_or_create(self, fsa_key, prep_key_fn, fence_fetch_fn):
-        """Retrieve the stored for key, waiting as needed, or create and store the value for the key.
+    def retrieve(self, fsa_key, prep_key_fn, fence_fetch_fn):
+        """
+        Retrieve the stored fence service account json key for fsa_key, waiting as needed, or create, store, and
+        return the fence service accoutn json key for the fsa_key.
 
+        :param fsa_key The ndb Key of the provider name and user id to fetch service account credentials for.
         :param prep_key_fn The function to create the input to fence_fetch_fn from 'fsa_key' once we know
         fence_fetch_fn will be called. This is separated from fence_fetch_fn so that this can be slow but not spend as
          much time locking.
@@ -71,11 +74,11 @@ class FenceTokenStorage:
         if fence_service_account is None or \
                 fence_service_account.expires_at is None or \
                 fence_service_account.expires_at < now:
-            fence_service_account = self._fetch_service_account(fsa_key, prep_key_fn, fence_fetch_fn)
+            fence_service_account = self._fetch_and_cache_service_account(fsa_key, prep_key_fn, fence_fetch_fn)
 
         return (fence_service_account.key_json, fence_service_account.expires_at)
 
-    def _fetch_service_account(self, fsa_key, prep_key_fn, fence_fetch_fn):
+    def _fetch_and_cache_service_account(self, fsa_key, prep_key_fn, fence_fetch_fn):
         """
         Fetch a new service account from fence. We must be careful that concurrent requests result in only one
         key request to fence so the service account does not run out of keys (google limits to 10).
