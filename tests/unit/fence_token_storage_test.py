@@ -1,4 +1,4 @@
-from fence_token_storage import create_fence_service_account_key, FenceServiceAccount, FenceTokenStorage, \
+from fence_token_storage import build_fence_service_account_key, FenceServiceAccount, FenceTokenStorage, \
     ServiceAccountNotUpdatedException, _FSA_KEY_LIFETIME
 from google.appengine.ext import ndb
 from google.appengine.ext import testbed
@@ -25,7 +25,7 @@ class FenceTokenStorageTestCase(unittest.TestCase):
         # Set up some default values.
         self.user_id = "default_user_id"
         self.provider_name = "default_provider"
-        self.fsa_key = create_fence_service_account_key(self.provider_name, self.user_id)
+        self.fsa_key = build_fence_service_account_key(self.provider_name, self.user_id)
 
     def prep_key(self, fsa_key):
         """Dummy function to use to prep keys. """
@@ -47,8 +47,8 @@ class FenceTokenStorageTestCase(unittest.TestCase):
     def test_create(self):
         token_storage = FenceTokenStorage()
 
-        (key_json, expires_at) = token_storage.get_or_create(self.fsa_key, prep_key_fn=self.prep_key,
-                                                             fence_fetch_fn=self.fence_fetch)
+        (key_json, expires_at) = token_storage.retrieve(self.fsa_key, prep_key_fn=self.prep_key,
+                                                        fence_fetch_fn=self.fence_fetch)
 
         self.assertIsExpectedToken(key_json)
         self.assertAlmostEqual(expires_at, datetime.datetime.now() + _FSA_KEY_LIFETIME,
@@ -63,14 +63,14 @@ class FenceTokenStorageTestCase(unittest.TestCase):
     def test_sequential_gets(self):
         token_storage = FenceTokenStorage()
 
-        # First get_or_create should create and store credentials
-        result1 = token_storage.get_or_create(self.fsa_key, prep_key_fn=self.prep_key,
-                                              fence_fetch_fn=self.fence_fetch)
+        # First retrieve should create and store credentials
+        result1 = token_storage.retrieve(self.fsa_key, prep_key_fn=self.prep_key,
+                                         fence_fetch_fn=self.fence_fetch)
         self.assertEqual(self.fence_fetches, 1)
 
-        # Second get_or_create should fetch the existing credentials.
-        result2 = token_storage.get_or_create(self.fsa_key, prep_key_fn=self.prep_key,
-                                              fence_fetch_fn=self.fence_fetch)
+        # Second retrieve should fetch the existing credentials.
+        result2 = token_storage.retrieve(self.fsa_key, prep_key_fn=self.prep_key,
+                                         fence_fetch_fn=self.fence_fetch)
 
         self.assertEqual(self.fence_fetches, 1)
         self.assertEqual(result1, result2)
@@ -82,8 +82,8 @@ class FenceTokenStorageTestCase(unittest.TestCase):
                             update_lock_timeout=None).put()
 
         token_storage = FenceTokenStorage()
-        (key_json, expires_at) = token_storage.get_or_create(self.fsa_key, prep_key_fn=self.prep_key,
-                                                             fence_fetch_fn=self.fence_fetch)
+        (key_json, expires_at) = token_storage.retrieve(self.fsa_key, prep_key_fn=self.prep_key,
+                                                        fence_fetch_fn=self.fence_fetch)
         self.assertIsExpectedToken(key_json)
         self.assertEqual(self.fence_fetches, 1)
 
@@ -102,8 +102,8 @@ class FenceTokenStorageTestCase(unittest.TestCase):
         threading.Thread(target=unlock_and_set_key).run()
 
         token_storage = FenceTokenStorage()
-        (key_json, _) = token_storage.get_or_create(self.fsa_key, prep_key_fn=self.prep_key,
-                                                    fence_fetch_fn=self.fence_fetch)
+        (key_json, _) = token_storage.retrieve(self.fsa_key, prep_key_fn=self.prep_key,
+                                               fence_fetch_fn=self.fence_fetch)
         self.assertEqual(key_json, "updated")
         self.assertEqual(self.fence_fetches, 0)
 
@@ -114,13 +114,13 @@ class FenceTokenStorageTestCase(unittest.TestCase):
 
         token_storage = FenceTokenStorage()
         with self.assertRaises(ServiceAccountNotUpdatedException):
-            print token_storage.get_or_create(self.fsa_key, prep_key_fn=self.prep_key,
-                                        fence_fetch_fn=self.fence_fetch)
+            print token_storage.retrieve(self.fsa_key, prep_key_fn=self.prep_key,
+                                         fence_fetch_fn=self.fence_fetch)
 
     def test_delete(self):
         token_storage = FenceTokenStorage()
-        (key_json, _) = token_storage.get_or_create(self.fsa_key, prep_key_fn=self.prep_key,
-                                                    fence_fetch_fn=self.fence_fetch)
+        (key_json, _) = token_storage.retrieve(self.fsa_key, prep_key_fn=self.prep_key,
+                                               fence_fetch_fn=self.fence_fetch)
         self.assertEqual(self.fence_fetches, 1)
         self.assertIsExpectedToken(key_json)
 
