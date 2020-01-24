@@ -1,3 +1,4 @@
+jsonschema
 google-endpoints==4.6.1
 google-endpoints-api-management==1.11.0
 requests==2.20.0

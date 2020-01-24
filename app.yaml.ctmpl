@@ -24,7 +24,7 @@ handlers:
 
 libraries:
 - name: pycrypto
-  version: 2.6
+  version: 2.6.1
 - name: ssl
   version: 2.7.11
 
