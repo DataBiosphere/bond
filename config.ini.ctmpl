@@ -3,7 +3,7 @@
 {{with $dnsDomain := env "DNS_DOMAIN"}}
 {{with $secrets := secret (printf "secret/dsde/bond/%s/config.ini" $environment)}}
 
-{{if eq $runContext "fiab"}}
+{{if (or (eq $runContext "fiab") (eq $runContext "local")) }}
 # fiab settings are mock providers
 
 [fence]
