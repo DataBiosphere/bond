@@ -34,8 +34,9 @@ class TokenStoreTestCase(unittest.TestCase):
         self.testbed.deactivate()
 
     def test_save(self):
+        token_store = TokenStore()
         self.assertIsNone(self.key.get())
-        result_key = TokenStore.save(self.user_id, self.token_str, self.issued_at, self.username, provider_name)
+        result_key = token_store.save(self.user_id, self.token_str, self.issued_at, self.username, provider_name)
         self.assertEqual(result_key, self.key)
         saved_token = self.key.get()
         self.assertIsNotNone(saved_token)
@@ -44,8 +45,9 @@ class TokenStoreTestCase(unittest.TestCase):
         self.assertEqual(self.username, saved_token.username)
 
     def test_lookup(self):
-        TokenStore.save(self.user_id, self.token_str, self.issued_at, self.username, provider_name)
-        persisted_token = TokenStore.lookup(self.user_id, provider_name)
+        token_store = TokenStore()
+        token_store.save(self.user_id, self.token_str, self.issued_at, self.username, provider_name)
+        persisted_token = token_store.lookup(self.user_id, provider_name)
         self.assertEqual(self.token_str, persisted_token.token)
         self.assertEqual(self.issued_at, persisted_token.issued_at)
         self.assertEqual(self.username, persisted_token.username)

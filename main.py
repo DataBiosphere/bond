@@ -16,6 +16,7 @@ from open_id_config import OpenIdConfig
 from sam_api import SamApi
 from oauth_adapter import OauthAdapter
 from status import Status
+from token_store import TokenStore
 import json
 import ast
 from status import Subsystems
@@ -90,6 +91,7 @@ class BondProvider:
 class BondApi(remote.Service):
     def __init__(self):
         cache_api = create_cache_api()
+        refresh_token_store = TokenStore()
         def create_provider(provider_name):
             client_id = config.get(provider_name, 'CLIENT_ID')
             client_secret = config.get(provider_name, 'CLIENT_SECRET')
@@ -110,11 +112,12 @@ class BondApi(remote.Service):
             fence_api = FenceApi(fence_base_url)
             sam_api = SamApi(sam_base_url)
 
-            fence_tvm = FenceTokenVendingMachine(fence_api, sam_api, cache_api, oauth_adapter, provider_name,
+            fence_tvm = FenceTokenVendingMachine(fence_api, sam_api, cache_api, refresh_token_store, oauth_adapter, provider_name,
                                                  fence_token_storage.FenceTokenStorage())
             return BondProvider(fence_tvm, Bond(oauth_adapter,
                                                 fence_api,
                                                 sam_api,
+                                                refresh_token_store,
                                                 fence_tvm,
                                                 provider_name,
                                                 user_name_path_expr,
