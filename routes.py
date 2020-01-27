@@ -105,7 +105,6 @@ def create_provider(provider_name):
                                         fence_tvm,
                                         provider_name,
                                         user_name_path_expr,
-
                                         extra_authz_url_params))
 
 

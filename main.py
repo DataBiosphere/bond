@@ -1,5 +1,6 @@
 import flask
 import routes
+from json_exception_handler import JsonExceptionHandler
 
 
 def create_app():
@@ -10,3 +11,4 @@ def create_app():
 
 
 app = create_app()
+handler = JsonExceptionHandler(app)
