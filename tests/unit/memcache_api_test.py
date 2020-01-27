@@ -3,7 +3,7 @@ import unittest
 import memcache_api
 from google.appengine.ext import ndb
 from google.appengine.ext import testbed
-from tests.unit import cache_api_test
+import cache_api_test
 
 
 class MemcacheApiTestCase(unittest.TestCase, cache_api_test.CacheApiTest):

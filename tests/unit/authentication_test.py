@@ -3,7 +3,7 @@ import unittest
 from werkzeug import exceptions
 
 import authentication
-from tests.unit.fake_cache_api import FakeCacheApi
+from fake_cache_api import FakeCacheApi
 import json
 
 

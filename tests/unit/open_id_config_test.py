@@ -1,6 +1,6 @@
 import unittest
 
-from tests.unit.fake_cache_api import FakeCacheApi
+from fake_cache_api import FakeCacheApi
 from mock import MagicMock
 from werkzeug import exceptions
 

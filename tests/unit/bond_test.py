@@ -14,9 +14,9 @@ from fence_token_vending import FenceTokenVendingMachine
 from oauth_adapter import OauthAdapter
 from sam_api import SamApi
 from sam_api import SamKeys
-from tests.unit.fake_token_store import  FakeTokenStore
-from tests.unit.fake_cache_api import FakeCacheApi
-from tests.unit.fake_fence_token_storage import FakeFenceTokenStorage
+from fake_token_store import  FakeTokenStore
+from fake_cache_api import FakeCacheApi
+from fake_fence_token_storage import FakeFenceTokenStorage
 
 provider_name = "test"
 

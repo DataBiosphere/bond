@@ -1,5 +1,5 @@
 import unittest
-from tests.unit.fake_cache_api import FakeCacheApi
+from fake_cache_api import FakeCacheApi
 from fence_api import FenceApi
 from sam_api import SamApi
 from mock import MagicMock
