@@ -18,7 +18,7 @@ class FakeFenceTokenStorage:
         account = self.accounts.pop(fsa_key)
         return account.key_json
 
-    def get_or_create(self, fsa_key, prep_key_fn, fence_fetch_fn):
+    def retrieve(self, fsa_key, prep_key_fn, fence_fetch_fn):
         if fsa_key in self.accounts:
             return self.accounts[fsa_key]
 

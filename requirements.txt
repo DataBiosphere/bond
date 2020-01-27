@@ -1,4 +1,4 @@
-google-endpoints==4.6.1
+jsonschema
 google-endpoints-api-management==1.11.0
 requests==2.20.0
 requests-oauthlib==1.0.0
@@ -8,3 +8,6 @@ mock==2.0.0
 dpath==1.4.2
 google-auth==1.6.1
 googledatastore==7.1.0
+Flask==1.1.1
+Werkzeug==0.16.0
+webargs==5.5.2

@@ -3,6 +3,11 @@ from refresh_token import RefreshToken
 
 
 class TokenStore:
+    """
+    Stores refresh tokens for service accounts in Datastore.
+
+    TODO Consider renaming this to RefreshTokenStore to distinguish the type of tokens.
+    """
 
     def save(self, user_id, refresh_token_str, issued_at, username, provider_name):
         """

@@ -1,18 +1,19 @@
 import unittest
 from fence_token_vending import FenceTokenVendingMachine
+from werkzeug import exceptions
+
 from authentication import UserInfo
 from mock import MagicMock
 from fence_api import FenceApi
 from sam_api import SamApi
 from oauth_adapter import OauthAdapter
-from fence_token_storage import create_fence_service_account_key
+from fence_token_storage import build_fence_service_account_key
 from tests.unit.fake_token_store import FakeTokenStore
 from tests.unit.fake_cache_api import FakeCacheApi
 from tests.unit.fake_fence_token_storage import FakeFenceTokenStorage
 import datetime
 import string
 import random
-import endpoints
 from sam_api import SamKeys
 
 provider_name = "test"
@@ -21,7 +22,7 @@ provider_name = "test"
 class FenceTokenVendingMachineTestCase(unittest.TestCase):
     def setUp(self):
         self.cache_api = FakeCacheApi()
-        self.token_store = FakeTokenStore()
+        self.refresh_token_store = FakeTokenStore()
         self.fence_token_storage = FakeFenceTokenStorage()
 
     def test_no_service_account(self):
@@ -31,11 +32,11 @@ class FenceTokenVendingMachineTestCase(unittest.TestCase):
 
         ftvm = FenceTokenVendingMachine(self._mock_fence_api(expected_json),
                                         self._mock_sam_api(real_user_id, "foo@bar.com"),
-                                        self.cache_api, self.token_store,
+                                        self.cache_api, self.refresh_token_store,
                                         self._mock_oauth_adapter("fake_token"), provider_name,
                                         self.fence_token_storage)
 
-        self.token_store.save(real_user_id, "fake_refresh_token", datetime.datetime.now(), "foo@bar.com", provider_name)
+        self.refresh_token_store.save(real_user_id, "fake_refresh_token", datetime.datetime.now(), "foo@bar.com", provider_name)
 
         self.assertIsNone(self.cache_api.get(namespace=provider_name, key=caller_uid))
 
@@ -50,12 +51,12 @@ class FenceTokenVendingMachineTestCase(unittest.TestCase):
         caller_uid = self._random_subject_id()
         real_user_id = self._random_subject_id()
 
-        ftvm = FenceTokenVendingMachine(None, None, self.cache_api, self.token_store, None, provider_name,
+        ftvm = FenceTokenVendingMachine(None, None, self.cache_api, self.refresh_token_store, None, provider_name,
                                         self.fence_token_storage)  # none of the apis should be called
 
         self.cache_api.add(namespace=provider_name, key=caller_uid, value=expected_json, expires_in=20)
 
-        fsa_key = create_fence_service_account_key(ftvm.provider_name, real_user_id)
+        fsa_key = build_fence_service_account_key(ftvm.provider_name, real_user_id)
         self.assertIsNone(self.fence_token_storage.delete(fsa_key))
 
         service_account_json = ftvm.get_service_account_key_json(
@@ -69,13 +70,13 @@ class FenceTokenVendingMachineTestCase(unittest.TestCase):
         real_user_id = self._random_subject_id()
 
         ftvm = FenceTokenVendingMachine(self._mock_fence_api(None), self._mock_sam_api(real_user_id, "foo@bar.com"),
-                                        self.cache_api, self.token_store, None, provider_name, self.fence_token_storage)
+                                        self.cache_api, self.refresh_token_store, None, provider_name, self.fence_token_storage)
 
         self.assertIsNone(self.cache_api.get(namespace=provider_name, key=caller_uid))
-        fsa_key = create_fence_service_account_key(ftvm.provider_name, real_user_id)
+        fsa_key = build_fence_service_account_key(ftvm.provider_name, real_user_id)
         self.assertIsNone(self.fence_token_storage.delete(fsa_key))
 
-        with self.assertRaises(endpoints.BadRequestException):
+        with self.assertRaises(exceptions.BadRequest):
             ftvm.get_service_account_key_json(UserInfo(caller_uid, "splat@bar.com", "fake_token_too", 10))
 
     @staticmethod
