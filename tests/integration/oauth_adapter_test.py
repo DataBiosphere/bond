@@ -8,6 +8,7 @@ import time
 from google.appengine.ext import testbed
 
 from bond import FenceKeys
+from memcache_api import MemcacheApi
 from jwt_token import JwtToken
 from oauth_adapter import OauthAdapter
 from open_id_config import OpenIdConfig
@@ -35,7 +36,7 @@ class OauthAdapterTestCase(unittest.TestCase):
                 client_id = config.get(section, 'CLIENT_ID')
                 client_secret = config.get(section, 'CLIENT_SECRET')
                 open_id_config_url = config.get(section, 'OPEN_ID_CONFIG_URL')
-                open_id_config = OpenIdConfig(section, open_id_config_url)
+                open_id_config = OpenIdConfig(section, open_id_config_url, MemcacheApi())
                 oauth_adapters[section] = OauthAdapter(client_id, client_secret, open_id_config, section)
         return oauth_adapters
 

@@ -2,9 +2,11 @@ import unittest
 
 from google.appengine.api import memcache
 from google.appengine.ext import testbed
+from werkzeug import exceptions
+
 import authentication
+from memcache_api import MemcacheApi
 import json
-import endpoints
 
 
 class TestRequestState:
@@ -23,7 +25,8 @@ class AuthenticationTestCase(unittest.TestCase):
         self.testbed.activate()
         # Next, declare which service stubs you want to use.
         self.testbed.init_memcache_stub()
-        self.auth = authentication.Authentication(authentication.AuthenticationConfig(['32555940559'], ['.gserviceaccount.com'], 600))
+        self.cache_api = MemcacheApi()
+        self.auth = authentication.Authentication(authentication.AuthenticationConfig(['32555940559'], ['.gserviceaccount.com'], 600), self.cache_api)
 
     def tearDown(self):
         self.testbed.deactivate()
@@ -93,7 +96,7 @@ class AuthenticationTestCase(unittest.TestCase):
             self.auth.require_user_info(TestRequestState('bearer ' + token), token_fn2)
 
     def test_good_user_cache_expire_config(self):
-        auth = authentication.Authentication(authentication.AuthenticationConfig(['32555940559'], ['.gserviceaccount.com'], 1))
+        auth = authentication.Authentication(authentication.AuthenticationConfig(['32555940559'], ['.gserviceaccount.com'], 1), self.cache_api)
         token = "testtoken"
         expected_user_info = authentication.UserInfo("193481341723041", "foo@bar.com", token, 100)
 
@@ -139,14 +142,14 @@ class AuthenticationTestCase(unittest.TestCase):
         def token_fn(token):
             raise Exception("shouldn't be called")
 
-        with self.assertRaises(endpoints.UnauthorizedException):
+        with self.assertRaises(exceptions.Unauthorized):
             self.auth.require_user_info(TestRequestState(None), token_fn)
 
     def _unauthorized_test(self, token_data):
         def token_fn(token):
             return json.dumps(token_data)
 
-        with self.assertRaises(endpoints.UnauthorizedException):
+        with self.assertRaises(exceptions.Unauthorized):
             self.auth.require_user_info(TestRequestState('bearer testtoken'), token_fn)
 
     def test_missing_email(self):

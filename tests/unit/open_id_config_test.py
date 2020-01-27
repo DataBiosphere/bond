@@ -1,7 +1,9 @@
 import unittest
-import endpoints
 
+from cache_api import LocalCacheApi
 from mock import MagicMock
+from werkzeug import exceptions
+
 from open_id_config import OpenIdConfig
 
 
@@ -13,7 +15,7 @@ class OpenIdConfigTestCase(unittest.TestCase):
                        "revocation_endpoint": "",
                        "scopes_supported": ["foo", "bar"]}
         self.provider = "fake_provider"
-        self.open_id_config = OpenIdConfig(self.provider, "not-a-real-url")
+        self.open_id_config = OpenIdConfig(self.provider, "not-a-real-url", LocalCacheApi())
         self.open_id_config.load_dict = MagicMock(return_value=fake_config)
 
     def test_get_config(self):
@@ -25,7 +27,7 @@ class OpenIdConfigTestCase(unittest.TestCase):
         self.assertIsNotNone(self.open_id_config.get_config_value(key))
 
     def test_get_open_id_config_value_missing(self):
-        with self.assertRaises(endpoints.InternalServerErrorException):
+        with self.assertRaises(exceptions.InternalServerError):
             self.open_id_config.get_config_value("something-that-does-not-exist")
 
     def test_get_open_id_config_value_missing_no_exception(self):

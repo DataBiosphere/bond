@@ -33,6 +33,11 @@ def fixup_paths(path):
 
 
 def main(sdk_path, test_path, test_pattern):
+    os.environ["current_version_id"] = "testbed.version"
+    os.environ["BOND_ACCEPTED_AUDIENCE_PREFIXES"] = "a"
+    os.environ["BOND_ACCEPTED_EMAIL_SUFFIXES"] = "foo"
+
+
     # If the SDK path points to a Google Cloud SDK installation
     # then we should alter it to point to the GAE platform location.
     if os.path.exists(os.path.join(sdk_path, 'platform/google_appengine')):

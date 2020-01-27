@@ -1,8 +1,7 @@
 from google.appengine.api import urlfetch
 import json
-import endpoints
 
-
+from werkzeug import exceptions
 class SamApi:
     def __init__(self, base_url):
         self.base_url = base_url
@@ -20,7 +19,7 @@ class SamApi:
         elif result.status_code == 404:
             return None
         else:
-            raise endpoints.InternalServerErrorException("sam status code {}, error body {}".format(result.status_code, result.content))
+            raise exceptions.InternalServerError("sam status code {}, error body {}".format(result.status_code, result.content))
 
     def status(self):
         """
