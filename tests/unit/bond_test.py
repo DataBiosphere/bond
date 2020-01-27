@@ -4,12 +4,10 @@ import uuid
 from datetime import datetime
 
 import jwt
-from google.appengine.ext import ndb
 from mock import MagicMock
 from werkzeug import exceptions
 
 from authentication import UserInfo
-from fence_token_storage import build_fence_service_account_key
 from bond import Bond, FenceKeys
 from fence_api import FenceApi
 from fence_token_vending import FenceTokenVendingMachine
