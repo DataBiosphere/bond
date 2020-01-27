@@ -1,5 +1,4 @@
 import unittest
-import endpoints
 
 from protorpc import remote
 from protorpc import messages
@@ -7,7 +6,6 @@ from protorpc import message_types
 from google.appengine.ext import testbed
 from google.appengine.ext import ndb
 
-from main import BondApi
 
 
 class MainTestCase(unittest.TestCase):
@@ -24,7 +22,6 @@ class MainTestCase(unittest.TestCase):
             bond_accepted_email_suffixes='foo'
         )
         self.tb.activate()
-        self.bond_api = BondApi()
 
     def tearDown(self):
         self.tb.deactivate()

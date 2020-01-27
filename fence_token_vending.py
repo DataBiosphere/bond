@@ -1,7 +1,7 @@
 import json
-import endpoints
 import datetime
 
+from werkzeug import exceptions
 from bond import FenceKeys
 from fence_token_storage import build_fence_service_account_key
 from oauth2client.service_account import ServiceAccountCredentials
@@ -63,7 +63,7 @@ class FenceTokenVendingMachine:
     def _fetch_real_user_info(self, user_info):
         real_user_info = self.sam_api.user_info(user_info.token)
         if real_user_info is None:
-            raise endpoints.UnauthorizedException("user not found in sam")
+            raise exceptions.Unauthorized("user not found in sam")
         return real_user_info
 
     def _get_oauth_access_token(self, fsa_key):
@@ -71,6 +71,6 @@ class FenceTokenVendingMachine:
         user_id = fsa_key.flat()[1]
         refresh_token = self.refresh_token_store.lookup(user_id, self.provider_name)
         if refresh_token is None:
-            raise endpoints.BadRequestException("Fence account not linked")
+            raise exceptions.BadRequest("Fence account not linked")
         access_token = self.fence_oauth_adapter.refresh_access_token(refresh_token.token).get(FenceKeys.ACCESS_TOKEN)
         return access_token
