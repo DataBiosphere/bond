@@ -1,6 +1,6 @@
 from fence_token_storage import build_fence_service_account_key, FenceServiceAccount, FenceTokenStorage, \
     ServiceAccountNotUpdatedException, _FSA_KEY_LIFETIME
-from google.appengine.ext import ndb
+from google.cloud import ndbb
 import datetime
 import threading
 import time

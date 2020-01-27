@@ -1,7 +1,6 @@
 import datetime
 import time
-from google.appengine.ext import ndb
-from google.appengine.api.datastore_errors import TransactionFailedError
+from google.cloud import ndb
 
 # How long to keep a fence service account key before expiring it.
 _FSA_KEY_LIFETIME = datetime.timedelta(days=5)

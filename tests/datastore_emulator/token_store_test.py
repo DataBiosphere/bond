@@ -1,6 +1,6 @@
 import unittest
 
-from google.appengine.ext import ndb
+from google.cloud import ndb
 from token_store import TokenStore
 from datetime import datetime
 
