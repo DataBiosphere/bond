@@ -1,0 +1,4 @@
+cron:
+  - description: "clear expired Datastore cache entries"
+    url: /fix/me
+    schedule: every 2 hours
