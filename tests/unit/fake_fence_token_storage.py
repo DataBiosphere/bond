@@ -16,14 +16,14 @@ class FakeFenceTokenStorage:
         if fsa_key not in self.accounts:
             return None
         account = self.accounts.pop(fsa_key)
-        return account.json_key
+        return account.key_json
 
-    def get_or_create(self, fsa_key, prep_key_fn, fence_fetch_fn):
+    def retrieve(self, fsa_key, prep_key_fn, fence_fetch_fn):
         if fsa_key in self.accounts:
             return self.accounts[fsa_key]
 
-        json_key = fence_fetch_fn(prep_key_fn(fsa_key))
-        fence_service_account = FenceServiceAccount(key_json=json_key,
+        key_json = fence_fetch_fn(prep_key_fn(fsa_key))
+        fence_service_account = FenceServiceAccount(key_json=key_json,
                                                     expires_at=datetime.datetime.now() + _FSA_KEY_LIFETIME,
                                                     update_lock_timeout=None,
                                                     key=fsa_key)
