@@ -4,6 +4,7 @@ from token_store import RefreshTokenInfo
 # Internal key class for a user_id and provider_name.
 _UserKey = namedtuple("_UserKey", ["user_id", "provider_name"])
 
+
 class FakeTokenStore():
     """A fake in memory implementation of TokenStore for unit tests."""
 
@@ -21,10 +22,7 @@ class FakeTokenStore():
         :param username: username for whom the token was issued
         """
         key = _UserKey(user_id, provider_name)
-        refresh_token = RefreshTokenInfo(
-                                     token=refresh_token_str,
-                                     issued_at=issued_at,
-                                     username=username)
+        refresh_token = RefreshTokenInfo(token=refresh_token_str, issued_at=issued_at, username=username)
         self.tokens[key] = refresh_token
 
     def lookup(self, user_id, provider_name):

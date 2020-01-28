@@ -5,9 +5,9 @@ from werkzeug import exceptions
 from authentication import UserInfo
 from mock import MagicMock
 from fence_api import FenceApi
+from fence_token_storage import ProviderUser
 from sam_api import SamApi
 from oauth_adapter import OauthAdapter
-from fence_token_storage import build_fence_service_account_key
 from tests.unit.fake_token_store import FakeTokenStore
 from tests.unit.fake_cache_api import FakeCacheApi
 from tests.unit.fake_fence_token_storage import FakeFenceTokenStorage
@@ -56,14 +56,14 @@ class FenceTokenVendingMachineTestCase(unittest.TestCase):
 
         self.cache_api.add(namespace=provider_name, key=caller_uid, value=expected_json, expires_in=20)
 
-        fsa_key = build_fence_service_account_key(ftvm.provider_name, real_user_id)
-        self.assertIsNone(self.fence_token_storage.delete(fsa_key))
+        provider_user = ProviderUser(ftvm.provider_name, real_user_id)
+        self.assertIsNone(self.fence_token_storage.delete(provider_user))
 
         service_account_json = ftvm.get_service_account_key_json(
             UserInfo(caller_uid, "splat@bar.com", "fake_token_too", 10))
 
         self.assertEqual(expected_json, service_account_json)
-        self.assertIsNone(self.fence_token_storage.delete(fsa_key))
+        self.assertIsNone(self.fence_token_storage.delete(provider_user))
 
     def test_not_linked(self):
         caller_uid = self._random_subject_id()
@@ -73,8 +73,8 @@ class FenceTokenVendingMachineTestCase(unittest.TestCase):
                                         self.cache_api, self.refresh_token_store, None, provider_name, self.fence_token_storage)
 
         self.assertIsNone(self.cache_api.get(namespace=provider_name, key=caller_uid))
-        fsa_key = build_fence_service_account_key(ftvm.provider_name, real_user_id)
-        self.assertIsNone(self.fence_token_storage.delete(fsa_key))
+        provider_user = ProviderUser(ftvm.provider_name, real_user_id)
+        self.assertIsNone(self.fence_token_storage.delete(provider_user))
 
         with self.assertRaises(exceptions.BadRequest):
             ftvm.get_service_account_key_json(UserInfo(caller_uid, "splat@bar.com", "fake_token_too", 10))
