@@ -93,7 +93,7 @@ class Bond:
         Get information about a account link
         :param user_info: Information of the user who issued the request to Bond (not necessarily the same as
         the username for whom the refresh token was issued by the OAuth provider)
-        :return: refresh_token
+        :return: RefreshTokenInfo or None if not found.
         """
         user_id = self.sam_api.user_info(user_info.token)[SamKeys.USER_ID_KEY]
         return self.refresh_token_store.lookup(user_id, self.provider_name)
