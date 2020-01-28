@@ -96,8 +96,8 @@ def create_provider(provider_name):
     fence_api = FenceApi(fence_base_url)
     sam_api = SamApi(sam_base_url)
 
-    fence_tvm = FenceTokenVendingMachine(fence_api, sam_api, cache_api, oauth_adapter, provider_name,
-                                         fence_token_storage.FenceTokenStorage)
+    fence_tvm = FenceTokenVendingMachine(fence_api, sam_api, cache_api, refresh_token_store, oauth_adapter,
+                                         provider_name, fence_token_storage.FenceTokenStorage)
     return BondProvider(fence_tvm, Bond(oauth_adapter,
                                         fence_api,
                                         sam_api,
