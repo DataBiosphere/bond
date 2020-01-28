@@ -14,6 +14,8 @@ class CacheApiTest(object):
         self.cache = cache
 
     def test_added_values_retrieved(self):
+        self.assertIsNone(self.cache.get("foo"))
+
         self.assertTrue(self.cache.add('foo', 42))
         self.assertTrue(self.cache.add('bam', 123))
         self.assertTrue(self.cache.add('bar', 24, namespace='baz'))
@@ -28,6 +30,8 @@ class CacheApiTest(object):
         self.assertIsNone(self.cache.get('bar', namespace='qat'))
 
     def test_expiration(self):
+        self.assertIsNone(self.cache.get("foo"))
+
         self.assertTrue(self.cache.add('foo', 42, expires_in=0.5))
         self.assertTrue(self.cache.add('foo', 24, expires_in=0.5, namespace='bar'))
 
@@ -38,6 +42,6 @@ class CacheApiTest(object):
         self.assertIsNone(self.cache.get('foo', namespace='bar'))
 
 
-class LocalCacheApiTestCase(unittest.TestCase, CacheApiTest):
+class FakeCacheApiTestCase(unittest.TestCase, CacheApiTest):
     def setUp(self):
         self.setUpCache(FakeCacheApi())
