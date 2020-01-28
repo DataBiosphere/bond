@@ -44,7 +44,7 @@ json_schema_test_status = {
             "enum": [
               "fence",
               "dcf-fence",
-              "memcache",
+              "cache",
               "datastore",
               "sam"
             ],
