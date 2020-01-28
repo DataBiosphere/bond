@@ -2,16 +2,14 @@ import time
 import unittest
 
 from datastore_cache_api import DatastoreCacheApi
-from tests.unit import cache_api_test
+from unit import cache_api_test
 import datastore_emulator_utils
+
 
 class DatstoreCacheApiTestCase(unittest.TestCase, cache_api_test.CacheApiTest):
     def setUp(self):
-        datastore_emulator_utils.setUp()
+        datastore_emulator_utils.setUp(self)
         self.setUpCache(DatastoreCacheApi())
-
-    def tearDown(self):
-        datastore_emulator_utils.tearDown()
 
     def test_delete_removes_expired_entries(self):
         cache = DatastoreCacheApi()
