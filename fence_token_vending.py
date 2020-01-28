@@ -53,9 +53,9 @@ class FenceTokenVendingMachine:
             return key_json
 
         real_user_info = self._fetch_real_user_info(user_info)
-        user_proivder = ProviderUser(provider_name=self.provider_name, user_id=real_user_info[SamKeys.USER_ID_KEY])
+        provider_user = ProviderUser(provider_name=self.provider_name, user_id=real_user_info[SamKeys.USER_ID_KEY])
         (key_json, expiration_datetime) = self.fence_token_storage.retrieve(
-            user_proivder, prep_key_fn=self._get_oauth_access_token,
+            provider_user, prep_key_fn=self._get_oauth_access_token,
             fence_fetch_fn=self.fence_api.get_credentials_google)
 
         seconds_to_expire = (expiration_datetime - datetime.datetime.now()).total_seconds()
