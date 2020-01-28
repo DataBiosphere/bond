@@ -134,6 +134,11 @@ auth = authentication.Authentication(authentication.default_config(), cache_api)
 api_routes_base = '/api/link/v1'
 
 
+@routes.route('/')
+def root():
+    return "Bond - Account Linking Service"
+
+
 @routes.route(api_routes_base + '/providers', methods=["GET"])
 def list_providers():
     return protojson.encode_message(ListProvidersResponse(providers=list(bond_providers.keys())))
