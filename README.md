@@ -29,10 +29,14 @@ When you are ready to exit or deactivate your Bond virtualenv, just type the com
 
 # Running Tests
 
-Bond supports test runners: [unittest](https://docs.python.org/2/library/unittest.html) and 
+Bond has unit tests, integration tests, and automation tests. 
+
+
+## Unit tests
+Bond unit tests support test runners: [unittest](https://docs.python.org/2/library/unittest.html) and 
 [nose](https://github.com/Trii/NoseGAE) 
 
-## Unittest
+#### Unittest
 
 There is a custom test runner created following the [gcloud documentation](https://cloud.google.com/appengine/docs/standard/python/tools/localunittesting#Python_Setting_up_a_testing_framework)
 
@@ -43,6 +47,14 @@ To run the tests you need to have the Google SDK installed and you need to pass 
 When writing new tests, do not put any tests in the root `tests/` directory.  Instead, write new unit tests in the 
 `tests/unit` directory.
 
+#### Nose
+
+Install nose:
+* `pip install nose nosegae nose-exclude`
+
+Run tests:
+* ```nosetests --with-gae --gae-lib-root=`gcloud info --format="value(installation.sdk_root)"`/platform/google_appengine --exclude-dir=lib```
+
 ## Integration tests
 
 To run integration tests, provide the `test-path` parameter to with the path to the integration tests:
@@ -52,13 +64,8 @@ To run integration tests, provide the `test-path` parameter to with the path to 
 When writing new tests, do not put any tests in the root `tests/` directory.  Instead, write new integration tests in 
 the `tests/integration` directory.
 
-## Nose
-
-Install nose:
-* `pip install nose nosegae nose-exclude`
-
-Run tests:
-* ```nosetests --with-gae --gae-lib-root=`gcloud info --format="value(installation.sdk_root)"`/platform/google_appengine --exclude-dir=lib```
+## Automation tests
+[To run the automation tests locally, follow the instructions in the readme here](automation/README.md). 
 
 # Running locally
 
