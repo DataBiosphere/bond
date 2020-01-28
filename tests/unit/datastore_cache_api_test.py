@@ -11,6 +11,7 @@ class DatstoreCacheApiTestCase(unittest.TestCase, cache_api_test.CacheApiTest):
     def setUp(self):
         self.testbed = testbed.Testbed()
         self.testbed.activate()
+        # Datastore uses memcache by default.
         self.testbed.init_memcache_stub()
         self.testbed.init_datastore_v3_stub()
         self.setUpCache(DatastoreCacheApi())
