@@ -1,5 +1,8 @@
-from token_store import RefreshToken
-from token_store import TokenStore
+from collections import namedtuple
+from token_store import RefreshTokenInfo
+
+# Internal key class for a user_id and provider_name.
+_UserKey = namedtuple("_UserKey", ["user_id", "provider_name"])
 
 class FakeTokenStore():
     """A fake in memory implementation of TokenStore for unit tests."""
@@ -16,15 +19,13 @@ class FakeTokenStore():
         :param refresh_token_str: a refresh token string
         :param issued_at: datetime at which the token was issued
         :param username: username for whom the token was issued
-        :return: The datastore Key of the persisted entity
         """
-        key = TokenStore._token_store_key(user_id, provider_name)
-        refresh_token = RefreshToken(key=key,
+        key = _UserKey(user_id, provider_name)
+        refresh_token = RefreshTokenInfo(
                                      token=refresh_token_str,
                                      issued_at=issued_at,
                                      username=username)
         self.tokens[key] = refresh_token
-        return key
 
     def lookup(self, user_id, provider_name):
         """
@@ -33,7 +34,7 @@ class FakeTokenStore():
         :param user_id: unique identifier for the RefreshToken entity
         :return: A RefreshToken entity
         """
-        return self.tokens.get(TokenStore._token_store_key(user_id, provider_name))
+        return self.tokens.get(_UserKey(user_id, provider_name))
 
     def delete(self, user_id, provider_name):
-        self.tokens.pop(TokenStore._token_store_key(user_id, provider_name), None)
+        self.tokens.pop(_UserKey(user_id, provider_name), None)
