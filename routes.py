@@ -207,7 +207,7 @@ def authorization_url(args, provider):
     return protojson.encode_message((AuthorizationUrlResponse(url=authz_url)))
 
 
-@routes.route('/api/status/v1/status', methods=["GET"])
+@routes.route('/api/status/v1/status', methods=["GET"], strict_slashes=False)
 def get_status():
     sam_base_url = config.get('sam', 'BASE_URL')
 
