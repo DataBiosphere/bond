@@ -8,7 +8,7 @@ class JsonExceptionHandler(object):
             self.init_app(app)
 
     def json_dict(self, status_code, message):
-        exception_reasons = {400: "badRequest", 401: "required", 404: "notFound"}
+        exception_reasons = {400: "badRequest", 401: "required", 404: "notFound", 500: "internalServerError"}
         return {"code": status_code,
                 "errors": [{
                     "domain": "global",
