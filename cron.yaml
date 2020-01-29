@@ -1,4 +1,4 @@
 cron:
   - description: "clear expired Datastore cache entries"
-    url: /fix/me
+    url: /api/link/v1/clear-expired-cache-datastore-entries
     schedule: every 2 hours
