@@ -143,7 +143,7 @@ def list_providers():
     return protojson.encode_message(ListProvidersResponse(providers=list(bond_providers.keys())))
 
 
-@routes.route('/api/link/v1/<provider>/oauthcode', methods=["POST"])
+@routes.route(api_routes_base + '/<provider>/oauthcode', methods=["POST"])
 @use_args({"oauthcode": fields.Str(required=True),
            "redirect_uri": fields.Str(required=True)},
           locations=("querystring",))

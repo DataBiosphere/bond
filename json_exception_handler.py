@@ -8,12 +8,16 @@ class JsonExceptionHandler(object):
             self.init_app(app)
 
     def json_dict(self, status_code, message):
-        exception_reasons = {400: "badRequest", 401: "required", 404: "notFound", 500: "internalServerError"}
+        exception_reasons = {400: "badRequest",
+                             401: "required",
+                             403: "forbidden",
+                             404: "notFound",
+                             500: "internalServerError"}
         return {"code": status_code,
                 "errors": [{
                     "domain": "global",
                     "message": message,
-                    "reason": exception_reasons[status_code]
+                    "reason": exception_reasons[status_code] if status_code in exception_reasons.keys() else ""
                 }],
                 "message": message}
 
