@@ -44,7 +44,7 @@ json_schema_test_status = {
             "enum": [
               "fence",
               "dcf-fence",
-              "memcache",
+              "cache",
               "datastore",
               "sam"
             ],
@@ -127,7 +127,7 @@ json_schema_test_get_auth_url_without_params = {
               "message": {
                 "type": "string",
                 "enum": [
-                  "Error parsing ProtoRPC request (Unable to parse request content: Message CombinedContainer is missing required field redirect_uri)"
+                  "The browser (or proxy) sent a request that this server could not understand."
                 ],
               },
               "reason": {
@@ -142,7 +142,7 @@ json_schema_test_get_auth_url_without_params = {
         "message": {
           "type": "string",
           "enum": [
-            "Error parsing ProtoRPC request (Unable to parse request content: Message CombinedContainer is missing required field redirect_uri)"
+            "The browser (or proxy) sent a request that this server could not understand."
           ],
         }
       }
@@ -450,7 +450,7 @@ json_schema_test_exchange_auth_code_without_redirect_uri_param = {
         "message": {
           "type": "string",
           "enum": [
-            "Error parsing ProtoRPC request (Unable to parse request content: Message CombinedContainer is missing required field redirect_uri)"
+            "The browser (or proxy) sent a request that this server could not understand."
           ],
         },
         "code": {
@@ -485,7 +485,7 @@ json_schema_test_exchange_auth_code_without_redirect_uri_param = {
               "message": {
                 "type": "string",
                 "enum": [
-                  "Error parsing ProtoRPC request (Unable to parse request content: Message CombinedContainer is missing required field redirect_uri)"
+                  "The browser (or proxy) sent a request that this server could not understand."
                 ],
               }
             }
@@ -513,7 +513,7 @@ json_schema_test_exchange_auth_code_without_oauthcode_param = {
         "message": {
           "type": "string",
           "enum": [
-            "Error parsing ProtoRPC request (Unable to parse request content: Message CombinedContainer is missing required field oauthcode)"
+            "The browser (or proxy) sent a request that this server could not understand."
           ],
         },
         "code": {
@@ -548,7 +548,7 @@ json_schema_test_exchange_auth_code_without_oauthcode_param = {
               "message": {
                 "type": "string",
                 "enum": [
-                  "Error parsing ProtoRPC request (Unable to parse request content: Message CombinedContainer is missing required field oauthcode)"
+                  "The browser (or proxy) sent a request that this server could not understand."
                 ],
               }
             }
