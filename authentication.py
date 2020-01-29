@@ -1,9 +1,9 @@
 import urllib
 import json
-import endpoints
 import os
 import logging
 
+from werkzeug import exceptions
 from google.appengine.api import urlfetch
 
 _TOKENINFO_URL = 'https://www.googleapis.com/oauth2/v1/tokeninfo'
@@ -31,10 +31,12 @@ class UserInfo:
 def _token_info(token):
     result = urlfetch.fetch(
         '{}?{}'.format(_TOKENINFO_URL, urllib.urlencode({'access_token': token})))
+
     if result.status_code == 400:
-        raise endpoints.UnauthorizedException("Invalid authorization token")
+        raise exceptions.Unauthorized("Invalid authorization token")
     if result.status_code != 200:
-        raise endpoints.InternalServerErrorException(message='Token info endpoint returned status {}: {}'.format(result.status_code, result.content))
+        raise exceptions.InternalServerError('Token info endpoint returned status {}: {}'.format(result.status_code, result.content))
+
     return result.content
 
 
@@ -70,11 +72,11 @@ class Authentication:
         """
         auth_header = request_state.headers.get('Authorization')
         if auth_header is None:
-            raise endpoints.UnauthorizedException(message='Request missing Authorization header.')
+            raise exceptions.Unauthorized('Request missing Authorization header.')
 
         auth_header_parts = auth_header.split()
         if len(auth_header_parts) != 2 or auth_header_parts[0].lower() != 'bearer':
-            raise endpoints.UnauthorizedException(message='Malformed Authorization header, must be in the form of "bearer [token]".')
+            raise exceptions.Unauthorized('Malformed Authorization header, must be in the form of "bearer [token]".')
 
         token = auth_header_parts[1]
 
@@ -100,21 +102,21 @@ class Authentication:
 
         # Validate token info.
         if 'email' not in token_info:
-            raise endpoints.UnauthorizedException(message='Oauth token doesn\'t include an email address.')
+            raise exceptions.Unauthorized('Oauth token doesn\'t include an email address.')
         if not token_info.get('verified_email'):
-            raise endpoints.UnauthorizedException(message='Oauth token email isn\'t verified.')
+            raise exceptions.Unauthorized('Oauth token email isn\'t verified.')
         if 'user_id' not in token_info:
-            raise endpoints.UnauthorizedException(message='Oauth token doesn\'t include user_id.')
+            raise exceptions.Unauthorized('Oauth token doesn\'t include user_id.')
         if 'audience' not in token_info:
-            raise endpoints.UnauthorizedException(message='Oauth token doesn\'t include audience.')
+            raise exceptions.Unauthorized('Oauth token doesn\'t include audience.')
         if 'expires_in' not in token_info:
-            raise endpoints.UnauthorizedException(message='Oauth token doesn\'t include expires_in.')
+            raise exceptions.Unauthorized('Oauth token doesn\'t include expires_in.')
         try:
             expires_in = int(token_info.get('expires_in'))
         except ValueError:
-            raise endpoints.UnauthorizedException(message='expires_in must be a number')
+            raise exceptions.Unauthorized('expires_in must be a number')
         if expires_in <= 0:
-            raise endpoints.UnauthorizedException(message='expires_in must be > 0')
+            raise exceptions.Unauthorized('expires_in must be > 0')
 
         # Validate audience.
         audience = token_info.get('audience')
@@ -123,4 +125,5 @@ class Authentication:
             return UserInfo(token_info.get('user_id'), token_info.get('email'), token, expires_in)
 
         else:
-            raise endpoints.UnauthorizedException(message='Oauth token has unacceptable audience: {}.'.format(audience))
+            raise exceptions.Unauthorized('Oauth token has unacceptable audience: {}.'.format(audience))
+

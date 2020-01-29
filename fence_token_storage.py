@@ -1,17 +1,13 @@
+from collections import namedtuple
 import datetime
 import time
-from google.appengine.ext import ndb
-from google.appengine.api.datastore_errors import TransactionFailedError
+from google.cloud import ndb
 
 # How long to keep a fence service account key before expiring it.
 _FSA_KEY_LIFETIME = datetime.timedelta(days=5)
 
-
-def build_fence_service_account_key(provider_name, user_id):
-    """Creates a datastore key to associate a (user, provier) to the credentials of a service account fetched from a Fence.
-    :return Returns an ndb Key for the fence service account, i.e. a "fsa_key"
-    """
-    return ndb.Key("User", user_id, FenceServiceAccount, provider_name)
+# A tuple of a provider_name and user_id to use as a unique key for a user/provider combination.
+ProviderUser = namedtuple("ProviderUser", ["provider_name", "user_id"])
 
 
 class FenceServiceAccount(ndb.Model):
@@ -39,29 +35,28 @@ class FenceTokenStorage:
     service account credentials. Storage of the fence credentials (with an expiration time) allows the retrieved
     credentials to be shared.
 
-    N.B. "fsa_key" refers to a Datastore key of the (user, provider_name) which is used to look up the fence service
-    account credentials, i.e. "key_json."
-
     This is abstracted as its own class so that we can stub out the Datastore dependency in tests.
     """
 
-    def delete(self, fsa_key):
+    def delete(self, provider_user):
         """
-        Delete the stored fence service account info for the fsa_key.
-        ":return returns the stored value for the key or None if it did not exist.
+        Delete the stored fence service account info for the ProviderUser.
+        :param provider_user the ProviderUser.
+        :return returns the stored value for the key or None if it did not exist.
         """
+        fsa_key = self._build_fence_service_account_key(provider_user)
         fence_service_account = fsa_key.get()
         if fence_service_account:
             fsa_key.delete()
         return fence_service_account.key_json if fence_service_account else None
 
-    def retrieve(self, fsa_key, prep_key_fn, fence_fetch_fn):
+    def retrieve(self, provider_user, prep_key_fn, fence_fetch_fn):
         """
-        Retrieve the stored fence service account json key for fsa_key, waiting as needed, or create, store, and
-        return the fence service accoutn json key for the fsa_key.
+        Retrieve the stored fence service account json key for provider_user, waiting as needed, or create, store, and
+        return the fence service accoutn json key for the provider_user.
 
-        :param fsa_key The ndb Key of the provider name and user id to fetch service account credentials for.
-        :param prep_key_fn The function to create the input to fence_fetch_fn from 'fsa_key' once we know
+        :param provider_user The ProviderUser fetch service account credentials for.
+        :param prep_key_fn The function to create the input to fence_fetch_fn from 'provider_user' once we know
         fence_fetch_fn will be called. This is separated from fence_fetch_fn so that this can be slow but not spend as
          much time locking.
         :param fence_fetch_fn: The function to fetch the credentials from the fence. This function will ensure that
@@ -69,22 +64,23 @@ class FenceTokenStorage:
         fence_fetch_fn(prep_key_fn(key)) -> returns the string fence account credentials.
         :return returns the fence service account json key and the expiration time for that value.
         """
-        fence_service_account = fsa_key.get()
+        fence_service_account = self._build_fence_service_account_key(provider_user).get()
         now = datetime.datetime.now()
         if fence_service_account is None or \
                 fence_service_account.expires_at is None or \
                 fence_service_account.expires_at < now:
-            fence_service_account = self._fetch_and_cache_service_account(fsa_key, prep_key_fn, fence_fetch_fn)
+            fence_service_account = self._fetch_and_cache_service_account(provider_user, prep_key_fn, fence_fetch_fn)
 
         return (fence_service_account.key_json, fence_service_account.expires_at)
 
-    def _fetch_and_cache_service_account(self, fsa_key, prep_key_fn, fence_fetch_fn):
+    def _fetch_and_cache_service_account(self, provider_user, prep_key_fn, fence_fetch_fn):
         """
         Fetch a new service account from fence. We must be careful that concurrent requests result in only one
         key request to fence so the service account does not run out of keys (google limits to 10).
         """
         # Prep key before acquiring lock to keep lock duration as small as possible.
-        prepped_key = prep_key_fn(fsa_key)
+        prepped_key = prep_key_fn(provider_user)
+        fsa_key = self._build_fence_service_account_key(provider_user)
 
         if self._acquire_lock(fsa_key):
             key_json = fence_fetch_fn(prepped_key)
@@ -132,6 +128,14 @@ class FenceTokenStorage:
             time.sleep(1)
             fence_service_account = self._get_fence_service_account_in_new_txn(fsa_key)
         return fence_service_account
+
+    @staticmethod
+    def _build_fence_service_account_key(provider_user):
+        """Creates a datastore key to associate a ProviderUser to the credentials of a service account fetched from a
+         Fence.
+        :return Returns an ndb Key for the fence service account, i.e. a "fsa_key"
+        """
+        return ndb.Key("User", provider_user.user_id, FenceServiceAccount, provider_user.provider_name)
 
     @staticmethod
     @ndb.transactional(retries=0)

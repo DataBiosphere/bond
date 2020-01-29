@@ -3,23 +3,20 @@ import unittest
 import uuid
 from datetime import datetime
 
-import endpoints
 import jwt
-from google.appengine.ext import ndb
-from google.appengine.ext import testbed
 from mock import MagicMock
+from werkzeug import exceptions
 
 from authentication import UserInfo
-from fence_token_storage import build_fence_service_account_key
-from memcache_api import MemcacheApi
 from bond import Bond, FenceKeys
 from fence_api import FenceApi
 from fence_token_vending import FenceTokenVendingMachine
-import fence_token_storage
 from oauth_adapter import OauthAdapter
 from sam_api import SamApi
 from sam_api import SamKeys
-from token_store import TokenStore
+from fake_token_store import  FakeTokenStore
+from fake_cache_api import FakeCacheApi
+from fake_fence_token_storage import FakeFenceTokenStorage
 
 provider_name = "test"
 
@@ -27,10 +24,6 @@ provider_name = "test"
 class BondTestCase(unittest.TestCase):
     def setUp(self):
         super(BondTestCase, self).setUp()
-        self.testbed = testbed.Testbed()
-        self.testbed.activate()
-        self.testbed.init_datastore_v3_stub()
-        self.testbed.init_memcache_stub()
 
         self.name = "Bob McBob"
         self.issued_at_epoch = 1528896868
@@ -53,21 +46,17 @@ class BondTestCase(unittest.TestCase):
 
         fence_api = self._mock_fence_api(json.dumps({"private_key_id": "asfasdfasdf"}))
         sam_api = self._mock_sam_api(self.user_id, "email")
-        self.refresh_token_store = TokenStore()
+        self.refresh_token_store = FakeTokenStore()
         self.bond = Bond(mock_oauth_adapter,
                          fence_api,
                          sam_api,
                          self.refresh_token_store,
-                         FenceTokenVendingMachine(fence_api, sam_api, MemcacheApi(), self.refresh_token_store,
+                         FenceTokenVendingMachine(fence_api, sam_api, FakeCacheApi(), self.refresh_token_store,
                                                   mock_oauth_adapter,
-                                                  provider_name, fence_token_storage.FenceTokenStorage()),
+                                                  provider_name, FakeFenceTokenStorage()),
                          provider_name,
                          "/context/user/name",
                          {})
-
-    def tearDown(self):
-        ndb.get_context().clear_cache()  # Ensure data is truly flushed from datastore/memcache
-        self.testbed.deactivate()
 
     def test_exchange_authz_code(self):
         issued_at, username = self.bond.exchange_authz_code("irrelevantString", "redirect",
@@ -93,14 +82,14 @@ class BondTestCase(unittest.TestCase):
                     fence_api,
                     sam_api,
                     self.refresh_token_store,
-                    FenceTokenVendingMachine(fence_api, sam_api, MemcacheApi(), self.refresh_token_store,
+                    FenceTokenVendingMachine(fence_api, sam_api, FakeCacheApi(), self.refresh_token_store,
                                              mock_oauth_adapter, provider_name,
-                                             fence_token_storage.FenceTokenStorage()),
+                                             FakeFenceTokenStorage()),
                     provider_name,
                     "/context/user/name",
                     {})
 
-        with self.assertRaises(endpoints.BadRequestException):
+        with self.assertRaises(exceptions.BadRequest):
             bond.exchange_authz_code("irrelevantString", "redirect", UserInfo(str(uuid.uuid4()), "", "", 30))
 
     def test_generate_access_token(self):
@@ -123,11 +112,9 @@ class BondTestCase(unittest.TestCase):
         self.refresh_token_store.save(self.user_id, token, datetime.now(), self.name, provider_name)
         user_info = UserInfo(str(uuid.uuid4()), "", "", 30)
         self.bond.fence_tvm.get_service_account_key_json(user_info)
-        self.assertIsNotNone(build_fence_service_account_key(self.bond.fence_tvm.provider_name, self.user_id).get())
 
         self.bond.unlink_account(user_info)
 
-        self.assertIsNone(build_fence_service_account_key(self.bond.fence_tvm.provider_name, self.user_id).get())
         self.assertIsNone(self.refresh_token_store.lookup(self.user_id, provider_name))
         self.bond.oauth_adapter.revoke_refresh_token.assert_called_once()
         self.bond.fence_api.delete_credentials_google.assert_called_once()

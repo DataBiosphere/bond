@@ -6,7 +6,7 @@ version: 2
 jobs:
   test:
     docker:
-      - image: google/cloud-sdk:218.0.0
+      - image: google/cloud-sdk:276.0.0
 
     environment:
       - PYTHONPATH: /usr/local/google_appengine
@@ -34,12 +34,26 @@ jobs:
           command: |
             source virtualenv/bin/activate
             pip install -t lib -r requirements.txt --ignore-installed
+            apt-get install google-cloud-sdk-datastore-emulator
 
       - run:
           name: Run tests
           command: |
             source virtualenv/bin/activate
             python tests/test_runner.py `gcloud info --format="value(installation.sdk_root)"`
+
+      - run:
+          name: Start Datastore Emulator
+          command: gcloud beta emulators datastore start --no-store-on-disk --project="test" --host-port=0.0.0.0:8432
+          background: true
+
+      - run:
+          name: Run Datastore Eumulator Tests
+          # Sleep to let the emulator start up before running tests.
+          command: |
+            sleep 10
+            ./tests/datastore_emulator/test.sh
+
 
   build-docker-image:
     docker:
