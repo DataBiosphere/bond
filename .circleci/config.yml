@@ -44,7 +44,7 @@ jobs:
 
       - run:
           name: Start Datastore Emulator
-          command: gcloud beta emulators datastore start --no-store-on-disk --project="test" --host-port=0.0.0.0:8432
+          command: ./tests/datastore_emulator/run_emulator.sh
           background: true
 
       - run:
