@@ -8,7 +8,7 @@ import time
 from google.appengine.ext import testbed
 
 from bond import FenceKeys
-from tests.unit.fake_cache_api import FakeCacheApi
+from unit.fake_cache_api import FakeCacheApi
 from jwt_token import JwtToken
 from oauth_adapter import OauthAdapter
 from open_id_config import OpenIdConfig
