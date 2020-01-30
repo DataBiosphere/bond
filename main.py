@@ -1,6 +1,6 @@
 import flask
-import routes
-from json_exception_handler import JsonExceptionHandler
+from bond_app import routes
+from bond_app.json_exception_handler import JsonExceptionHandler
 from google.cloud import ndb
 
 client = ndb.Client()

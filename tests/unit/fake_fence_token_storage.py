@@ -1,6 +1,6 @@
 from collections import namedtuple
 import datetime
-from fence_token_storage import FenceServiceAccount, _FSA_KEY_LIFETIME
+from bond_app.fence_token_storage import _FSA_KEY_LIFETIME
 
 # Internal representation of information being stored about a FenceServiceAccount.
 _FenceServiceAccountInfo = namedtuple("_FenceServiceAccountInfo", ["key_json", "expires_at", "update_lock_timeout"])

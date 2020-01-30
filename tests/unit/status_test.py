@@ -1,9 +1,9 @@
 import unittest
 from fake_cache_api import FakeCacheApi
-from fence_api import FenceApi
-from sam_api import SamApi
+from bond_app.fence_api import FenceApi
+from bond_app.sam_api import SamApi
 from mock import MagicMock
-from status import Status, Subsystems
+from bond_app.status import Status, Subsystems
 
 
 class StatusTestCase(unittest.TestCase):
