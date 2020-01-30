@@ -25,6 +25,8 @@ libraries:
   version: 2.6.1
 - name: ssl
   version: 2.7.11
+- name: grpcio
+  version: 1.0.0
 
 env_variables:
   BOND_ACCEPTED_AUDIENCE_PREFIXES: {{range $index, $element := $commonSecrets.Data.client_ids}} {{ $element }}{{end}}
