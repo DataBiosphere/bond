@@ -1,8 +1,11 @@
 import json
 
 from werkzeug import exceptions
-from google.appengine.api import urlfetch
+import requests
+from requests_toolbelt.adapters import appengine
 
+# https://toolbelt.readthedocs.io/en/latest/adapters.html#appengineadapter
+appengine.monkeypatch()
 
 class OpenIdConfig:
 
@@ -14,7 +17,7 @@ class OpenIdConfig:
     def load_dict(self):
         open_id_dict = self.cache_api.get(namespace="OauthAdapter", key=self.provider_name)
         if not open_id_dict:
-            open_id_config_response = urlfetch.fetch(self.open_id_config_url)
+            open_id_config_response = requests.get(self.open_id_config_url)
             if open_id_config_response.status_code != 200:
                 raise exceptions.InternalServerError(
                     'open_id_config_url [{}] returned status {}: {}'.format(self.open_id_config_url,
