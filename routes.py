@@ -10,7 +10,6 @@ from protorpc import protojson
 
 import authentication
 from bond import Bond
-from cache_api import create_cache_api
 from datastore_cache_api import DatastoreCacheApi
 from fence_token_vending import FenceTokenVendingMachine
 from fence_api import FenceApi
@@ -124,7 +123,7 @@ class BondProvider:
 
 routes = Blueprint('bond', __name__, '/')
 
-cache_api = create_cache_api()
+cache_api = DatastoreCacheApi()
 refresh_token_store = TokenStore()
 
 bond_providers = {provider_name: create_provider(provider_name)
