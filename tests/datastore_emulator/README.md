@@ -15,7 +15,7 @@ Testing should be done in a virtualenv python environment. See project README.
 
 Start the emulator:
 
-`gcloud beta emulators datastore start --no-store-on-disk --project="test" --host-port=0.0.0.0:8432`
+`./tests/datastore_emulator/run_emulator.sh`
 
 In another terminal, run the test script. Note that this sets (and attempts to unset) environment variables.
 

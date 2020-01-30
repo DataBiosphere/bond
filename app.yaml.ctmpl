@@ -1,6 +1,4 @@
-{{with $environment := env "ENVIRONMENT"}}
 {{with $commonSecrets := secret (printf "secret/dsde/firecloud/common/oauth_client_id")}}
-{{with $googleProject := env "GOOGLE_PROJ"}}
 
 runtime: python27
 threadsafe: true
@@ -19,8 +17,8 @@ skip_files:
 #[END_EXCLUDE]
 
 handlers:
-  - url: /.*
-    script: main.app
+- url: /.*
+  script: main.app
 
 libraries:
 - name: pycrypto
@@ -28,14 +26,8 @@ libraries:
 - name: ssl
   version: 2.7.11
 
-# [START env_vars]
 env_variables:
-  # The following values are to be replaced by information from the output of
-  # 'gcloud endpoints services deploy swagger.json' command.
-  ENDPOINTS_SERVICE_NAME: {{$googleProject}}.appspot.com
-  ENDPOINTS_SERVICE_VERSION: {{ env "SERVICE_VERSION" }} 
   BOND_ACCEPTED_AUDIENCE_PREFIXES: {{range $index, $element := $commonSecrets.Data.client_ids}} {{ $element }}{{end}}
   BOND_ACCEPTED_EMAIL_SUFFIXES: .gserviceaccount.com
- # [END env_vars]
 
-{{end}}{{end}}{{end}}
+{{end}}
