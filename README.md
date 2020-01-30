@@ -52,6 +52,9 @@ To run integration tests, provide the `test-path` parameter to with the path to 
 When writing new tests, do not put any tests in the root `tests/` directory.  Instead, write new integration tests in 
 the `tests/integration` directory.
 
+## Datastore Emulator tests
+[To run the integration tests that require the Datastore emulator locally, follow the instructions in the readme here](tests/datastore_emulator/README.md). 
+
 ## Nose
 
 Install nose:

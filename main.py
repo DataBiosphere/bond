@@ -1,5 +1,6 @@
 import flask
 import routes
+from json_exception_handler import JsonExceptionHandler
 from google.cloud import ndb
 
 client = ndb.Client()
@@ -24,3 +25,4 @@ def create_app():
 
 app = create_app()
 app.wsgi_app = ndb_wsgi_middleware(app.wsgi_app)  # Wrap the app in middleware.
+handler = JsonExceptionHandler(app)

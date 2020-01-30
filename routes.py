@@ -98,7 +98,7 @@ def create_provider(provider_name):
     sam_api = SamApi(sam_base_url)
 
     fence_tvm = FenceTokenVendingMachine(fence_api, sam_api, cache_api, refresh_token_store, oauth_adapter,
-                                         provider_name, fence_token_storage.FenceTokenStorage)
+                                         provider_name, fence_token_storage.FenceTokenStorage())
     return BondProvider(fence_tvm, Bond(oauth_adapter,
                                         fence_api,
                                         sam_api,
@@ -106,7 +106,6 @@ def create_provider(provider_name):
                                         fence_tvm,
                                         provider_name,
                                         user_name_path_expr,
-
                                         extra_authz_url_params))
 
 
@@ -135,12 +134,17 @@ auth = authentication.Authentication(authentication.default_config(), cache_api)
 api_routes_base = '/api/link/v1'
 
 
+@routes.route('/')
+def root():
+    return "Bond - Account Linking Service"
+
+
 @routes.route(api_routes_base + '/providers', methods=["GET"])
 def list_providers():
     return protojson.encode_message(ListProvidersResponse(providers=list(bond_providers.keys())))
 
 
-@routes.route('/api/link/v1/<provider>/oauthcode', methods=["POST"])
+@routes.route(api_routes_base + '/<provider>/oauthcode', methods=["POST"])
 @use_args({"oauthcode": fields.Str(required=True),
            "redirect_uri": fields.Str(required=True)},
           locations=("querystring",))
@@ -210,7 +214,7 @@ def clear_expired_datastore_entries():
     DatastoreCacheApi.delete_expired_entries()
     return '', 204
 
-@routes.route('/api/status/v1/status', methods=["GET"])
+@routes.route('/api/status/v1/status', methods=["GET"], strict_slashes=False)
 def get_status():
     sam_base_url = config.get('sam', 'BASE_URL')
 
