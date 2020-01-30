@@ -13,7 +13,7 @@ class FenceTokenStorageTestCase(unittest.TestCase):
         # Make sure to run these tests with a Datastore Emulator running or else they will fail with 'InternalError.'
         # See the README in this directory.
 
-        datastore_emulator_utils.setUp()
+        datastore_emulator_utils.setUp(self)
 
         # How many times fence_fetch has been called.
         self.fence_fetches = 0
@@ -36,9 +36,6 @@ class FenceTokenStorageTestCase(unittest.TestCase):
     def assertIsExpectedToken(self, key_json):
         """Asserts that key_json is equal to the default expected token value."""
         self.assertEqual(key_json, "json_value: prepped: default_provider")
-
-    def tearDown(self):
-        datastore_emulator_utils.tearDown()
 
     def test_create(self):
         token_storage = FenceTokenStorage()

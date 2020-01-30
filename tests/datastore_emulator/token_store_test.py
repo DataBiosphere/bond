@@ -12,16 +12,13 @@ class TokenStoreTestCase(unittest.TestCase):
     def setUp(self):
         # Make sure to run these tests with a Datastore Emulator running or else they will fail with 'InternalError.'
         # See the README in this directory.
-        datastore_emulator_utils.setUp()
+        datastore_emulator_utils.setUp(self)
 
         self.user_id = "abc123"
         self.token_str = "aaaaaabbbbbbcccccccddddddd"
         self.issued_at = datetime.now()
         self.username = "Ralph"
         self.key = TokenStore._token_store_key(self.user_id, provider_name)
-
-    def tearDown(self):
-        datastore_emulator_utils.tearDown()
 
     def test_save(self):
         token_store = TokenStore()
@@ -44,10 +41,7 @@ class TokenStoreTestCase(unittest.TestCase):
 
 class RefreshTokenTestCase(unittest.TestCase):
     def setUp(self):
-        datastore_emulator_utils.setUp()
-
-    def tearDown(self):
-        datastore_emulator_utils.tearDown()
+        datastore_emulator_utils.setUp(self)
 
     def test_kind_name(self):
         self.assertEqual("RefreshToken", RefreshToken.kind_name())

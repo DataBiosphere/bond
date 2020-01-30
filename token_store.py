@@ -1,5 +1,5 @@
 from collections import namedtuple
-from google.appengine.ext import ndb
+from google.cloud import ndb
 
 # Information associated with a tokens for refreshing service account credentials.
 RefreshTokenInfo = namedtuple('RefreshTokenInfo', ['token', 'issued_at', 'username'])

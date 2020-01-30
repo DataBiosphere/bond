@@ -1,9 +1,8 @@
 import unittest
 
 import memcache_api
-from google.appengine.ext import ndb
 from google.appengine.ext import testbed
-from tests.unit import cache_api_test
+import cache_api_test
 
 
 class MemcacheApiTestCase(unittest.TestCase, cache_api_test.CacheApiTest):
@@ -14,5 +13,4 @@ class MemcacheApiTestCase(unittest.TestCase, cache_api_test.CacheApiTest):
         self.setUpCache(memcache_api.MemcacheApi())
 
     def tearDown(self):
-        ndb.get_context().clear_cache()  # Ensure data is truly flushed from memcache
         self.testbed.deactivate()
