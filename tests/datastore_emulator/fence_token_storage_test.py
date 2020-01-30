@@ -1,4 +1,4 @@
-from fence_token_storage import ProviderUser, FenceServiceAccount, FenceTokenStorage, \
+from bond_app.fence_token_storage import ProviderUser, FenceServiceAccount, FenceTokenStorage, \
     ServiceAccountNotUpdatedException, _FSA_KEY_LIFETIME
 import datetime
 import threading

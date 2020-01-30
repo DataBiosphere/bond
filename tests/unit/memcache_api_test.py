@@ -1,6 +1,6 @@
 import unittest
 
-import memcache_api
+from bond_app import memcache_api
 from google.appengine.ext import testbed
 import cache_api_test
 
