@@ -4,7 +4,7 @@ import datetime
 from werkzeug import exceptions
 from bond import FenceKeys
 from fence_token_storage import ProviderUser
-from oauth2client.service_account import ServiceAccountCredentials
+from google.oauth2 import service_account
 from sam_api import SamKeys
 
 
@@ -39,7 +39,7 @@ class FenceTokenVendingMachine:
         if scopes is None or len(scopes) == 0:
             scopes = ["email", "profile"]
         key_json = self.get_service_account_key_json(user_info)
-        credentials = ServiceAccountCredentials.from_json_keyfile_dict(json.loads(key_json), scopes=scopes)
+        credentials = service_account.Credentials.from_service_account_info(json.loads(key_json), scopes=scopes)
         return credentials.get_access_token().access_token
 
     def get_service_account_key_json(self, user_info):
