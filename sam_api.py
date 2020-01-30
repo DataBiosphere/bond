@@ -2,6 +2,7 @@ import json
 import requests
 from requests_toolbelt.adapters import appengine
 
+# https://toolbelt.readthedocs.io/en/latest/adapters.html#appengineadapter
 appengine.monkeypatch()
 
 from werkzeug import exceptions

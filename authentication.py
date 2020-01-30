@@ -7,6 +7,7 @@ from werkzeug import exceptions
 import requests
 from requests_toolbelt.adapters import appengine
 
+# https://toolbelt.readthedocs.io/en/latest/adapters.html#appengineadapter
 appengine.monkeypatch()
 
 _TOKENINFO_URL = 'https://www.googleapis.com/oauth2/v1/tokeninfo'
