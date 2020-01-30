@@ -4,7 +4,10 @@ import os
 import logging
 
 from werkzeug import exceptions
-from google.appengine.api import urlfetch
+import requests
+from requests_toolbelt.adapters import appengine
+
+appengine.monkeypatch()
 
 _TOKENINFO_URL = 'https://www.googleapis.com/oauth2/v1/tokeninfo'
 
@@ -29,7 +32,7 @@ class UserInfo:
 
 
 def _token_info(token):
-    result = urlfetch.fetch(
+    result = requests.get(
         '{}?{}'.format(_TOKENINFO_URL, urllib.urlencode({'access_token': token})))
 
     if result.status_code == 400:

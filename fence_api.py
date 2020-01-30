@@ -1,5 +1,8 @@
-from google.appengine.api import urlfetch
 from werkzeug import exceptions
+import requests
+from requests_toolbelt.adapters import appengine
+
+appengine.monkeypatch()
 
 
 class FenceApi:
@@ -16,7 +19,7 @@ class FenceApi:
         :return: service account key json
         """
         headers = {'Authorization': 'Bearer ' + access_token}
-        result = urlfetch.fetch(url=self.credentials_google_url, headers=headers, method=urlfetch.POST)
+        result = requests.post(url=self.credentials_google_url, headers=headers)
         if result.status_code // 100 == 2:
             return result.content
         else:
@@ -30,12 +33,12 @@ class FenceApi:
         :return: service account key json
         """
         headers = {'Authorization': 'Bearer ' + access_token}
-        result = urlfetch.fetch(url=self.delete_service_account_url + key_id, headers=headers, method=urlfetch.DELETE)
+        result = requests.delete(url=self.delete_service_account_url + key_id, headers=headers)
         if result.status_code // 100 != 2:
             raise exceptions.InternalServerError("fence status code {}, error body {}".format(result.status_code, result.content))
 
     def revoke_refresh_token(self, refresh_token):
-        result = urlfetch.fetch(url=self.revoke_url, method=urlfetch.POST, payload=refresh_token)
+        result = requests.post(url=self.revoke_url, data=refresh_token)
         if result.status_code // 100 != 2:
             raise exceptions.InternalServerError("fence status code {}, error body {}".format(result.status_code, result.content))
 
@@ -45,7 +48,7 @@ class FenceApi:
         :return: 2 values: boolean ok or not, status message if not ok
         """
         try:
-            result = urlfetch.fetch(url=self.status_url)
+            result = requests.get(url=self.status_url)
             if result.status_code // 100 != 2:
                 return False, "fence status code {}, error body {}".format(result.status_code, result.content)
             else:
