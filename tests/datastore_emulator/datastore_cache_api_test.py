@@ -2,23 +2,16 @@ import time
 import unittest
 
 from datastore_cache_api import DatastoreCacheApi
-from google.appengine.ext import ndb
-from google.appengine.ext import testbed
 from tests.unit import cache_api_test
-
+import datastore_emulator_utils
 
 class DatstoreCacheApiTestCase(unittest.TestCase, cache_api_test.CacheApiTest):
     def setUp(self):
-        self.testbed = testbed.Testbed()
-        self.testbed.activate()
-        # Datastore uses memcache by default.
-        self.testbed.init_memcache_stub()
-        self.testbed.init_datastore_v3_stub()
+        datastore_emulator_utils.setUp()
         self.setUpCache(DatastoreCacheApi())
 
     def tearDown(self):
-        ndb.get_context().clear_cache()  # Ensure data is truly flushed from memcache
-        self.testbed.deactivate()
+        datastore_emulator_utils.tearDown()
 
     def test_delete_removes_expired_entries(self):
         cache = DatastoreCacheApi()
