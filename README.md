@@ -182,3 +182,12 @@ git secrets --add --allowed 'REPLACE_ME'
 git secrets --add --allowed '\{\{ \$fenceSecrets\.Data\.client_id \}\}'
 git secrets --add --allowed '\{\{ \$fenceSecrets\.Data\.client_secret \}\}'
 ```
+# scratch
+manually set bond environment variables from app.yaml
+datastore emulator environment variables according to tests/datastore_emulator/tests.sh
+gave anonymous credentials in main.py
+set GOOGLE_PROJECT environment variable to "test"
+```$xslt
+export FLASK_APP=main.py
+flask run
+```

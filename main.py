@@ -1,9 +1,14 @@
 import flask
+import os
 from bond_app import routes
 from bond_app.json_exception_handler import JsonExceptionHandler
 from google.cloud import ndb
+from google.auth.credentials import AnonymousCredentials
 
-client = ndb.Client()
+# The project should match the project given to the Datastore Emulator.
+# Use anonymous credentials for testing.
+# temporary hack to run locally
+client = ndb.Client(project="test", credentials=AnonymousCredentials())
 
 
 def ndb_wsgi_middleware(wsgi_app):

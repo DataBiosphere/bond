@@ -1,6 +1,6 @@
 {{with $commonSecrets := secret (printf "secret/dsde/firecloud/common/oauth_client_id")}}
 
-runtime: python27
+runtime: python37
 threadsafe: true
 api_version: 1
 basic_scaling:
@@ -19,14 +19,6 @@ skip_files:
 handlers:
 - url: /.*
   script: main.app
-
-libraries:
-- name: pycrypto
-  version: 2.6.1
-- name: ssl
-  version: 2.7.11
-- name: grpcio
-  version: 1.0.0
 
 env_variables:
   BOND_ACCEPTED_AUDIENCE_PREFIXES: {{range $index, $element := $commonSecrets.Data.client_ids}} {{ $element }}{{end}}

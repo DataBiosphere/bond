@@ -43,11 +43,11 @@ class Status:
     @staticmethod
     def _datastore_status():
         try:
-            from google.appengine.ext.ndb import stats
+            from google.cloud.ndb import stats
             stats.GlobalStat.query().get()
             return True, ""
         except Exception as e:
-            return False, e.message
+            return False, str(e)
 
 
 class Subsystems:
