@@ -3,7 +3,7 @@ import unittest
 from werkzeug import exceptions
 
 from bond_app import authentication
-from fake_cache_api import FakeCacheApi
+from tests.unit.fake_cache_api import FakeCacheApi
 import json
 
 

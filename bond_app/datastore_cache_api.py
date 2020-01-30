@@ -1,6 +1,6 @@
 import datetime
 from google.cloud import ndb
-from cache_api import CacheApi
+from .cache_api import CacheApi
 import logging
 
 _NO_EXPIRATION_DATETIME = datetime.datetime(year=3000, month=1, day=1)

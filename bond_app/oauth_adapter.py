@@ -4,10 +4,6 @@ from werkzeug import exceptions
 import requests
 from requests.auth import HTTPBasicAuth
 from requests_oauthlib import OAuth2Session
-from requests_toolbelt.adapters import appengine
-
-# https://toolbelt.readthedocs.io/en/latest/adapters.html#appengineadapter
-appengine.monkeypatch()
 
 
 class OauthAdapter:

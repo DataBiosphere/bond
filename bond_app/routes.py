@@ -1,5 +1,5 @@
 from flask import Blueprint, request
-import ConfigParser
+import configparser
 from werkzeug import exceptions
 from webargs import fields
 from webargs.flaskparser import FlaskParser
@@ -8,17 +8,17 @@ from protorpc import message_types
 from protorpc import messages
 from protorpc import protojson
 
-import authentication
-from bond import Bond
-from datastore_cache_api import DatastoreCacheApi
-from fence_token_vending import FenceTokenVendingMachine
-from fence_api import FenceApi
-import fence_token_storage
-from open_id_config import OpenIdConfig
-from sam_api import SamApi
-from oauth_adapter import OauthAdapter
-from status import Status
-from token_store import TokenStore
+from . import authentication
+from .bond import Bond
+from .datastore_cache_api import DatastoreCacheApi
+from .fence_token_vending import FenceTokenVendingMachine
+from .fence_api import FenceApi
+from . import fence_token_storage
+from .open_id_config import OpenIdConfig
+from .sam_api import SamApi
+from .oauth_adapter import OauthAdapter
+from .status import Status
+from .token_store import TokenStore
 import json
 import ast
 
@@ -72,7 +72,7 @@ class AuthorizationUrlResponse(messages.Message):
     url = messages.StringField(1)
 
 
-config = ConfigParser.ConfigParser()
+config = configparser.ConfigParser()
 config.read("config.ini")
 
 

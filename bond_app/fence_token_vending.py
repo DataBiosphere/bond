@@ -2,10 +2,10 @@ import json
 import datetime
 
 from werkzeug import exceptions
-from bond import FenceKeys
-from fence_token_storage import ProviderUser
+from .bond import FenceKeys
+from .fence_token_storage import ProviderUser
 from google.oauth2 import service_account
-from sam_api import SamKeys
+from .sam_api import SamKeys
 
 
 class FenceTokenVendingMachine:

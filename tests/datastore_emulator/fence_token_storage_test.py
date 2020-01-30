@@ -4,7 +4,7 @@ import datetime
 import threading
 import time
 import unittest
-import datastore_emulator_utils
+from tests.datastore_emulator import datastore_emulator_utils
 
 
 class FenceTokenStorageTestCase(unittest.TestCase):
@@ -107,8 +107,8 @@ class FenceTokenStorageTestCase(unittest.TestCase):
 
         token_storage = FenceTokenStorage()
         with self.assertRaises(ServiceAccountNotUpdatedException):
-            print token_storage.retrieve(self.provider_user, prep_key_fn=self.prep_key,
-                                         fence_fetch_fn=self.fence_fetch)
+            print(token_storage.retrieve(self.provider_user, prep_key_fn=self.prep_key,
+                                         fence_fetch_fn=self.fence_fetch))
 
     def test_delete(self):
         token_storage = FenceTokenStorage()

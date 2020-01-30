@@ -8,9 +8,9 @@ from bond_app.fence_api import FenceApi
 from bond_app.fence_token_storage import ProviderUser
 from bond_app.sam_api import SamApi
 from bond_app.oauth_adapter import OauthAdapter
-from fake_token_store import FakeTokenStore
-from fake_cache_api import FakeCacheApi
-from fake_fence_token_storage import FakeFenceTokenStorage
+from tests.unit.fake_token_store import FakeTokenStore
+from tests.unit.fake_cache_api import FakeCacheApi
+from tests.unit.fake_fence_token_storage import FakeFenceTokenStorage
 import datetime
 import string
 import random
@@ -99,4 +99,4 @@ class FenceTokenVendingMachineTestCase(unittest.TestCase):
 
     @staticmethod
     def _random_subject_id():
-        return ''.join(random.choice(string.digits) for _ in range(21))
+        return ''.join(random.choice(string.digits) for _ in list(range(21)))
