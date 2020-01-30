@@ -10,7 +10,7 @@ from protorpc import protojson
 
 import authentication
 from bond import Bond
-from cache_api import create_cache_api
+from datastore_cache_api import DatastoreCacheApi
 from fence_token_vending import FenceTokenVendingMachine
 from fence_api import FenceApi
 import fence_token_storage
@@ -123,7 +123,7 @@ class BondProvider:
 
 routes = Blueprint('bond', __name__, '/')
 
-cache_api = create_cache_api()
+cache_api = DatastoreCacheApi()
 refresh_token_store = TokenStore()
 
 bond_providers = {provider_name: create_provider(provider_name)
@@ -205,6 +205,13 @@ def authorization_url(args, provider):
     authz_url = _get_provider(provider).bond.build_authz_url(args['scopes'], args['redirect_uri'], args['state'])
     return protojson.encode_message((AuthorizationUrlResponse(url=authz_url)))
 
+@routes.route(api_routes_base + '/clear-expired-cache-datastore-entries', methods=["POST"])
+def clear_expired_datastore_entries():
+    # Only allow Appengine cron to hit this endpoint.
+    if not request.headers.get("X-Appengine-Cron"):
+        raise exceptions.Unauthorized('Missing required cron header.')
+    DatastoreCacheApi.delete_expired_entries()
+    return '', 204
 
 @routes.route('/api/status/v1/status', methods=["GET"], strict_slashes=False)
 def get_status():
