@@ -24,7 +24,7 @@ jobs:
           name: Setup virtualenv
           command: |
             pip install virtualenv
-            python -m virtualenv -p python3 virtualenv
+            python3 -m virtualenv -p python3 virtualenv
 
       - run:
           name: Install dependencies
