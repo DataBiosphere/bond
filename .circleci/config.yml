@@ -23,7 +23,7 @@ jobs:
       - run:
           name: Setup virtualenv
           command: |
-            apt-get install python3-pip
+            apt-get -y install python3-pip
             pip3 install virtualenv
             python3 -m virtualenv -p python3 virtualenv
 
@@ -31,7 +31,7 @@ jobs:
           name: Install dependencies
           command: |
             source virtualenv/bin/activate
-            apt-get install google-cloud-sdk-datastore-emulator
+            apt-get -y install google-cloud-sdk-datastore-emulator
             pip3 install -r requirements.txt --ignore-installed
 
       - run:
