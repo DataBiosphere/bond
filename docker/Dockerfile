@@ -30,9 +30,7 @@ RUN pip3 install --upgrade pip && pip3 install -r requirements.txt
 # Copy the source files into the the container
 COPY . .
 
-# TODO: Fix for running with flask instead of dev_appserver.
 # Bond Endpoints available on port 8080.  Admin interface not exposed
 EXPOSE 8080
 ENV FLASK_APP main.py
 ENTRYPOINT ["flask run", "-h 0.0.0.0", "-p 8080"]
-# ENTRYPOINT ["dev_appserver.py", "--host=0.0.0.0", "--enable_host_checking=false", "."]

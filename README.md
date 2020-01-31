@@ -5,15 +5,15 @@ Oauth2. Bond is a [Google Endpoints](https://cloud.google.com/endpoints/) applic
 
 # Setup
 
-In order to run tests or run the local development app server, you need to install Python 2.7, Pip, and [Google Cloud SDK](https://cloud.google.com/sdk/install).
+In order to run tests or run the local development app server, you need to install Python 3.7, Pip, and [Google Cloud SDK](https://cloud.google.com/sdk/install).
 
 ## Virtualenv
 
 [Virtualenv](https://virtualenv.pypa.io/en/stable/) is a tool that helps you manage multiple Python versions and your 
 project dependencies.  We recommend you setup Virtualenv for development and testing of Bond.
 
-1. Verify that you have Python 2.7 installed: `python --version`
-(**Note**: The name of your Python 2.7 command may be something different like `python2` if you have multiple versions 
+1. Verify that you have Python 3.7 installed: `python --version`
+(**Note**: The name of your Python 3.7 command may be something different like `python3` if you have multiple versions 
 of Python installed)
 1. Install virtualenv: `pip install virtualenv`
 1. `cd` to the Bond root directory
@@ -35,8 +35,6 @@ Bond supports test runners: [unittest](https://docs.python.org/2/library/unittes
 ## Unittest
 
 There is a custom test runner created following the [gcloud documentation](https://cloud.google.com/appengine/docs/standard/python/tools/localunittesting#Python_Setting_up_a_testing_framework)
-
-TODO: Do we need the cloud sdk installed?
 
 To run the tests you need to have the Google SDK installed and you need to pass the installation path to the test runner:
 
@@ -91,6 +89,7 @@ For non-Broad, manually edit the config.ini and app.yaml files in the root of th
 ## Run on your local environment
 
 ### Setting up paths for Google Cloud SDK
+TODO: Fix/remove this section.
 
 Run the following steps to add `dev_appserver.py` from Google Cloud SDK to your PATH.
 
