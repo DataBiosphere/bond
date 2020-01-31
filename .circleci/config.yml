@@ -23,7 +23,7 @@ jobs:
       - run:
           name: Setup virtualenv
           command: |
-            apt install python3-pip
+            apt-get install python3-pip
             pip3 install virtualenv
             python3 -m virtualenv -p python3 virtualenv
 
