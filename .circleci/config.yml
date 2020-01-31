@@ -5,6 +5,7 @@
 version: 2
 jobs:
   test:
+    # TODO: Do we still need a cloud sdk image?
     docker:
       - image: google/cloud-sdk:276.0.0
 
@@ -41,7 +42,7 @@ jobs:
           name: Run tests
           command: |
             source virtualenv/bin/activate
-            python tests/test_runner.py `gcloud info --format="value(installation.sdk_root)"`
+            python -m unittest discover -s tests/unit -p "*_test.py"
 
       - run:
           name: Start Datastore Emulator

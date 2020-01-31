@@ -36,9 +36,11 @@ Bond supports test runners: [unittest](https://docs.python.org/2/library/unittes
 
 There is a custom test runner created following the [gcloud documentation](https://cloud.google.com/appengine/docs/standard/python/tools/localunittesting#Python_Setting_up_a_testing_framework)
 
+TODO: Do we need the cloud sdk installed?
+
 To run the tests you need to have the Google SDK installed and you need to pass the installation path to the test runner:
 
-`python tests/test_runner.py $(gcloud info --format="value(installation.sdk_root)")`
+`python -m unittest discover -s tests/unit -p "*_test.py"`
 
 When writing new tests, do not put any tests in the root `tests/` directory.  Instead, write new unit tests in the 
 `tests/unit` directory.
@@ -47,7 +49,7 @@ When writing new tests, do not put any tests in the root `tests/` directory.  In
 
 To run integration tests, provide the `test-path` parameter to with the path to the integration tests:
 
-`python tests/test_runner.py $(gcloud info --format="value(installation.sdk_root)") --test-path=tests/integration`
+`python -m unittest discover -s tests/integration -p "*_test.py"`
 
 When writing new tests, do not put any tests in the root `tests/` directory.  Instead, write new integration tests in 
 the `tests/integration` directory.
