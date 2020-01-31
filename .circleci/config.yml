@@ -9,13 +9,14 @@ jobs:
       - image: google/cloud-sdk:276.0.0
 
     environment:
+      - CLOUDSDK_PYTHON: python3
       - PYTHONPATH: /usr/local/google_appengine
 
     steps:
       - run:
           name: Check Python version
           command: |
-            export VER_REGEX="^Python 2\.7(\.[0-9]+)?$"
+            export VER_REGEX="^Python 3\.7(\.[0-9]+)?$"
             export PY_VER=$(python --version 2>&1)
             if ! [[ "$PY_VER" =~ $VER_REGEX ]] ; then echo "$PY_VER is not the expected version" && exit 1 ; fi
 
@@ -33,7 +34,7 @@ jobs:
           name: Install dependencies
           command: |
             source virtualenv/bin/activate
-            pip install -t lib -r requirements.txt --ignore-installed
+            pip install -r requirements.txt --ignore-installed
             apt-get install google-cloud-sdk-datastore-emulator
 
       - run:
@@ -57,7 +58,7 @@ jobs:
 
   build-docker-image:
     docker:
-      - image: circleci/python:2.7.15
+      - image: circleci/python:3.7.4
 
     environment:
       QUAY_USER: databiosphere+bond_circle_bot

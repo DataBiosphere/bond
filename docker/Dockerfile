@@ -25,7 +25,7 @@ WORKDIR app/
 
 # Install dependencies and set the PYTHONPATH appropriately so that dependencies can be found by the runtime
 COPY requirements.txt .
-RUN pip install --upgrade pip && pip install -t lib/ -r requirements.txt
+RUN pip install --upgrade pip && pip install -r requirements.txt
 ENV PYTHONPATH /app/lib
 
 # Copy the source files into the the container
