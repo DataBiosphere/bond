@@ -5,16 +5,15 @@
 version: 2
 jobs:
   test:
-    # TODO: Do we still need a cloud sdk image?
     docker:
-      - image: circleci/python:3.7.4
+      - image: google/cloud-sdk:276.0.0
 
     steps:
       - run:
           name: Check Python version
           command: |
             export VER_REGEX="^Python 3\.7(\.[0-9]+)?$"
-            export PY_VER=$(python --version 2>&1)
+            export PY_VER=$(python3 --version 2>&1)
             if ! [[ "$PY_VER" =~ $VER_REGEX ]] ; then echo "$PY_VER is not the expected version" && exit 1 ; fi
 
       - checkout
@@ -25,7 +24,7 @@ jobs:
           name: Setup virtualenv
           command: |
             pip install virtualenv
-            python -m virtualenv -p python virtualenv
+            python -m virtualenv -p python3 virtualenv
 
       - run:
           name: Install dependencies

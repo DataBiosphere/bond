@@ -23,14 +23,14 @@ VOLUME ["/.config"]
 RUN mkdir /app
 WORKDIR app/
 
-# Install dependencies and set the PYTHONPATH appropriately so that dependencies can be found by the runtime
+# Install dependencies.
 COPY requirements.txt .
 RUN pip install --upgrade pip && pip install -r requirements.txt
-ENV PYTHONPATH /app/lib
 
 # Copy the source files into the the container
 COPY . .
 
+# TODO: Fix for running with flask instead of dev_appserver.
 # Bond Endpoints available on port 8080.  Admin interface not exposed
 EXPOSE 8080
 ENTRYPOINT ["dev_appserver.py", "--host=0.0.0.0", "--enable_host_checking=false", "."]
