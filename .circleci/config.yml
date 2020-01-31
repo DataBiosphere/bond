@@ -7,11 +7,7 @@ jobs:
   test:
     # TODO: Do we still need a cloud sdk image?
     docker:
-      - image: google/cloud-sdk:276.0.0
-
-    environment:
-      - CLOUDSDK_PYTHON: python3
-      - PYTHONPATH: /usr/local/google_appengine
+      - image: circleci/python:3.7.4
 
     steps:
       - run:
