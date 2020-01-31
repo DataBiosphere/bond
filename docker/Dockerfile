@@ -1,4 +1,4 @@
-FROM python:2.7.15
+FROM python:3.7.4
 
 # Prepare the image
 ENV DEBIAN_FRONTEND noninteractive
