@@ -50,6 +50,7 @@ jobs:
           # Sleep to let the emulator start up before running tests.
           command: |
             sleep 10
+            source virtualenv/bin/activate
             ./tests/datastore_emulator/test.sh
 
 
