@@ -1,6 +1,7 @@
 {{with $commonSecrets := secret (printf "secret/dsde/firecloud/common/oauth_client_id")}}
 
 runtime: python37
+entrypoint: gunicorn -b :$PORT main:app
 threadsafe: true
 api_version: 1
 basic_scaling:
@@ -19,9 +20,5 @@ skip_files:
 handlers:
 - url: /.*
   script: main.app
-
-env_variables:
-  BOND_ACCEPTED_AUDIENCE_PREFIXES: {{range $index, $element := $commonSecrets.Data.client_ids}} {{ $element }}{{end}}
-  BOND_ACCEPTED_EMAIL_SUFFIXES: .gserviceaccount.com
 
 {{end}}

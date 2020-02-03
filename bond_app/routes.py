@@ -1,5 +1,6 @@
 from flask import Blueprint, request
 import configparser
+import os
 from werkzeug import exceptions
 from webargs import fields
 from webargs.flaskparser import FlaskParser
@@ -75,6 +76,8 @@ class AuthorizationUrlResponse(messages.Message):
 config = configparser.ConfigParser()
 config.read("config.ini")
 
+def is_provider(section_name):
+    return section_name != 'sam' and section_name != 'bond_accepted'
 
 def create_provider(provider_name):
     client_id = config.get(provider_name, 'CLIENT_ID')
@@ -126,9 +129,13 @@ routes = Blueprint('bond', __name__, '/')
 cache_api = DatastoreCacheApi()
 refresh_token_store = TokenStore()
 
-bond_providers = {provider_name: create_provider(provider_name)
-                  for provider_name in config.sections() if provider_name != 'sam'}
-auth = authentication.Authentication(authentication.default_config(), cache_api)
+bond_providers = {section_name: create_provider(section_name)
+                  for section_name in config.sections() if is_provider(section_name)}
+
+authentication_config = authentication.AuthenticationConfig(config.get('bond_accepted', 'AUDIENCE_PREFIXES').split(),
+                                                            config.get('bond_accepted', 'EMAIL_SUFFIXES').split(),
+                                                            os.environ.get('BOND_MAX_TOKEN_LIFE', 600))
+auth = authentication.Authentication(authentication_config, cache_api)
 
 api_routes_base = '/api/link/v1'
 
@@ -217,8 +224,8 @@ def clear_expired_datastore_entries():
 def get_status():
     sam_base_url = config.get('sam', 'BASE_URL')
 
-    providers = {provider_name: FenceApi(config.get(provider_name, 'FENCE_BASE_URL'))
-                 for provider_name in config.sections() if provider_name != 'sam'}
+    providers = {section_name: FenceApi(config.get(section_name, 'FENCE_BASE_URL'))
+                 for section_name in config.sections() if is_provider(section_name)}
 
     sam_api = SamApi(sam_base_url)
     status_service = Status(sam_api, providers, cache_api)

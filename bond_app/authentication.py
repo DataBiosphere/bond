@@ -48,12 +48,6 @@ class AuthenticationConfig:
         self.max_token_life = max_token_life
 
 
-def default_config():
-    return AuthenticationConfig(os.environ['BOND_ACCEPTED_AUDIENCE_PREFIXES'].split(),
-                                os.environ['BOND_ACCEPTED_EMAIL_SUFFIXES'].split(),
-                                os.environ.get('BOND_MAX_TOKEN_LIFE', 600))
-
-
 class Authentication:
     def __init__(self, config, cache_api):
         """
