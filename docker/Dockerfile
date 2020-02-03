@@ -33,4 +33,5 @@ COPY . .
 # Bond Endpoints available on port 8080.  Admin interface not exposed
 EXPOSE 8080
 ENV FLASK_APP main.py
+ENV FLASK_DEBUG 1
 CMD flask run -h 0.0.0.0 -p 8080
