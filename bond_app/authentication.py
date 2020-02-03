@@ -1,6 +1,5 @@
 import urllib.request, urllib.parse, urllib.error
 import json
-import os
 import logging
 
 from werkzeug import exceptions
@@ -46,12 +45,6 @@ class AuthenticationConfig:
         self.accepted_audience_prefixes = accepted_audience_prefixes
         self.accepted_email_suffixes = accepted_email_suffixes
         self.max_token_life = max_token_life
-
-
-def default_config():
-    return AuthenticationConfig(os.environ['BOND_ACCEPTED_AUDIENCE_PREFIXES'].split(),
-                                os.environ['BOND_ACCEPTED_EMAIL_SUFFIXES'].split(),
-                                os.environ.get('BOND_MAX_TOKEN_LIFE', 600))
 
 
 class Authentication:
