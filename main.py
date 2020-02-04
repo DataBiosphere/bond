@@ -12,7 +12,7 @@ if os.environ.get('DATASTORE_EMULATOR_HOST'):
     client = ndb.Client(project="test", credentials=AnonymousCredentials())
 else:
     # Otherwise, create a client grabbing credentials normally from cloud environment variables.
-    ndb.Client()
+    client = ndb.Client()
 
 
 def ndb_wsgi_middleware(wsgi_app):
