@@ -12,7 +12,8 @@ Do the one time setup of installing the Datastore Emulator.
 
 ## Python2 Environment
 
-Datastore emulator must be run with python2. The Datastore Emulator does not currently have support for running with python3.
+Datastore emulator must be run with python2. The Datastore Emulator does not currently have support for running with
+python3.
 
 Similar to virtualenv setup in the head [README](../../README.md), make sure you have a python2 available.
 ```python2 --version```
