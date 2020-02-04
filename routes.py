@@ -178,7 +178,7 @@ def accesstoken(provider):
         return protojson.encode_message(AccessTokenResponse(token=access_token, expires_at=expires_at))
     except Bond.MissingTokenError as err:
         # TODO: I don't like throwing and rethrowing exceptions
-        raise exceptions.BadRequest(err.message)
+        raise exceptions.BadRequest(str(err))
 
 
 @routes.route(api_routes_base + '/<provider>/serviceaccount/key', methods=["GET"])

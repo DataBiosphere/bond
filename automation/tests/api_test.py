@@ -99,7 +99,7 @@ class UnlinkedUserTestCase(AuthorizedUnlinkedUser):
     def test_delete_link_for_unlinked_user(self):
         r = self.unlink(self.token)
         self.assertEqual(204, r.status_code)
-        self.assertEqual("No Content", r.reason)  # Delete call returns an empty body
+        self.assertEqual("NO CONTENT", r.reason)  # Delete call returns an empty body
 
     def test_get_link_status_for_unlinked_user(self):
         url = self.bond_base_url + "/api/link/v1/" + self.provider
@@ -212,7 +212,7 @@ class UnlinkLinkedUserTestCase(AuthorizedBaseCase):
     def test_delete_link_for_linked_user(self):
         r = self.unlink(self.token)
         self.assertEqual(204, r.status_code)
-        self.assertEqual("No Content", r.reason)  # Delete call returns an empty body
+        self.assertEqual("NO CONTENT", r.reason)  # Delete call returns an empty body
 
     def test_delete_link_for_invalid_provider(self):
         url = BaseApiTestCase.bond_base_url + "/api/link/v1/" + "some-made-up-provider"
