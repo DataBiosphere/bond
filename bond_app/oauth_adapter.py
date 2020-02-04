@@ -63,7 +63,8 @@ class OauthAdapter:
         revoke_url = self.open_id_config.get_revoke_url()
         result = requests.post(url=revoke_url,
                                data="token=" + refresh_token,
-                               headers={"Authorization": "Basic %s" % base64.b64encode("{}:{}".format(self.client_id, self.client_secret))})
+                               headers={"Authorization": "Basic %s" % base64.b64encode(
+                                   "{}:{}".format(self.client_id, self.client_secret).encode()).decode()})
         if result.status_code // 100 != 2:
             raise exceptions.InternalServerError("revoke url {}, status code {}, error body {}".
-                                                         format(revoke_url, result.status_code, result.content))
+                                                 format(revoke_url, result.status_code, result.content))

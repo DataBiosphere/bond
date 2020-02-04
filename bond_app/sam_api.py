@@ -35,7 +35,7 @@ class SamApi:
             else:
                 return True, ""
         except Exception as e:
-            return False, e.message
+            return False, str(e)
 
 
 class SamKeys:

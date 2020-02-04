@@ -51,4 +51,4 @@ class FenceApi:
             else:
                 return True, ""
         except Exception as e:
-            return False, e.message
+            return False, str(e)
