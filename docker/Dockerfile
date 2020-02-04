@@ -13,7 +13,7 @@ RUN wget -O google-cloud-sdk.tar.gz https://storage.googleapis.com/cloud-sdk-rel
     && tar -xzf google-cloud-sdk.tar.gz \
     && google-cloud-sdk/install.sh \
         --usage-reporting=true --path-update=true --bash-completion=true --rc-path=/.bashrc --additional-components \
-        app-engine-python app cloud-datastore-emulator app-engine-python-extras
+        app-engine-python app
 
 RUN mkdir /.ssh
 ENV PATH /google-cloud-sdk/bin:$PATH
@@ -32,5 +32,4 @@ COPY . .
 
 # Bond Endpoints available on port 8080.  Admin interface not exposed
 EXPOSE 8080
-ENV FLASK_APP main.py
-CMD flask run -h 0.0.0.0 -p 8080
+CMD gunicorn -b :8080 main:app
