@@ -1,6 +1,6 @@
 import unittest
 
-from fake_cache_api import FakeCacheApi
+from tests.unit.fake_cache_api import FakeCacheApi
 from mock import MagicMock
 from werkzeug import exceptions
 
@@ -35,8 +35,8 @@ class OpenIdConfigTestCase(unittest.TestCase):
 
     def test_get_token_info_url(self):
         token_info_url = self.open_id_config.get_token_info_url()
-        self.assertRegexpMatches(token_info_url, self.url_prefix_regex)
+        self.assertRegex(token_info_url, self.url_prefix_regex)
 
     def test_get_revoke_url(self):
         url_regex = "^http(s)?:\/\/.+?revoke"
-        self.assertRegexpMatches(self.open_id_config.get_revoke_url(), url_regex)
+        self.assertRegex(self.open_id_config.get_revoke_url(), url_regex)

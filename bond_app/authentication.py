@@ -1,14 +1,10 @@
-import urllib
+import urllib.request, urllib.parse, urllib.error
 import json
-import os
 import logging
 
 from werkzeug import exceptions
 import requests
-from requests_toolbelt.adapters import appengine
 
-# https://toolbelt.readthedocs.io/en/latest/adapters.html#appengineadapter
-appengine.monkeypatch()
 
 _TOKENINFO_URL = 'https://www.googleapis.com/oauth2/v1/tokeninfo'
 
@@ -34,7 +30,7 @@ class UserInfo:
 
 def _token_info(token):
     result = requests.get(
-        '{}?{}'.format(_TOKENINFO_URL, urllib.urlencode({'access_token': token})))
+        '{}?{}'.format(_TOKENINFO_URL, urllib.parse.urlencode({'access_token': token})))
 
     if result.status_code == 400:
         raise exceptions.Unauthorized("Invalid authorization token")
@@ -49,12 +45,6 @@ class AuthenticationConfig:
         self.accepted_audience_prefixes = accepted_audience_prefixes
         self.accepted_email_suffixes = accepted_email_suffixes
         self.max_token_life = max_token_life
-
-
-def default_config():
-    return AuthenticationConfig(os.environ['BOND_ACCEPTED_AUDIENCE_PREFIXES'].split(),
-                                os.environ['BOND_ACCEPTED_EMAIL_SUFFIXES'].split(),
-                                os.environ.get('BOND_MAX_TOKEN_LIFE', 600))
 
 
 class Authentication:

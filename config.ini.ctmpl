@@ -2,6 +2,7 @@
 {{with $runContext := env "RUN_CONTEXT"}}
 {{with $dnsDomain := env "DNS_DOMAIN"}}
 {{with $secrets := secret (printf "secret/dsde/bond/%s/config.ini" $environment)}}
+{{with $commonSecrets := secret (printf "secret/dsde/firecloud/common/oauth_client_id")}}
 
 {{if (or (eq $runContext "fiab") (eq $runContext "local")) }}
 # fiab settings are mock providers
@@ -59,4 +60,9 @@ FENCE_BASE_URL=https://nci-crdc-staging.datacommons.io
 [sam]
 BASE_URL={{if eq $runContext "fiab"}}https://sam-fiab.{{$dnsDomain}}{{else}}https://sam.dsde-{{$environment}}.broadinstitute.org{{end}}
 
-{{end}}{{end}}{{end}}{{end}}
+
+[bond_accepted]
+AUDIENCE_PREFIXES={{range $index, $element := $commonSecrets.Data.client_ids}} {{ $element }}{{end}}
+EMAIL_SUFFIXES=.gserviceaccount.com
+
+{{end}}{{end}}{{end}}{{end}}{{end}}
