@@ -50,13 +50,6 @@ fi
 #build the docker image so we can deploy
 docker pull ${BOND_IMAGE}
 
-#render the endpoints json and then deploy it
-docker run -v $PWD/deploy_account.json:/app/deploy_account.json \
-    -e GOOGLE_PROJECT=${GOOGLE_PROJECT} \
-    --entrypoint "/bin/bash" \
-    ${BOND_IMAGE} \
-    -c "gcloud auth activate-service-account --key-file=deploy_account.json; python lib/endpoints/endpointscfg.py get_openapi_spec main.BondApi main.BondStatusApi --hostname $GOOGLE_PROJECT.appspot.com --x-google-api-name; gcloud -q endpoints services deploy linkv1openapi.json statusv1openapi.json --project $GOOGLE_PROJECT"
-
 #SERVICE_VERSION in app.yaml needs to match the output of the curl call below
 export BUILD_TMP="${HOME}/deploy-bond-${TARGET_ENV}"
 mkdir -p ${BUILD_TMP}
@@ -86,4 +79,4 @@ docker run -v $PWD/app.yaml:/app/app.yaml \
     -e GOOGLE_PROJECT=${GOOGLE_PROJECT} \
     --entrypoint "/bin/bash" \
     ${BOND_IMAGE} \
-    -c "gcloud auth activate-service-account --key-file=deploy_account.json; gcloud -q app deploy app.yaml --project=$GOOGLE_PROJECT"
+    -c "gcloud auth activate-service-account --key-file=deploy_account.json; gcloud -q app deploy app.yaml --project=$GOOGLE_PROJECT; gcloud -q app deploy cron.yaml --project=$GOOGLE_PROJECT"
