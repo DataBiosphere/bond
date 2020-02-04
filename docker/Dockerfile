@@ -1,9 +1,9 @@
-FROM python:2.7.15
+FROM python:3.7.4
 
 # Prepare the image
 ENV DEBIAN_FRONTEND noninteractive
 RUN apt-get update \
-    && apt-get install -y -qq --no-install-recommends wget tar build-essential openssh-client python-openssl \
+    && apt-get install -y -qq --no-install-recommends wget tar build-essential openssh-client python-openssl python3-pip \
     && apt-get clean
 
 # Install the Google Cloud SDK
@@ -23,14 +23,14 @@ VOLUME ["/.config"]
 RUN mkdir /app
 WORKDIR app/
 
-# Install dependencies and set the PYTHONPATH appropriately so that dependencies can be found by the runtime
+# Install dependencies.
 COPY requirements.txt .
-RUN pip install --upgrade pip && pip install -t lib/ -r requirements.txt
-ENV PYTHONPATH /app/lib
+RUN pip3 install --upgrade pip && pip3 install -r requirements.txt
 
 # Copy the source files into the the container
 COPY . .
 
 # Bond Endpoints available on port 8080.  Admin interface not exposed
 EXPOSE 8080
-ENTRYPOINT ["dev_appserver.py", "--host=0.0.0.0", "--enable_host_checking=false", "."]
+ENV FLASK_APP main.py
+CMD flask run -h 0.0.0.0 -p 8080

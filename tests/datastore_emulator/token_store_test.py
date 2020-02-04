@@ -2,7 +2,7 @@ import unittest
 
 from bond_app.token_store import TokenStore, RefreshToken
 from datetime import datetime
-import datastore_emulator_utils
+from tests.datastore_emulator import datastore_emulator_utils
 
 provider_name = "test"
 

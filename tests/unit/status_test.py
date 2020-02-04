@@ -1,5 +1,5 @@
 import unittest
-from fake_cache_api import FakeCacheApi
+from tests.unit.fake_cache_api import FakeCacheApi
 from bond_app.fence_api import FenceApi
 from bond_app.sam_api import SamApi
 from mock import MagicMock
@@ -26,7 +26,7 @@ class StatusTestCase(unittest.TestCase):
     def test_datastore_error(self):
         status = Status(self._mock_sam_api(True), {"fence": self._mock_fence_api(True)}, self.cache_api)
         self._mock_datastore(status, False)
-        self.assertItemsEqual(status.get(), [
+        self.assertCountEqual(status.get(), [
             {"ok": True, "message": "", "subsystem": Subsystems.cache},
             {"ok": False, "message": "datastore down", "subsystem": Subsystems.datastore},
             {"ok": True, "message": "", "subsystem": "fence"},
@@ -36,7 +36,7 @@ class StatusTestCase(unittest.TestCase):
     def test_fence_error(self):
         status = Status(self._mock_sam_api(True), {"fence": self._mock_fence_api(False)}, self.cache_api)
         self._mock_datastore(status, True)
-        self.assertItemsEqual(status.get(), [
+        self.assertCountEqual(status.get(), [
             {"ok": True, "message": "", "subsystem": Subsystems.cache},
             {"ok": True, "message": "", "subsystem": Subsystems.datastore},
             {"ok": False, "message": "fence down", "subsystem": "fence"},
@@ -46,7 +46,7 @@ class StatusTestCase(unittest.TestCase):
     def test_sam_error(self):
         status = Status(self._mock_sam_api(False), {"fence": self._mock_fence_api(True)}, self.cache_api)
         self._mock_datastore(status, True)
-        self.assertItemsEqual(status.get(), [
+        self.assertCountEqual(status.get(), [
             {"ok": True, "message": "", "subsystem": Subsystems.cache},
             {"ok": True, "message": "", "subsystem": Subsystems.datastore},
             {"ok": True, "message": "", "subsystem": "fence"},

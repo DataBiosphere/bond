@@ -1,7 +1,7 @@
 import time
 import unittest
 
-from fake_cache_api import FakeCacheApi
+from tests.unit.fake_cache_api import FakeCacheApi
 
 
 class CacheApiTest(object):
@@ -20,12 +20,12 @@ class CacheApiTest(object):
         self.assertTrue(self.cache.add('bam', 123))
         self.assertTrue(self.cache.add('bar', 24, namespace='baz'))
 
-        self.assertEquals(self.cache.get('foo'), 42)
-        self.assertEquals(self.cache.get('bam'), 123)
+        self.assertEqual(self.cache.get('foo'), 42)
+        self.assertEqual(self.cache.get('bam'), 123)
         self.assertIsNone(self.cache.get('abc'))
         self.assertIsNone(self.cache.get('foo', namespace='baz'))
 
-        self.assertEquals(self.cache.get('bar', namespace='baz'), 24)
+        self.assertEqual(self.cache.get('bar', namespace='baz'), 24)
         self.assertIsNone(self.cache.get('bar'))
         self.assertIsNone(self.cache.get('bar', namespace='qat'))
 
@@ -35,8 +35,8 @@ class CacheApiTest(object):
         self.assertTrue(self.cache.add('foo', 42, expires_in=0.5))
         self.assertTrue(self.cache.add('foo', 24, expires_in=0.5, namespace='bar'))
 
-        self.assertEquals(self.cache.get('foo'), 42)
-        self.assertEquals(self.cache.get('foo', namespace='bar'), 24)
+        self.assertEqual(self.cache.get('foo'), 42)
+        self.assertEqual(self.cache.get('foo', namespace='bar'), 24)
         time.sleep(1)
         self.assertIsNone(self.cache.get('foo'))
         self.assertIsNone(self.cache.get('foo', namespace='bar'))

@@ -5,22 +5,22 @@ Oauth2. Bond is a [Google Endpoints](https://cloud.google.com/endpoints/) applic
 
 # Setup
 
-In order to run tests or run the local development app server, you need to install Python 2.7, Pip, and [Google Cloud SDK](https://cloud.google.com/sdk/install).
+In order to run tests or run the local development app server, you need to install Python 3.7, Pip, and [Google Cloud SDK](https://cloud.google.com/sdk/install).
 
 ## Virtualenv
 
 [Virtualenv](https://virtualenv.pypa.io/en/stable/) is a tool that helps you manage multiple Python versions and your 
 project dependencies.  We recommend you setup Virtualenv for development and testing of Bond.
 
-1. Verify that you have Python 2.7 installed: `python --version`
-(**Note**: The name of your Python 2.7 command may be something different like `python2` if you have multiple versions 
+1. Verify that you have Python 3.7 installed: `python --version`
+(**Note**: The name of your Python 3.7 command may be something different like `python3` if you have multiple versions 
 of Python installed)
 1. Install virtualenv: `pip install virtualenv`
 1. `cd` to the Bond root directory
 1. Set up virtualenv for Bond: `virtualenv -p python env` 
 (**Note**: Ensure that you pass the correct Python 2.7 executable to the [`-p` parameter](https://virtualenv.pypa.io/en/stable/reference/#cmdoption-p)) 
 1. Activate virtualenv: `source env/bin/activate`
-1. Install project dependencies: `pip install -r requirements.txt -t lib --ignore-installed`
+1. Install project dependencies: `pip install -r requirements.txt --ignore-installed`
 
 You may now run tests or run the application server normally.
 
@@ -38,7 +38,7 @@ There is a custom test runner created following the [gcloud documentation](https
 
 To run the tests you need to have the Google SDK installed and you need to pass the installation path to the test runner:
 
-`python tests/test_runner.py $(gcloud info --format="value(installation.sdk_root)")`
+`python -m unittest discover -s tests/unit -p "*_test.py"`
 
 When writing new tests, do not put any tests in the root `tests/` directory.  Instead, write new unit tests in the 
 `tests/unit` directory.
@@ -47,7 +47,7 @@ When writing new tests, do not put any tests in the root `tests/` directory.  In
 
 To run integration tests, provide the `test-path` parameter to with the path to the integration tests:
 
-`python tests/test_runner.py $(gcloud info --format="value(installation.sdk_root)") --test-path=tests/integration`
+`python -m unittest discover -s tests/integration -p "*_test.py"`
 
 When writing new tests, do not put any tests in the root `tests/` directory.  Instead, write new integration tests in 
 the `tests/integration` directory.
@@ -89,6 +89,7 @@ For non-Broad, manually edit the config.ini and app.yaml files in the root of th
 ## Run on your local environment
 
 ### Setting up paths for Google Cloud SDK
+TODO: Fix/remove this section.
 
 Run the following steps to add `dev_appserver.py` from Google Cloud SDK to your PATH.
 
@@ -181,4 +182,13 @@ git secrets --add 'CLIENT_SECRET\s*=\s*.+'
 git secrets --add --allowed 'REPLACE_ME'
 git secrets --add --allowed '\{\{ \$fenceSecrets\.Data\.client_id \}\}'
 git secrets --add --allowed '\{\{ \$fenceSecrets\.Data\.client_secret \}\}'
+```
+# scratch
+manually set bond environment variables from app.yaml
+datastore emulator environment variables according to tests/datastore_emulator/tests.sh
+gave anonymous credentials in main.py
+set GOOGLE_PROJECT environment variable to "test"
+```$xslt
+export FLASK_APP=main.py
+flask run
 ```

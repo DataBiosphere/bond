@@ -6,7 +6,7 @@ export DATASTORE_PROJECT_ID=test
 export DATASTORE_USE_PROJECT_ID_AS_APP_ID=true
 
 # Run the tests
-python tests/test_runner.py --test-path=tests/datastore_emulator $(gcloud info --format="value(installation.sdk_root)")
+python -m unittest discover -s tests/datastore_emulator -p "*_test.py"
 status="$?"
 
 # Unset the environment variables.

@@ -17,7 +17,7 @@ class JsonExceptionHandler(object):
                 "errors": [{
                     "domain": "global",
                     "message": message,
-                    "reason": exception_reasons[status_code] if status_code in exception_reasons.keys() else ""
+                    "reason": exception_reasons[status_code] if status_code in list(exception_reasons.keys()) else ""
                 }],
                 "message": message}
 
@@ -33,7 +33,7 @@ class JsonExceptionHandler(object):
     def init_app(self, app):
         self.app = app
         self.register(exceptions.HTTPException)
-        for code, v in exceptions.default_exceptions.iteritems():
+        for code, v in exceptions.default_exceptions.items():
             self.register(code)
 
     def register(self, exception_or_code, handler=None):

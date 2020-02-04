@@ -75,7 +75,7 @@ class AuthorizedBaseCase(BaseApiTestCase):
 
     @staticmethod
     def unlink_all(self):
-        for credential in self.user_credentials.values():
+        for credential in list(self.user_credentials.values()):
             token = credential.get_access_token()
             r = self.unlink(token)
             self.assertIn(r.status_code, [204, 400])
