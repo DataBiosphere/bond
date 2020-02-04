@@ -29,8 +29,7 @@ When you are ready to exit or deactivate your Bond virtualenv, just type the com
 
 # Running Tests
 
-Bond supports test runners: [unittest](https://docs.python.org/2/library/unittest.html) and 
-[nose](https://github.com/Trii/NoseGAE) 
+Bond supports test runners: [unittest](https://docs.python.org/2/library/unittest.html).
 
 ## Unittest
 
@@ -54,14 +53,6 @@ the `tests/integration` directory.
 
 ## Datastore Emulator tests
 [To run the integration tests that require the Datastore emulator locally, follow the instructions in the readme here](tests/datastore_emulator/README.md). 
-
-## Nose
-
-Install nose:
-* `pip install nose nosegae nose-exclude`
-
-Run tests:
-* ```nosetests --with-gae --gae-lib-root=`gcloud info --format="value(installation.sdk_root)"`/platform/google_appengine --exclude-dir=lib```
 
 # Running locally
 
@@ -88,29 +79,19 @@ For non-Broad, manually edit the config.ini and app.yaml files in the root of th
 
 ## Run on your local environment
 
-### Setting up paths for Google Cloud SDK
-TODO: Fix/remove this section.
-
-Run the following steps to add `dev_appserver.py` from Google Cloud SDK to your PATH.
-
-First, find where your SDK is. Run:
-```
-gcloud info --format="value(installation.sdk_root)"
-```
-
-Then, add it to your PATH:
-```
-# add gcloud to PATH for Bond usage
-export PATH=$PATH:<copy the result of the previous command here>/bin
-```
-
-To persist the change to your PATH, add the above lines to your ~/.profile, ~/.bash_profile, or ~/.zshrc. 
-
-
 ### Run locally
-After installing project dependencies, rendering configs, and setting up paths, run the following command from the Bond root directory:
+After installing project dependencies, rendering configs, and setting up paths, start up a Datastore Emulator. We need
+the emulator so that our local runs have a Datastore backend to talk to, and we do not want them to talk to real Google
+Datastores.
 
-```dev_appserver.py .```
+N.B. The following script must be run from a  python2 virtualenv environment. See
+[tests/datastore_emulator/README.md](tests/datastore_emulator/README.md)
+
+```tests/datastore_emulator/run_emulator.sh```
+
+Then, start a local flask server.
+
+```run_local.sh```
 
 You can check http://localhost:8080/api/status/v1/status to make sure you're up and running.
 
@@ -182,13 +163,4 @@ git secrets --add 'CLIENT_SECRET\s*=\s*.+'
 git secrets --add --allowed 'REPLACE_ME'
 git secrets --add --allowed '\{\{ \$fenceSecrets\.Data\.client_id \}\}'
 git secrets --add --allowed '\{\{ \$fenceSecrets\.Data\.client_secret \}\}'
-```
-# scratch
-manually set bond environment variables from app.yaml
-datastore emulator environment variables according to tests/datastore_emulator/tests.sh
-gave anonymous credentials in main.py
-set GOOGLE_PROJECT environment variable to "test"
-```$xslt
-export FLASK_APP=main.py
-flask run
 ```
