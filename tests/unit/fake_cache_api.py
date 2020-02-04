@@ -1,6 +1,6 @@
 import time
 
-from cache_api import CacheApi
+from bond_app.cache_api import CacheApi
 
 
 class FakeCacheApi(CacheApi):

@@ -1,5 +1,5 @@
 from collections import namedtuple
-from token_store import RefreshTokenInfo
+from bond_app.token_store import RefreshTokenInfo
 
 # Internal key class for a user_id and provider_name.
 _UserKey = namedtuple("_UserKey", ["user_id", "provider_name"])
