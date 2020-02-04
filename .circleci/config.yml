@@ -54,6 +54,18 @@ jobs:
             sleep 10
             ./tests/datastore_emulator/test.sh
 
+      - run:
+          name: Start Local Server
+          command: ./run_local.sh
+
+      - run:
+          name: Run Automation Tests
+          # Let local server come up, then run automation tests against it.
+          command: |
+            sleep 3
+            export BOND_BASE_URL = 'http://localhost:8080'
+            ./automation/test.sh
+
 
   build-docker-image:
     docker:
