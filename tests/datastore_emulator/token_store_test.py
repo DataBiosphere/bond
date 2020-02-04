@@ -1,6 +1,6 @@
 import unittest
 
-from token_store import TokenStore, RefreshToken
+from bond_app.token_store import TokenStore, RefreshToken
 from datetime import datetime
 import datastore_emulator_utils
 

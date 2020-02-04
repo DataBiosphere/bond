@@ -1,6 +1,6 @@
 import unittest
 import jwt
-from jwt_token import JwtToken
+from bond_app.jwt_token import JwtToken
 from datetime import datetime
 
 

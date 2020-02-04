@@ -1,20 +1,20 @@
 import unittest
-from fence_token_vending import FenceTokenVendingMachine
+from bond_app.fence_token_vending import FenceTokenVendingMachine
 from werkzeug import exceptions
 
-from authentication import UserInfo
+from bond_app.authentication import UserInfo
 from mock import MagicMock
-from fence_api import FenceApi
-from fence_token_storage import ProviderUser
-from sam_api import SamApi
-from oauth_adapter import OauthAdapter
+from bond_app.fence_api import FenceApi
+from bond_app.fence_token_storage import ProviderUser
+from bond_app.sam_api import SamApi
+from bond_app.oauth_adapter import OauthAdapter
 from fake_token_store import FakeTokenStore
 from fake_cache_api import FakeCacheApi
 from fake_fence_token_storage import FakeFenceTokenStorage
 import datetime
 import string
 import random
-from sam_api import SamKeys
+from bond_app.sam_api import SamKeys
 
 provider_name = "test"
 

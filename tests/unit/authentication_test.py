@@ -2,7 +2,7 @@ import unittest
 
 from werkzeug import exceptions
 
-import authentication
+from bond_app import authentication
 from fake_cache_api import FakeCacheApi
 import json
 
@@ -18,7 +18,8 @@ class AuthenticationTestCase(unittest.TestCase):
 
     def setUp(self):
         self.cache_api = FakeCacheApi()
-        self.auth = authentication.Authentication(authentication.AuthenticationConfig(['32555940559'], ['.gserviceaccount.com'], 600), self.cache_api)
+        self.auth = authentication.Authentication(
+            authentication.AuthenticationConfig(['32555940559'], ['.gserviceaccount.com'], 600), self.cache_api)
 
     def test_good_user(self):
         token = "testtoken"
@@ -85,7 +86,8 @@ class AuthenticationTestCase(unittest.TestCase):
             self.auth.require_user_info(TestRequestState('bearer ' + token), token_fn2)
 
     def test_good_user_cache_expire_config(self):
-        auth = authentication.Authentication(authentication.AuthenticationConfig(['32555940559'], ['.gserviceaccount.com'], 1), self.cache_api)
+        auth = authentication.Authentication(
+            authentication.AuthenticationConfig(['32555940559'], ['.gserviceaccount.com'], 1), self.cache_api)
         token = "testtoken"
         expected_user_info = authentication.UserInfo("193481341723041", "foo@bar.com", token, 100)
 

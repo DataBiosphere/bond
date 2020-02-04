@@ -4,7 +4,7 @@ from fake_cache_api import FakeCacheApi
 from mock import MagicMock
 from werkzeug import exceptions
 
-from open_id_config import OpenIdConfig
+from bond_app.open_id_config import OpenIdConfig
 
 
 class OpenIdConfigTestCase(unittest.TestCase):
