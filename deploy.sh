@@ -50,20 +50,11 @@ fi
 #build the docker image so we can deploy
 docker pull ${BOND_IMAGE}
 
-#SERVICE_VERSION in app.yaml needs to match the output of the curl call below
-export BUILD_TMP="${HOME}/deploy-bond-${TARGET_ENV}"
-mkdir -p ${BUILD_TMP}
-export CLOUDSDK_CONFIG=${BUILD_TMP}
-
-gcloud auth activate-service-account --key-file=deploy_account.json
-SERVICE_VERSION=$(curl --silent --header "Authorization: Bearer `gcloud auth print-access-token`" https://servicemanagement.googleapis.com/v1/services/$GOOGLE_PROJECT.appspot.com/config | jq --raw-output .id)
-
 export DSDE_TOOLBOX_DOCKER_IMG=broadinstitute/dsde-toolbox:consul-0.20.0
 docker pull $DSDE_TOOLBOX_DOCKER_IMG
 #render config.ini and app.yaml for environment with SERVICE_VERSION and GOOGLE_PROJECT
 docker run -v $PWD:/app \
   -e GOOGLE_PROJ=${GOOGLE_PROJECT} \
-  -e SERVICE_VERSION=${SERVICE_VERSION} \
   -e INPUT_PATH=/app \
   -e OUT_PATH=/app \
   -e VAULT_TOKEN=${VAULT_TOKEN} \
