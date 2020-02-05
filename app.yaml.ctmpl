@@ -2,7 +2,6 @@
 
 runtime: python37
 entrypoint: gunicorn -b :$PORT main:app
-threadsafe: true
 api_version: 1
 basic_scaling:
   max_instances: 100
