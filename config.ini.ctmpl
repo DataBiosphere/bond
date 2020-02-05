@@ -47,6 +47,7 @@ OPEN_ID_CONFIG_URL=https://staging.datastage.io/user/.well-known/openid-configur
 USER_NAME_PATH_EXPR=/context/user/name
 FENCE_BASE_URL=https://staging.datastage.io
 EXTRA_AUTHZ_URL_PARAMS={"idp": "fence"}
+IGNORE_CERTIFICATES=True
 
 [dcf-fence]
 CLIENT_ID={{ $secrets.Data.dcf_fence_client_id }}

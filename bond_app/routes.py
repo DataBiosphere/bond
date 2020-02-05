@@ -228,7 +228,9 @@ def clear_expired_datastore_entries():
 def get_status():
     sam_base_url = config.get('sam', 'BASE_URL')
 
-    providers = {section_name: FenceApi(config.get(section_name, 'FENCE_BASE_URL'))
+    providers = {section_name: FenceApi(config.get(section_name, 'FENCE_BASE_URL'),
+                                        config.get(section_name, 'IGNORE_CERTIFICATES')
+                                        if config.has_option(section_name, 'IGNORE_CERTIFICATES') else False)
                  for section_name in config.sections() if is_provider(section_name)}
 
     sam_api = SamApi(sam_base_url)
