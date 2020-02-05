@@ -5,4 +5,3 @@ basic_scaling:
 
 handlers:
 - url: /.*
-  script: main.app
