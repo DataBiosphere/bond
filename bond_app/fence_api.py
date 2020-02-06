@@ -3,11 +3,12 @@ import requests
 
 
 class FenceApi:
-    def __init__(self, base_url):
+    def __init__(self, base_url, ignore_certificates=False):
         self.credentials_google_url = base_url + "/user/credentials/google"
         self.revoke_url = base_url + "/user/oauth2/revoke"
         self.delete_service_account_url = base_url + "/user/credentials/google/"
         self.status_url = base_url + "/user/.well-known/openid-configuration"
+        self.ignore_certificates = ignore_certificates
 
     def get_credentials_google(self, access_token):
         """
@@ -45,7 +46,7 @@ class FenceApi:
         :return: 2 values: boolean ok or not, status message if not ok
         """
         try:
-            result = requests.get(url=self.status_url)
+            result = requests.get(url=self.status_url, verify=(not self.ignore_certificates))
             if result.status_code // 100 != 2:
                 return False, "fence status code {}, error body {}".format(result.status_code, result.content)
             else:
