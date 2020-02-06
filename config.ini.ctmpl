@@ -43,11 +43,10 @@ FENCE_BASE_URL=https://nci-crdc.datacommons.io
 [fence]
 CLIENT_ID={{ $secrets.Data.client_id }}
 CLIENT_SECRET={{ $secrets.Data.client_secret }}
-OPEN_ID_CONFIG_URL=https://staging.datastage.io/user/.well-known/openid-configuration
+OPEN_ID_CONFIG_URL=https://staging.gen3.biodatacatalyst.nhlbi.nih.gov/user/.well-known/openid-configuration
 USER_NAME_PATH_EXPR=/context/user/name
-FENCE_BASE_URL=https://staging.datastage.io
+FENCE_BASE_URL=https://staging.gen3.biodatacatalyst.nhlbi.nih.gov
 EXTRA_AUTHZ_URL_PARAMS={"idp": "fence"}
-IGNORE_CERTIFICATES=True
 
 [dcf-fence]
 CLIENT_ID={{ $secrets.Data.dcf_fence_client_id }}
