@@ -198,7 +198,7 @@ def service_account_key(provider):
 
 
 @routes.route(api_routes_base + '/<provider>/serviceaccount/accesstoken', methods=["GET"])
-@use_args({"scopes": fields.Str(repeated=True, missing=None)},
+@use_args({"scopes": fields.List(fields.Str(), missing=None)},
           locations=("querystring",))
 def service_account_accesstoken(args, provider):
     user_info = auth.require_user_info(request)
@@ -206,7 +206,7 @@ def service_account_accesstoken(args, provider):
 
 
 @routes.route(api_routes_base + '/<provider>/authorization-url', methods=["GET"])
-@use_args({"scopes": fields.Str(repeated=True, missing=None),
+@use_args({"scopes": fields.List(fields.Str(), missing=None),
            "redirect_uri": fields.Str(required=True),
            "state": fields.Str(missing=None)},
           locations=("querystring",))
