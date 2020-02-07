@@ -5,6 +5,4 @@ basic_scaling:
 
 handlers:
 - url: /.*
-  http_headers:
-    Access-Control-Allow-Origin: "*"
   script: auto

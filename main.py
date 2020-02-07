@@ -4,6 +4,7 @@ from bond_app import routes
 from bond_app.json_exception_handler import JsonExceptionHandler
 from google.cloud import ndb
 from google.auth.credentials import AnonymousCredentials
+from flask_cors import CORS
 
 client = None
 if os.environ.get('DATASTORE_EMULATOR_HOST'):
@@ -29,6 +30,7 @@ def create_app():
     """Initializes app."""
     flask_app = flask.Flask(__name__)
     flask_app.register_blueprint(routes.routes)
+    CORS(flask_app)
     return flask_app
 
 
