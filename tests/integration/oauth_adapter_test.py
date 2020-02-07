@@ -30,7 +30,7 @@ class OauthAdapterTestCase(unittest.TestCase):
     def init_oauth_adapters(cls, config):
         oauth_adapters = {}
         for section in config.sections():
-            if section != "sam":
+            if section != "sam" and section != "bond_accepted":
                 client_id = config.get(section, 'CLIENT_ID')
                 client_secret = config.get(section, 'CLIENT_SECRET')
                 open_id_config_url = config.get(section, 'OPEN_ID_CONFIG_URL')
