@@ -169,7 +169,7 @@ def link_info(provider):
     if refresh_token:
         return protojson.encode_message(LinkInfoResponse(issued_at=refresh_token.issued_at, username=refresh_token.username))
     else:
-        raise exceptions.NotFound("{} link does not exist".format(provider))
+        raise exceptions.NotFound("{} link does not exist. Consider re-linking your account.".format(provider))
 
 
 @routes.route(api_routes_base + '/<provider>', methods=["DELETE"])
@@ -186,8 +186,9 @@ def accesstoken(provider):
         access_token, expires_at = _get_provider(provider).bond.generate_access_token(user_info)
         return protojson.encode_message(AccessTokenResponse(token=access_token, expires_at=expires_at))
     except Bond.MissingTokenError as err:
-        # TODO: I don't like throwing and rethrowing exceptions
-        raise exceptions.BadRequest(str(err))
+        logging.info(str(err))
+        raise exceptions.Forbidden(
+            "Unable to refresh access token. Consider re-linking your account to Bond.\n{}".format(str(err)))
 
 
 @routes.route(api_routes_base + '/<provider>/serviceaccount/key', methods=["GET"])

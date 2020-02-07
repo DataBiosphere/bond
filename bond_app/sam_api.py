@@ -19,7 +19,7 @@ class SamApi:
         if result.status_code == 200:
             return json.loads(result.content)["userInfo"]
         elif result.status_code == 404:
-            return None
+            raise exceptions.Unauthorized("user not found in sam")
         else:
             raise exceptions.InternalServerError("sam status code {}, error body {}".format(result.status_code, result.content))
 

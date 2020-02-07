@@ -1,4 +1,5 @@
 from datetime import datetime
+import logging
 from .jwt_token import JwtToken
 from .sam_api import SamKeys
 
@@ -53,6 +54,8 @@ class Bond:
         jwt_token = JwtToken(token_response.get(FenceKeys.ID_TOKEN), self.user_name_path_expr)
         user_id = self.sam_api.user_info(user_info.token)[SamKeys.USER_ID_KEY]
         if FenceKeys.REFRESH_TOKEN not in token_response:
+            logging.info(
+                "Exchange authz code did not include refresh token in response.\n{}".format(str(token_response)))
             raise exceptions.BadRequest("authorization response did not include " + FenceKeys.REFRESH_TOKEN)
         self.refresh_token_store.save(user_id, token_response.get(FenceKeys.REFRESH_TOKEN), jwt_token.issued_at,
                                       jwt_token.username, self.provider_name)
@@ -73,7 +76,8 @@ class Bond:
             expires_at = datetime.fromtimestamp(token_response.get(FenceKeys.EXPIRES_AT))
             return token_response.get("access_token"), expires_at
         else:
-            raise Bond.MissingTokenError("Could not find refresh token for user")
+            raise Bond.MissingTokenError(
+                "Could not find refresh token for user_id: {} provider_name: {}".format(user_id, self.provider_name))
 
     def unlink_account(self, user_info):
         """

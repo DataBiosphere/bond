@@ -52,7 +52,7 @@ class FenceTokenVendingMachine:
         if key_json is not None:
             return key_json
 
-        real_user_info = self._fetch_real_user_info(user_info)
+        real_user_info = self.sam_api.user_info(user_info.token)
         provider_user = ProviderUser(provider_name=self.provider_name, user_id=real_user_info[SamKeys.USER_ID_KEY])
         (key_json, expiration_datetime) = self.fence_token_storage.retrieve(
             provider_user, prep_key_fn=self._get_oauth_access_token,
@@ -62,15 +62,9 @@ class FenceTokenVendingMachine:
         self.cache_api.add(namespace=self.provider_name, key=user_info.id, value=key_json, expires_in=seconds_to_expire)
         return key_json
 
-    def _fetch_real_user_info(self, user_info):
-        real_user_info = self.sam_api.user_info(user_info.token)
-        if real_user_info is None:
-            raise exceptions.Unauthorized("user not found in sam")
-        return real_user_info
-
     def _get_oauth_access_token(self, provider_user):
         refresh_token = self.refresh_token_store.lookup(provider_user.user_id, self.provider_name)
         if refresh_token is None:
-            raise exceptions.BadRequest("Fence account not linked")
+            raise exceptions.BadRequest("Fence account not linked. {}".format(str(provider_user)))
         access_token = self.fence_oauth_adapter.refresh_access_token(refresh_token.token).get(FenceKeys.ACCESS_TOKEN)
         return access_token
