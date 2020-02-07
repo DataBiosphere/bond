@@ -171,7 +171,7 @@ json_schema_test_get_link_status_for_unlinked_user = {
         "message": {
           "type": "string",
           "enum": [
-            "fence link does not exist"
+            "fence link does not exist. Consider re-linking your account."
           ],
         },
         "code": {
@@ -206,7 +206,7 @@ json_schema_test_get_link_status_for_unlinked_user = {
               "message": {
                 "type": "string",
                 "enum": [
-                  "fence link does not exist"
+                  "fence link does not exist. Consider re-linking your account."
                 ],
               }
             }
@@ -296,15 +296,16 @@ json_schema_test_get_access_token_for_unlinked_user = {
       "properties": {
         "message": {
           "type": "string",
-          "enum": [
-            "Could not find refresh token for user"
+          "examples": [
+            "Unable to refresh access token. Consider re-linking your account to Bond.\nCould not find refresh token for user_id: 110530393451290928813 provider_name: fence",
           ],
+          "pattern": "Unable to refresh access token. Consider re-linking your account to Bond.\nCould not find refresh token for user_id: (.*) provider_name: (.*)"
         },
         "code": {
           "type": "integer",
           "default": 0,
           "enum": [
-            400
+            403
           ]
         },
         "errors": {
@@ -320,7 +321,7 @@ json_schema_test_get_access_token_for_unlinked_user = {
               "reason": {
                 "type": "string",
                 "enum": [
-                  "badRequest"
+                  "forbidden"
                 ],
               },
               "domain": {
@@ -331,9 +332,10 @@ json_schema_test_get_access_token_for_unlinked_user = {
               },
               "message": {
                 "type": "string",
-                "enum": [
-                  "Could not find refresh token for user"
+                "examples": [
+                  "Unable to refresh access token. Consider re-linking your account to Bond.\nCould not find refresh token for user_id: 110530393451290928813 provider_name: fence",
                 ],
+                "pattern": "Unable to refresh access token. Consider re-linking your account to Bond.\nCould not find refresh token for user_id: (.*) provider_name: (.*)"
               }
             }
           }
