@@ -9,4 +9,4 @@ handlers:
 - url: /.*
   script: auto
   http_headers:
-      Access-Control-Allow-Origin: *
+      Access-Control-Allow-Origin: "*"
