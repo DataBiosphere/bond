@@ -104,7 +104,7 @@ class BondTestCase(unittest.TestCase):
         self.assertEqual(datetime.fromtimestamp(self.expires_at_epoch), expires_at)
 
     def test_generate_access_token_errors_when_missing_token(self):
-        self.assertRaises(Bond.MissingTokenError, self.bond.generate_access_token,
+        self.assertRaises(exceptions.NotFound, self.bond.generate_access_token,
                           UserInfo(str(uuid.uuid4()), "", "", 30))
 
     def test_revoke_link_exists(self):

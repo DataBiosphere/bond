@@ -182,13 +182,8 @@ def delete_link(provider):
 @routes.route(api_routes_base + '/<provider>/accesstoken', methods=["GET"])
 def accesstoken(provider):
     user_info = auth.require_user_info(request)
-    try:
-        access_token, expires_at = _get_provider(provider).bond.generate_access_token(user_info)
-        return protojson.encode_message(AccessTokenResponse(token=access_token, expires_at=expires_at))
-    except Bond.MissingTokenError as err:
-        logging.info(str(err))
-        raise exceptions.Forbidden(
-            "Unable to refresh access token. Consider re-linking your account to Bond.\n{}".format(str(err)))
+    access_token, expires_at = _get_provider(provider).bond.generate_access_token(user_info)
+    return protojson.encode_message(AccessTokenResponse(token=access_token, expires_at=expires_at))
 
 
 @routes.route(api_routes_base + '/<provider>/serviceaccount/key', methods=["GET"])

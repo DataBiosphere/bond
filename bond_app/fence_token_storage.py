@@ -1,6 +1,7 @@
 from collections import namedtuple
 import datetime
 import time
+import logging
 from google.cloud import ndb
 
 # How long to keep a fence service account key before expiring it.
@@ -93,11 +94,12 @@ class FenceTokenStorage:
         else:
             fence_service_account = self._wait_for_update(fsa_key)
             if not fence_service_account.expires_at or fence_service_account.expires_at < datetime.datetime.now():
+                failure_str = "lock on key {} expired but value was not updated".format(fsa_key)
+                logging.log(failure_str)
                 # We waited for a fence service account update since someone else was holding the lock, but the
                 # lock expired without a valid update.
                 # we could recursively call _fetch_service_account_json at this point but let's start with failure
-                raise ServiceAccountNotUpdatedException(
-                    "lock on key {} expired but value was not updated".format(fsa_key))
+                raise ServiceAccountNotUpdatedException(failure_str)
 
         return fence_service_account
 

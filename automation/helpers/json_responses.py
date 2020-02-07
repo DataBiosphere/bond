@@ -297,15 +297,16 @@ json_schema_test_get_access_token_for_unlinked_user = {
         "message": {
           "type": "string",
           "examples": [
-            "Unable to refresh access token. Consider re-linking your account to Bond.\nCould not find refresh token for user_id: 110530393451290928813 provider_name: fence",
+            "Could not find refresh token for user_id: 110530393451290928813 provider_name: fence\nConsider relinking your account to Bond."
           ],
-          "pattern": "Unable to refresh access token. Consider re-linking your account to Bond.\nCould not find refresh token for user_id: (.*) provider_name: (.*)"
+          "pattern":
+            "Could not find refresh token for user_id: (.*) provider_name: (.*)\nConsider relinking your account to Bond."
         },
         "code": {
           "type": "integer",
           "default": 0,
           "enum": [
-            403
+            404
           ]
         },
         "errors": {
@@ -321,7 +322,7 @@ json_schema_test_get_access_token_for_unlinked_user = {
               "reason": {
                 "type": "string",
                 "enum": [
-                  "forbidden"
+                  "notFound"
                 ],
               },
               "domain": {
@@ -333,9 +334,10 @@ json_schema_test_get_access_token_for_unlinked_user = {
               "message": {
                 "type": "string",
                 "examples": [
-                  "Unable to refresh access token. Consider re-linking your account to Bond.\nCould not find refresh token for user_id: 110530393451290928813 provider_name: fence",
+                  "Could not find refresh token for user_id: 110530393451290928813 provider_name: fence\nConsider relinking your account to Bond."
                 ],
-                "pattern": "Unable to refresh access token. Consider re-linking your account to Bond.\nCould not find refresh token for user_id: (.*) provider_name: (.*)"
+                "pattern":
+                  "Could not find refresh token for user_id: (.*) provider_name: (.*)\nConsider relinking your account to Bond."
               }
             }
           }

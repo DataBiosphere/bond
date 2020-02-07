@@ -65,6 +65,6 @@ class FenceTokenVendingMachine:
     def _get_oauth_access_token(self, provider_user):
         refresh_token = self.refresh_token_store.lookup(provider_user.user_id, self.provider_name)
         if refresh_token is None:
-            raise exceptions.BadRequest("Fence account not linked. {}".format(str(provider_user)))
+            raise exceptions.NotFound("Fence account not linked. {}".format(str(provider_user)))
         access_token = self.fence_oauth_adapter.refresh_access_token(refresh_token.token).get(FenceKeys.ACCESS_TOKEN)
         return access_token

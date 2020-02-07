@@ -64,7 +64,7 @@ class Bond:
     def generate_access_token(self, user_info):
         """
         Given a user, lookup their refresh token and use it to generate a new refresh token from their OAuth
-        provider.  If a refresh token cannot be found for the user_id provided, a MissingTokenError will be raised.
+        provider.  If a refresh token cannot be found for the user_id provided, a NotFound will be raised.
         :param user_info: Information of the user who issued the request to Bond (not necessarily the same as
         the username for whom the refresh token was issued by the OAuth provider)
         :return: Two values: An Access Token string, datetime when that token expires
@@ -76,8 +76,9 @@ class Bond:
             expires_at = datetime.fromtimestamp(token_response.get(FenceKeys.EXPIRES_AT))
             return token_response.get("access_token"), expires_at
         else:
-            raise Bond.MissingTokenError(
-                "Could not find refresh token for user_id: {} provider_name: {}".format(user_id, self.provider_name))
+            raise exceptions.NotFound(
+                "Could not find refresh token for user_id: {} provider_name: {}\nConsider relinking your account to Bond.".format(
+                    user_id, self.provider_name))
 
     def unlink_account(self, user_info):
         """
@@ -91,6 +92,10 @@ class Bond:
             self.fence_tvm.remove_service_account(user_id)
             self.oauth_adapter.revoke_refresh_token(refresh_token.token)
             self.refresh_token_store.delete(user_id, self.provider_name)
+        else:
+            logging.warning(
+                "Tried to remove user refresh token, but none was found: user_id: {}, provider_name: {}".format(user_id,
+                                                                                                                self.provider_name))
 
     def get_link_info(self, user_info):
         """
@@ -101,9 +106,6 @@ class Bond:
         """
         user_id = self.sam_api.user_info(user_info.token)[SamKeys.USER_ID_KEY]
         return self.refresh_token_store.lookup(user_id, self.provider_name)
-
-    class MissingTokenError(Exception):
-        pass
 
 
 class FenceKeys:

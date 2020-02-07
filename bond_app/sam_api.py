@@ -12,7 +12,7 @@ class SamApi:
         """
         Calls sam GET /register/user/v1 api
         :param access_token: oauth access token
-        :return: dict with userSubjectId and userEmail keys or None if user does not exist in sam
+        :return: dict with userSubjectId and userEmail keys or else raises an exception if user does not exist in sam
         """
         headers = {'Authorization': 'Bearer ' + access_token}
         result = requests.get(url=self.base_url + '/register/user/v1?userDetailsOnly=true', headers=headers)

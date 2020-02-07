@@ -118,7 +118,7 @@ class UnlinkedUserTestCase(AuthorizedUnlinkedUser):
     def test_get_access_token_for_unlinked_user(self):
         url = self.bond_base_url + "/api/link/v1/" + self.provider + "/accesstoken"
         r = requests.get(url, headers=self.bearer_token_header(self.token))
-        self.assertEqual(403, r.status_code)
+        self.assertEqual(404, r.status_code)
         response_json_dict = json.loads(r.text)
         validate(instance=response_json_dict, schema=json_schema_test_get_access_token_for_unlinked_user)
 
