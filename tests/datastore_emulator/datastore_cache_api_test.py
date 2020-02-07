@@ -2,8 +2,8 @@ import time
 import unittest
 
 from bond_app.datastore_cache_api import DatastoreCacheApi
-from unit import cache_api_test
-import datastore_emulator_utils
+from tests.unit import cache_api_test
+from tests.datastore_emulator import datastore_emulator_utils
 
 
 class DatstoreCacheApiTestCase(unittest.TestCase, cache_api_test.CacheApiTest):

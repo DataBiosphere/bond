@@ -1,14 +1,12 @@
-import ConfigParser
+import configparser
 import unittest
 import re
-import urllib
+import urllib.request, urllib.parse, urllib.error
 import sys
 import time
 
-from google.appengine.ext import testbed
-
 from bond_app.bond import FenceKeys
-from unit.fake_cache_api import FakeCacheApi
+from tests.unit.fake_cache_api import FakeCacheApi
 from bond_app.jwt_token import JwtToken
 from bond_app.oauth_adapter import OauthAdapter
 from bond_app.open_id_config import OpenIdConfig
@@ -23,7 +21,7 @@ class OauthAdapterTestCase(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        OauthAdapterTestCase.config = ConfigParser.ConfigParser()
+        OauthAdapterTestCase.config = configparser.ConfigParser()
         OauthAdapterTestCase.config.read("config.ini")
         OauthAdapterTestCase.oauth_adapters = OauthAdapterTestCase.init_oauth_adapters(OauthAdapterTestCase.config)
         OauthAdapterTestCase.authz_responses = OauthAdapterTestCase.authorize_with_providers(OauthAdapterTestCase.oauth_adapters)
@@ -32,7 +30,7 @@ class OauthAdapterTestCase(unittest.TestCase):
     def init_oauth_adapters(cls, config):
         oauth_adapters = {}
         for section in config.sections():
-            if section != "sam":
+            if section != "sam" and section != "bond_accepted":
                 client_id = config.get(section, 'CLIENT_ID')
                 client_secret = config.get(section, 'CLIENT_SECRET')
                 open_id_config_url = config.get(section, 'OPEN_ID_CONFIG_URL')
@@ -42,14 +40,11 @@ class OauthAdapterTestCase(unittest.TestCase):
 
     @classmethod
     def authorize_with_providers(cls, oauth_adapters):
-        local_tb = testbed.Testbed()
-        local_tb.activate()
-        local_tb.init_urlfetch_stub()
         scopes = ["openid", "google_credentials"]
         redirect_uri = "http://local.broadinstitute.org/#fence-callback"
         state = "abc123"
         authz_responses = {}
-        for provider, oauth_adapter in oauth_adapters.iteritems():
+        for provider, oauth_adapter in oauth_adapters.items():
             authz_url = oauth_adapter.build_authz_url(scopes,
                                                       redirect_uri,
                                                       state,
@@ -61,18 +56,7 @@ class OauthAdapterTestCase(unittest.TestCase):
             # auth_code = sys.stdin.readline().strip()
             auth_code = "X"
             authz_responses[provider] = oauth_adapter.exchange_authz_code(auth_code, redirect_uri)
-        local_tb.deactivate()
         return authz_responses
-
-    def setUp(self):
-        super(OauthAdapterTestCase, self).setUp()
-        self.tb = testbed.Testbed()
-        self.tb.activate()
-        self.tb.init_urlfetch_stub()
-
-    def tearDown(self):
-        self.tb.deactivate()
-        super(OauthAdapterTestCase, self).tearDown()
 
     @staticmethod
     def param_regex(key, value):
@@ -82,7 +66,7 @@ class OauthAdapterTestCase(unittest.TestCase):
         self.assertTrue(self.oauth_adapters, "Failed to create OAuth Adapters - nothing to test")
 
     def test_get_open_id_config(self):
-        for provider, oauth_adapter in self.oauth_adapters.iteritems():
+        for provider, oauth_adapter in self.oauth_adapters.items():
             open_id_config = oauth_adapter.open_id_config.load_dict()
             self.assertIsNotNone(open_id_config, "Expected open_id_config for " + provider + " to not be None")
 
@@ -90,23 +74,23 @@ class OauthAdapterTestCase(unittest.TestCase):
         scopes = ["foo", "bar"]
         redirect_uri = "http://something.something/"
         state = "abc123"
-        for provider, oauth_adapter in self.oauth_adapters.iteritems():
+        for provider, oauth_adapter in self.oauth_adapters.items():
             authz_url = oauth_adapter.build_authz_url(scopes, redirect_uri, state)
             msg = "For provider: " + provider
-            self.assertRegexpMatches(authz_url, self.url_prefix_regex, msg)
-            self.assertRegexpMatches(authz_url, self.param_regex("response_type", "code"), msg)
-            self.assertRegexpMatches(authz_url, self.param_regex("scope", "+".join(scopes)), msg)
-            self.assertRegexpMatches(authz_url, self.param_regex("redirect_uri", urllib.quote_plus(redirect_uri)), msg)
-            self.assertRegexpMatches(authz_url, self.param_regex("state", state), msg)
+            self.assertRegex(authz_url, self.url_prefix_regex, msg)
+            self.assertRegex(authz_url, self.param_regex("response_type", "code"), msg)
+            self.assertRegex(authz_url, self.param_regex("scope", "+".join(scopes)), msg)
+            self.assertRegex(authz_url, self.param_regex("redirect_uri", urllib.parse.quote_plus(redirect_uri)), msg)
+            self.assertRegex(authz_url, self.param_regex("state", state), msg)
 
     def test_exchange_authz_code(self):
         # The calls to `exchange_authz_code` happen in the `setUpClass` method so that they are only called once for
         # this test suite
-        for provider, authz in self.authz_responses.iteritems():
+        for provider, authz in self.authz_responses.items():
             self.assert_token_response(authz, provider)
 
     def test_refresh_access_token(self):
-        for provider, authz in self.authz_responses.iteritems():
+        for provider, authz in self.authz_responses.items():
             if provider != "dcf-fence":
                 oauth_adapter = self.oauth_adapters[provider]
                 refresh_token = authz[FenceKeys.REFRESH_TOKEN]

@@ -1,7 +1,8 @@
 import logging
 
 from flask import Blueprint, request
-import ConfigParser
+import configparser
+import os
 from werkzeug import exceptions
 from webargs import fields
 from webargs.flaskparser import FlaskParser
@@ -10,17 +11,17 @@ from protorpc import message_types
 from protorpc import messages
 from protorpc import protojson
 
-import authentication
-from bond import Bond
-from datastore_cache_api import DatastoreCacheApi
-from fence_token_vending import FenceTokenVendingMachine
-from fence_api import FenceApi
-import fence_token_storage
-from open_id_config import OpenIdConfig
-from sam_api import SamApi
-from oauth_adapter import OauthAdapter
-from status import Status
-from token_store import TokenStore
+from . import authentication
+from .bond import Bond
+from .datastore_cache_api import DatastoreCacheApi
+from .fence_token_vending import FenceTokenVendingMachine
+from .fence_api import FenceApi
+from . import fence_token_storage
+from .open_id_config import OpenIdConfig
+from .sam_api import SamApi
+from .oauth_adapter import OauthAdapter
+from .status import Status
+from .token_store import TokenStore
 import json
 import ast
 
@@ -74,9 +75,11 @@ class AuthorizationUrlResponse(messages.Message):
     url = messages.StringField(1)
 
 
-config = ConfigParser.ConfigParser()
+config = configparser.ConfigParser()
 config.read("config.ini")
 
+def is_provider(section_name):
+    return section_name != 'sam' and section_name != 'bond_accepted'
 
 def create_provider(provider_name):
     client_id = config.get(provider_name, 'CLIENT_ID')
@@ -128,9 +131,13 @@ routes = Blueprint('bond', __name__, '/')
 cache_api = DatastoreCacheApi()
 refresh_token_store = TokenStore()
 
-bond_providers = {provider_name: create_provider(provider_name)
-                  for provider_name in config.sections() if provider_name != 'sam'}
-auth = authentication.Authentication(authentication.default_config(), cache_api)
+bond_providers = {section_name: create_provider(section_name)
+                  for section_name in config.sections() if is_provider(section_name)}
+
+authentication_config = authentication.AuthenticationConfig(config.get('bond_accepted', 'AUDIENCE_PREFIXES').split(),
+                                                            config.get('bond_accepted', 'EMAIL_SUFFIXES').split(),
+                                                            os.environ.get('BOND_MAX_TOKEN_LIFE', 600))
+auth = authentication.Authentication(authentication_config, cache_api)
 
 api_routes_base = '/api/link/v1'
 
@@ -180,7 +187,7 @@ def accesstoken(provider):
         return protojson.encode_message(AccessTokenResponse(token=access_token, expires_at=expires_at))
     except Bond.MissingTokenError as err:
         # TODO: I don't like throwing and rethrowing exceptions
-        raise exceptions.BadRequest(err.message)
+        raise exceptions.BadRequest(str(err))
 
 
 @routes.route(api_routes_base + '/<provider>/serviceaccount/key', methods=["GET"])
@@ -191,7 +198,7 @@ def service_account_key(provider):
 
 
 @routes.route(api_routes_base + '/<provider>/serviceaccount/accesstoken', methods=["GET"])
-@use_args({"scopes": fields.Str(repeated=True, missing=None)},
+@use_args({"scopes": fields.List(fields.Str(), missing=None)},
           locations=("querystring",))
 def service_account_accesstoken(args, provider):
     user_info = auth.require_user_info(request)
@@ -199,7 +206,7 @@ def service_account_accesstoken(args, provider):
 
 
 @routes.route(api_routes_base + '/<provider>/authorization-url', methods=["GET"])
-@use_args({"scopes": fields.Str(repeated=True, missing=None),
+@use_args({"scopes": fields.List(fields.Str(), missing=None),
            "redirect_uri": fields.Str(required=True),
            "state": fields.Str(missing=None)},
           locations=("querystring",))
@@ -221,8 +228,8 @@ def clear_expired_datastore_entries():
 def get_status():
     sam_base_url = config.get('sam', 'BASE_URL')
 
-    providers = {provider_name: FenceApi(config.get(provider_name, 'FENCE_BASE_URL'))
-                 for provider_name in config.sections() if provider_name != 'sam'}
+    providers = {section_name: FenceApi(config.get(section_name, 'FENCE_BASE_URL'))
+                 for section_name in config.sections() if is_provider(section_name)}
 
     sam_api = SamApi(sam_base_url)
     status_service = Status(sam_api, providers, cache_api)

@@ -1,9 +1,5 @@
 from werkzeug import exceptions
 import requests
-from requests_toolbelt.adapters import appengine
-
-# https://toolbelt.readthedocs.io/en/latest/adapters.html#appengineadapter
-appengine.monkeypatch()
 
 
 class FenceApi:
@@ -55,4 +51,4 @@ class FenceApi:
             else:
                 return True, ""
         except Exception as e:
-            return False, e.message
+            return False, str(e)

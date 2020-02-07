@@ -1,11 +1,9 @@
 import json
 import requests
-from requests_toolbelt.adapters import appengine
-
-# https://toolbelt.readthedocs.io/en/latest/adapters.html#appengineadapter
-appengine.monkeypatch()
 
 from werkzeug import exceptions
+
+
 class SamApi:
     def __init__(self, base_url):
         self.base_url = base_url
@@ -37,7 +35,7 @@ class SamApi:
             else:
                 return True, ""
         except Exception as e:
-            return False, e.message
+            return False, str(e)
 
 
 class SamKeys:

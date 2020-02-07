@@ -4,8 +4,6 @@ from werkzeug import exceptions
 import requests
 from requests_toolbelt.adapters import appengine
 
-# https://toolbelt.readthedocs.io/en/latest/adapters.html#appengineadapter
-appengine.monkeypatch()
 
 class OpenIdConfig:
 
