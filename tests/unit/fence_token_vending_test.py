@@ -76,7 +76,7 @@ class FenceTokenVendingMachineTestCase(unittest.TestCase):
         provider_user = ProviderUser(ftvm.provider_name, real_user_id)
         self.assertIsNone(self.fence_token_storage.delete(provider_user))
 
-        with self.assertRaises(exceptions.BadRequest):
+        with self.assertRaises(exceptions.NotFound):
             ftvm.get_service_account_key_json(UserInfo(caller_uid, "splat@bar.com", "fake_token_too", 10))
 
     @staticmethod
