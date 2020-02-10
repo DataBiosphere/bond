@@ -215,7 +215,7 @@ def authorization_url(args, provider):
 def clear_expired_datastore_entries():
     # Only allow Appengine cron to hit this endpoint.
     if not request.headers.get("X-Appengine-Cron"):
-        raise exceptions.Unauthorized('Missing required cron header.')
+        raise exceptions.Forbidden('Missing required cron header.')
     DatastoreCacheApi.delete_expired_entries()
     return '', 204
 
