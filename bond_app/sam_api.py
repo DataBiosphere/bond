@@ -1,4 +1,5 @@
 import json
+import logging
 import requests
 
 from werkzeug import exceptions
@@ -12,16 +13,16 @@ class SamApi:
         """
         Calls sam GET /register/user/v1 api
         :param access_token: oauth access token
-        :return: dict with userSubjectId and userEmail keys or else raises an exception if user does not exist in sam
+        :return: dict with userSubjectId and userEmail keys or else None if user does not exist in sam
         """
         headers = {'Authorization': 'Bearer ' + access_token}
         result = requests.get(url=self.base_url + '/register/user/v1?userDetailsOnly=true', headers=headers)
         if result.status_code == 200:
             return json.loads(result.content)["userInfo"]
-        elif result.status_code == 404:
-            raise exceptions.Unauthorized("user not found in sam")
-        else:
-            raise exceptions.InternalServerError("sam status code {}, error body {}".format(result.status_code, result.content))
+        logging.info("sam status code {}, error body {}".format(result.status_code, result.content))
+        if result.status_code == 404:
+            return None
+        raise exceptions.InternalServerError("sam status code {}, error body {}".format(result.status_code, result.content))
 
     def status(self):
         """
