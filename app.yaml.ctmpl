@@ -1,4 +1,5 @@
 # remove me (app.yaml.ctmpl) once we can update fiabs to not expect a template to render
+# See: https://broadworkbench.atlassian.net/browse/CA-692
 
 runtime: python37
 entrypoint: gunicorn -b :$PORT main:app

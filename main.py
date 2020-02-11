@@ -30,6 +30,7 @@ def create_app():
     """Initializes app."""
     flask_app = flask.Flask(__name__)
     flask_app.register_blueprint(routes.routes)
+    flask_app.url_map.strict_slashes = False
     CORS(flask_app)
     return flask_app
 

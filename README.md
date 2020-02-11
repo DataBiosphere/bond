@@ -18,7 +18,7 @@ of Python installed)
 1. Install virtualenv: `pip install virtualenv`
 1. `cd` to the Bond root directory
 1. Set up virtualenv for Bond: `virtualenv -p python env` 
-(**Note**: Ensure that you pass the correct Python 2.7 executable to the [`-p` parameter](https://virtualenv.pypa.io/en/stable/reference/#cmdoption-p)) 
+(**Note**: Ensure that you pass the correct Python 3.7 executable to the [`-p` parameter](https://virtualenv.pypa.io/en/stable/reference/#cmdoption-p)) 
 1. Activate virtualenv: `source env/bin/activate`
 1. Install project dependencies: `pip install -r requirements.txt --ignore-installed`
 
@@ -32,10 +32,6 @@ When you are ready to exit or deactivate your Bond virtualenv, just type the com
 Bond supports test runners: [unittest](https://docs.python.org/2/library/unittest.html).
 
 ## Unittest
-
-There is a custom test runner created following the [gcloud documentation](https://cloud.google.com/appengine/docs/standard/python/tools/localunittesting#Python_Setting_up_a_testing_framework)
-
-To run the tests you need to have the Google SDK installed and you need to pass the installation path to the test runner:
 
 `python -m unittest discover -s tests/unit -p "*_test.py"`
 
