@@ -225,7 +225,7 @@ def clear_expired_datastore_entries():
     return '', 204
 
 
-@routes.route('/api/status/v1/status', methods=["GET"])
+@routes.route('/api/status/v1/status', methods=["GET"], strict_slashes=False)
 def get_status():
     sam_base_url = config.get('sam', 'BASE_URL')
 
