@@ -140,7 +140,7 @@ authentication_config = authentication.AuthenticationConfig(config.get('bond_acc
 auth = authentication.Authentication(authentication_config, cache_api)
 
 api_version = 'v1'
-link_api_routes_base = '/api/link'
+link_api_routes_base = '/api/link/'
 v1_link_route_base = link_api_routes_base + api_version
 
 @routes.route('/')
