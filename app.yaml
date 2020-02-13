@@ -1,0 +1,8 @@
+runtime: python37
+entrypoint: gunicorn -b :$PORT main:app
+basic_scaling:
+  max_instances: 100
+
+handlers:
+- url: /.*
+  script: auto

@@ -1,13 +1,9 @@
 import base64
+from werkzeug import exceptions
 
-import endpoints
-from google.appengine.api import urlfetch
+import requests
 from requests.auth import HTTPBasicAuth
 from requests_oauthlib import OAuth2Session
-from requests_toolbelt.adapters import appengine
-
-# https://toolbelt.readthedocs.io/en/latest/adapters.html#appengineadapter
-appengine.monkeypatch()
 
 
 class OauthAdapter:
@@ -65,10 +61,10 @@ class OauthAdapter:
         :return:
         """
         revoke_url = self.open_id_config.get_revoke_url()
-        result = urlfetch.fetch(url=revoke_url,
-                                method=urlfetch.POST,
-                                payload="token=" + refresh_token,
-                                headers={"Authorization": "Basic %s" % base64.b64encode("{}:{}".format(self.client_id, self.client_secret))})
+        result = requests.post(url=revoke_url,
+                               data="token=" + refresh_token,
+                               headers={"Authorization": "Basic %s" % base64.b64encode(
+                                   "{}:{}".format(self.client_id, self.client_secret).encode()).decode()})
         if result.status_code // 100 != 2:
-            raise endpoints.InternalServerErrorException("revoke url {}, status code {}, error body {}".
-                                                         format(revoke_url, result.status_code, result.content))
+            raise exceptions.InternalServerError("revoke url {}, status code {}, error body {}".
+                                                 format(revoke_url, result.status_code, result.content))

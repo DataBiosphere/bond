@@ -1,5 +1,23 @@
-from google.appengine.ext import ndb
-from refresh_token import RefreshToken
+from collections import namedtuple
+from google.cloud import ndb
+
+# Information associated with a tokens for refreshing service account credentials.
+RefreshTokenInfo = namedtuple('RefreshTokenInfo', ['token', 'issued_at', 'username'])
+
+class RefreshToken(ndb.Model):
+    """
+    Model used to store entries in Datastore.
+
+    This is not used as the return type for TokenStore because it depends on ndb, which we want to stub out for unit
+    tests.
+    """
+    token = ndb.StringProperty()
+    issued_at = ndb.DateTimeProperty()
+    username = ndb.StringProperty()
+
+    @classmethod
+    def kind_name(cls):
+        return cls.__name__
 
 
 class TokenStore:
@@ -17,22 +35,25 @@ class TokenStore:
         :param refresh_token_str: a refresh token string
         :param issued_at: datetime at which the token was issued
         :param username: username for whom the token was issued
-        :return: The datastore Key of the persisted entity
         """
         refresh_token = RefreshToken(key=TokenStore._token_store_key(user_id, provider_name),
                                      token=refresh_token_str,
                                      issued_at=issued_at,
                                      username=username)
-        return refresh_token.put()
+        refresh_token.put()
 
     def lookup(self, user_id, provider_name):
         """
         Retrieves an entity out of Google Datastore of the "RefreshToken" type with the specified user_id
         :param provider_name:
         :param user_id: unique identifier for the RefreshToken entity
-        :return: A RefreshToken entity
+        :return: A RefreshTokenInfo, or None if not found.
         """
-        return TokenStore._token_store_key(user_id, provider_name).get()
+        refresh_token = TokenStore._token_store_key(user_id, provider_name).get()
+        if not refresh_token:
+            return None
+        return RefreshTokenInfo(token=refresh_token.token, issued_at=refresh_token.issued_at,
+                                username=refresh_token.username)
 
     def delete(self, user_id, provider_name):
         TokenStore._token_store_key(user_id, provider_name).delete()

@@ -1,5 +1,9 @@
+from collections import namedtuple
 import datetime
-from fence_token_storage import FenceServiceAccount, _FSA_KEY_LIFETIME
+from bond_app.fence_token_storage import _FSA_KEY_LIFETIME
+
+# Internal representation of information being stored about a FenceServiceAccount.
+_FenceServiceAccountInfo = namedtuple("_FenceServiceAccountInfo", ["key_json", "expires_at", "update_lock_timeout"])
 
 
 class FakeFenceTokenStorage:
@@ -9,23 +13,24 @@ class FakeFenceTokenStorage:
     """
 
     def __init__(self):
-        # Dict from fsa_keys to FenceServiceAccounts.
+        # Dict from fsa_keys to FenceServiceAccountInfos.
         self.accounts = {}
 
-    def delete(self, fsa_key):
-        if fsa_key not in self.accounts:
+    def delete(self, provider_user):
+        if provider_user not in self.accounts:
             return None
-        account = self.accounts.pop(fsa_key)
-        return account.json_key
+        account = self.accounts.pop(provider_user)
+        return account.key_json
 
-    def get_or_create(self, fsa_key, prep_key_fn, fence_fetch_fn):
-        if fsa_key in self.accounts:
-            return self.accounts[fsa_key]
+    def retrieve(self, provider_user, prep_key_fn, fence_fetch_fn):
+        account_info = None
+        if provider_user in self.accounts:
+            account_info = self.accounts[provider_user]
+        else:
+            key_json = fence_fetch_fn(prep_key_fn(provider_user))
+            account_info = _FenceServiceAccountInfo(key_json=key_json,
+                                                   expires_at=datetime.datetime.now() + _FSA_KEY_LIFETIME,
+                                                   update_lock_timeout=None)
+            self.accounts[provider_user] = account_info
 
-        json_key = fence_fetch_fn(prep_key_fn(fsa_key))
-        fence_service_account = FenceServiceAccount(key_json=json_key,
-                                                    expires_at=datetime.datetime.now() + _FSA_KEY_LIFETIME,
-                                                    update_lock_timeout=None,
-                                                    key=fsa_key)
-        self.accounts[fsa_key] = fence_service_account
-        return (fence_service_account.key_json, fence_service_account.expires_at)
+        return (account_info.key_json, account_info.expires_at)

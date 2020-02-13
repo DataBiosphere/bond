@@ -1,7 +1,8 @@
 import json
-import endpoints
 
-from google.appengine.api import urlfetch
+from werkzeug import exceptions
+import requests
+from requests_toolbelt.adapters import appengine
 
 
 class OpenIdConfig:
@@ -14,10 +15,10 @@ class OpenIdConfig:
     def load_dict(self):
         open_id_dict = self.cache_api.get(namespace="OauthAdapter", key=self.provider_name)
         if not open_id_dict:
-            open_id_config_response = urlfetch.fetch(self.open_id_config_url)
+            open_id_config_response = requests.get(self.open_id_config_url)
             if open_id_config_response.status_code != 200:
-                raise endpoints.InternalServerErrorException(
-                    message='open_id_config_url [{}] returned status {}: {}'.format(self.open_id_config_url,
+                raise exceptions.InternalServerError(
+                    'open_id_config_url [{}] returned status {}: {}'.format(self.open_id_config_url,
                                                                                     open_id_config_response.status_code,
                                                                                     open_id_config_response.content))
             else:
@@ -39,7 +40,7 @@ class OpenIdConfig:
         if key in config:
             return self.load_dict()[key]
         elif raise_error:
-            raise endpoints.InternalServerErrorException(key + " not found in openid config: " + self.open_id_config_url)
+            raise exceptions.InternalServerError(key + " not found in openid config: " + self.open_id_config_url)
 
     def get_token_info_url(self):
         return self.get_config_value("token_endpoint")

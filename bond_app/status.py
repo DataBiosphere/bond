@@ -16,7 +16,7 @@ class Status:
             else:
                 # if we got this far memcache is ok
                 provider_statuses = [(provider_name, provider_api.status())
-                                     for (provider_name, provider_api) in self.provider_status_apis_by_name.items()]
+                                     for (provider_name, provider_api) in list(self.provider_status_apis_by_name.items())]
                 provider_status_messages = [{"ok": ok, "message": message, "subsystem": provider_name}
                                             for (provider_name, (ok, message)) in provider_statuses]
 
@@ -32,7 +32,7 @@ class Status:
             return status
         except Exception as e:
             # any exception at this point is the cache
-            return [{"ok": False, "message": e.message, "subsystem": Subsystems.cache}]
+            return [{"ok": False, "message": str(e), "subsystem": Subsystems.cache}]
 
     def _cache_status(self, status):
         self.cache_api.add(namespace='bond', key="status", value=status, expires_in=60)
@@ -43,11 +43,11 @@ class Status:
     @staticmethod
     def _datastore_status():
         try:
-            from google.appengine.ext.ndb import stats
+            from google.cloud.ndb import stats
             stats.GlobalStat.query().get()
             return True, ""
         except Exception as e:
-            return False, e.message
+            return False, str(e)
 
 
 class Subsystems:

@@ -1,9 +1,10 @@
 import unittest
-import endpoints
 
-from cache_api import LocalCacheApi
+from tests.unit.fake_cache_api import FakeCacheApi
 from mock import MagicMock
-from open_id_config import OpenIdConfig
+from werkzeug import exceptions
+
+from bond_app.open_id_config import OpenIdConfig
 
 
 class OpenIdConfigTestCase(unittest.TestCase):
@@ -14,7 +15,7 @@ class OpenIdConfigTestCase(unittest.TestCase):
                        "revocation_endpoint": "",
                        "scopes_supported": ["foo", "bar"]}
         self.provider = "fake_provider"
-        self.open_id_config = OpenIdConfig(self.provider, "not-a-real-url", LocalCacheApi())
+        self.open_id_config = OpenIdConfig(self.provider, "not-a-real-url", FakeCacheApi())
         self.open_id_config.load_dict = MagicMock(return_value=fake_config)
 
     def test_get_config(self):
@@ -26,7 +27,7 @@ class OpenIdConfigTestCase(unittest.TestCase):
         self.assertIsNotNone(self.open_id_config.get_config_value(key))
 
     def test_get_open_id_config_value_missing(self):
-        with self.assertRaises(endpoints.InternalServerErrorException):
+        with self.assertRaises(exceptions.InternalServerError):
             self.open_id_config.get_config_value("something-that-does-not-exist")
 
     def test_get_open_id_config_value_missing_no_exception(self):
@@ -34,8 +35,8 @@ class OpenIdConfigTestCase(unittest.TestCase):
 
     def test_get_token_info_url(self):
         token_info_url = self.open_id_config.get_token_info_url()
-        self.assertRegexpMatches(token_info_url, self.url_prefix_regex)
+        self.assertRegex(token_info_url, self.url_prefix_regex)
 
     def test_get_revoke_url(self):
         url_regex = "^http(s)?:\/\/.+?revoke"
-        self.assertRegexpMatches(self.open_id_config.get_revoke_url(), url_regex)
+        self.assertRegex(self.open_id_config.get_revoke_url(), url_regex)

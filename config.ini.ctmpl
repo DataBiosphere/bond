@@ -2,6 +2,7 @@
 {{with $runContext := env "RUN_CONTEXT"}}
 {{with $dnsDomain := env "DNS_DOMAIN"}}
 {{with $secrets := secret (printf "secret/dsde/bond/%s/config.ini" $environment)}}
+{{with $commonSecrets := secret (printf "secret/dsde/firecloud/common/oauth_client_id")}}
 
 {{if (or (eq $runContext "fiab") (eq $runContext "local")) }}
 # fiab settings are mock providers
@@ -42,9 +43,9 @@ FENCE_BASE_URL=https://nci-crdc.datacommons.io
 [fence]
 CLIENT_ID={{ $secrets.Data.client_id }}
 CLIENT_SECRET={{ $secrets.Data.client_secret }}
-OPEN_ID_CONFIG_URL=https://staging.datastage.io/user/.well-known/openid-configuration
+OPEN_ID_CONFIG_URL=https://staging.gen3.biodatacatalyst.nhlbi.nih.gov/user/.well-known/openid-configuration
 USER_NAME_PATH_EXPR=/context/user/name
-FENCE_BASE_URL=https://staging.datastage.io
+FENCE_BASE_URL=https://staging.gen3.biodatacatalyst.nhlbi.nih.gov
 EXTRA_AUTHZ_URL_PARAMS={"idp": "fence"}
 
 [dcf-fence]
@@ -59,4 +60,9 @@ FENCE_BASE_URL=https://nci-crdc-staging.datacommons.io
 [sam]
 BASE_URL={{if eq $runContext "fiab"}}https://sam-fiab.{{$dnsDomain}}{{else}}https://sam.dsde-{{$environment}}.broadinstitute.org{{end}}
 
-{{end}}{{end}}{{end}}{{end}}
+
+[bond_accepted]
+AUDIENCE_PREFIXES={{range $index, $element := $commonSecrets.Data.client_ids}} {{ $element }}{{end}}
+EMAIL_SUFFIXES=.gserviceaccount.com
+
+{{end}}{{end}}{{end}}{{end}}{{end}}

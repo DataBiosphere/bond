@@ -8,7 +8,7 @@ from automation.helpers.json_responses import *
 
 class BaseApiTestCase(unittest.TestCase):
     env = os.getenv("ENV", "dev")
-    bond_base_url = "https://bond-fiab.dsde-%s.broadinstitute.org:31443" % env
+    bond_base_url = os.getenv("BOND_BASE_URL", "https://bond-fiab.dsde-%s.broadinstitute.org:31443" % env)
     provider = "fence"
     email_domain = "quality.firecloud.org" if (env == "qa") else "test.firecloud.org"
 
@@ -75,7 +75,7 @@ class AuthorizedBaseCase(BaseApiTestCase):
 
     @staticmethod
     def unlink_all(self):
-        for credential in self.user_credentials.values():
+        for credential in list(self.user_credentials.values()):
             token = credential.get_access_token()
             r = self.unlink(token)
             self.assertIn(r.status_code, [204, 400])
@@ -99,7 +99,7 @@ class UnlinkedUserTestCase(AuthorizedUnlinkedUser):
     def test_delete_link_for_unlinked_user(self):
         r = self.unlink(self.token)
         self.assertEqual(204, r.status_code)
-        self.assertEqual("No Content", r.reason)  # Delete call returns an empty body
+        self.assertEqual("NO CONTENT", r.reason)  # Delete call returns an empty body
 
     def test_get_link_status_for_unlinked_user(self):
         url = self.bond_base_url + "/api/link/v1/" + self.provider
@@ -212,7 +212,7 @@ class UnlinkLinkedUserTestCase(AuthorizedBaseCase):
     def test_delete_link_for_linked_user(self):
         r = self.unlink(self.token)
         self.assertEqual(204, r.status_code)
-        self.assertEqual("No Content", r.reason)  # Delete call returns an empty body
+        self.assertEqual("NO CONTENT", r.reason)  # Delete call returns an empty body
 
     def test_delete_link_for_invalid_provider(self):
         url = BaseApiTestCase.bond_base_url + "/api/link/v1/" + "some-made-up-provider"

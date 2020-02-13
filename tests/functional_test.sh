@@ -2,4 +2,4 @@
 
 cp tests/config/config.ini config.ini
 
-python tests/test_runner.py /google-cloud-sdk --test-path=tests/integration
+python -m unittest discover -s tests/integration -p "*_test.py"
