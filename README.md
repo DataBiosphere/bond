@@ -50,7 +50,7 @@ When writing new tests, do not put any tests in the root `tests/` directory.  In
 the `tests/integration` directory.
 
 ## Datastore Emulator tests
-[To run the integration tests that require the Datastore emulator locally, follow the instructions in the readme here](tests/datastore_emulator/README.md). 
+To run the integration tests that require the Datastore emulator locally, follow [the instructions in the readme](tests/datastore_emulator/README.md). 
 
 # Running locally
 
@@ -82,7 +82,7 @@ After installing project dependencies, rendering configs, and setting up paths, 
 the emulator so that our local runs have a Datastore backend to talk to, and we do not want them to talk to real Google
 Datastores.
 
-N.B. The following script must be run from a  python2 virtualenv environment. See
+Note that the following script must be run from a python2 virtualenv environment. See
 [tests/datastore_emulator/README.md](tests/datastore_emulator/README.md)
 
 ```tests/datastore_emulator/run_emulator.sh```
@@ -91,7 +91,9 @@ Then, start a local flask server.
 
 ```run_local.sh```
 
-You can check http://localhost:8080/api/status/v1/status to make sure you're up and running.
+You can check [http://localhost:8080/api/status/v1/status](http://localhost:8080/api/status/v1/status) to make sure you're up and running.
+
+You can also check [http://0.0.0.0:8432](http://0.0.0.0:8432) which should show 'Ok' if the datastore emulator is working properly.
 
 
 ## Run in a Docker container
