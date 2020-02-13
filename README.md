@@ -18,7 +18,7 @@ of Python installed)
 1. Install virtualenv: `pip install virtualenv`
 1. `cd` to the Bond root directory
 1. Set up virtualenv for Bond: `virtualenv -p python env` 
-(**Note**: Ensure that you pass the correct Python 2.7 executable to the [`-p` parameter](https://virtualenv.pypa.io/en/stable/reference/#cmdoption-p)) 
+(**Note**: Ensure that you pass the correct Python 3.7 executable to the [`-p` parameter](https://virtualenv.pypa.io/en/stable/reference/#cmdoption-p)) 
 1. Activate virtualenv: `source env/bin/activate`
 1. Install project dependencies: `pip install -r requirements.txt --ignore-installed`
 
@@ -29,13 +29,11 @@ When you are ready to exit or deactivate your Bond virtualenv, just type the com
 
 # Running Tests
 
+Bond has unit tests, integration tests, and automation tests. 
+
 Bond supports test runners: [unittest](https://docs.python.org/2/library/unittest.html).
 
-## Unittest
-
-There is a custom test runner created following the [gcloud documentation](https://cloud.google.com/appengine/docs/standard/python/tools/localunittesting#Python_Setting_up_a_testing_framework)
-
-To run the tests you need to have the Google SDK installed and you need to pass the installation path to the test runner:
+## Unit tests
 
 `python -m unittest discover -s tests/unit -p "*_test.py"`
 
@@ -52,7 +50,7 @@ When writing new tests, do not put any tests in the root `tests/` directory.  In
 the `tests/integration` directory.
 
 ## Datastore Emulator tests
-[To run the integration tests that require the Datastore emulator locally, follow the instructions in the readme here](tests/datastore_emulator/README.md). 
+To run the integration tests that require the Datastore emulator locally, follow [the instructions in the readme](tests/datastore_emulator/README.md). 
 
 # Running locally
 
@@ -84,7 +82,7 @@ After installing project dependencies, rendering configs, and setting up paths, 
 the emulator so that our local runs have a Datastore backend to talk to, and we do not want them to talk to real Google
 Datastores.
 
-N.B. The following script must be run from a  python2 virtualenv environment. See
+Note that the following script must be run from a python2 virtualenv environment. See
 [tests/datastore_emulator/README.md](tests/datastore_emulator/README.md)
 
 ```tests/datastore_emulator/run_emulator.sh```
@@ -93,7 +91,9 @@ Then, start a local flask server.
 
 ```run_local.sh```
 
-You can check http://localhost:8080/api/status/v1/status to make sure you're up and running.
+You can check [http://localhost:8080/api/status/v1/status](http://localhost:8080/api/status/v1/status) to make sure you're up and running.
+
+You can also check [http://0.0.0.0:8432](http://0.0.0.0:8432) which should show 'Ok' if the datastore emulator is working properly.
 
 
 ## Run in a Docker container
