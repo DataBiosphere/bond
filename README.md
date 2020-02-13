@@ -29,9 +29,11 @@ When you are ready to exit or deactivate your Bond virtualenv, just type the com
 
 # Running Tests
 
+Bond has unit tests, integration tests, and automation tests. 
+
 Bond supports test runners: [unittest](https://docs.python.org/2/library/unittest.html).
 
-## Unittest
+## Unit tests
 
 `python -m unittest discover -s tests/unit -p "*_test.py"`
 
