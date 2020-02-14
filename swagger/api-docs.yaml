@@ -38,17 +38,11 @@ components:
       description: Unable to find a link for the user to the provider. Consider re-linking with an oauthcode.
 
   securitySchemes:
-    googleOAuth2:
-      type: oauth2
-      flows:
-        implicit:
-          authorizationUrl: 'https://accounts.google.com/o/oauth2/auth'
-          scopes:
-            openid: open id authorization
-            email: email authorization
-            profile: profile authorization
-
-
+    googleAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Use your GCP auth token, i.e. `gcloud auth print-access-token`
 
 paths:
   /api/link/vi/{provider}:
@@ -71,7 +65,7 @@ paths:
         '404':
           $ref: '#/components/responses/LinkNotFound'
       security:
-        - googleOAuth2: [openid, email, profile]
+        - googleAuth: []
 
   /api/link/v1/providers:
     get:
@@ -110,7 +104,7 @@ paths:
         '404':
           $ref: '#/components/responses/LinkNotFound'
       security:
-        - googleOAuth2: [openid, email, profile]
+        - googleAuth: []
 
   /api/link/v1/{provider}/authorization-url:
     get:
@@ -162,7 +156,7 @@ paths:
         '200':
           $ref: '#/components/responses/LinkInfoResponse'
       security:
-        - googleOAuth2: [openid, email, profile]
+        - googleAuth: []
 
   /api/link/v1/{provider}/serviceaccount/key:
     get:
@@ -182,7 +176,7 @@ paths:
         '404':
           $ref: '#/components/responses/LinkNotFound'
       security:
-        - googleOAuth2: [openid, email, profile]
+        - googleAuth: []
 
   /api/link/v1/{provider}/serviceaccount/accesstoken:
     get:
@@ -203,7 +197,7 @@ paths:
         '404':
           $ref: '#/components/responses/LinkNotFound'
       security:
-        - googleOAuth2: [openid, email, profile]
+        - googleAuth: []
 
   /api/status/v1/status:
     get:
