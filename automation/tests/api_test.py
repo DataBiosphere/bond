@@ -201,6 +201,13 @@ class LinkedUserTestCase(AuthorizedBaseCase):
         response_json_dict = json.loads(r.text)
         validate(instance=response_json_dict, schema=json_schema_test_get_serviceaccount_key)
 
+    def test_get_serviceaccount_accesstoken(self):
+        url = self.bond_base_url + "/api/link/v1/" + self.provider + "/serviceaccount/accesstoken"
+        r = requests.get(url, headers=self.bearer_token_header(LinkedUserTestCase.token))
+        self.assertEqual(200, r.status_code, "Response code was not 200.  Response Body: %s" % r.text)
+        response_json_dict = json.loads(r.text)
+        validate(instance=response_json_dict, schema=json_schema_test_get_serviceaccount_accesstoken)
+
 
 class UnlinkLinkedUserTestCase(AuthorizedBaseCase):
     """Tests the unlink functionality when a user is already linked"""
