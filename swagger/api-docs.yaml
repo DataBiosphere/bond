@@ -117,7 +117,7 @@ paths:
         - name: redirect_uri
           in: query
           required: true
-          description:  A URL encoded string representing the URI that the Authorizing Service will redirect the user to after the user successfully authorizes this client.
+          description:  A URL encoded string representing the URI that the Authorizing Service will redirect the user to after the user successfully authorizes this client. Note that the redirect_uri must be registered with the provider.
           schema:
             type: string
         - name: state
