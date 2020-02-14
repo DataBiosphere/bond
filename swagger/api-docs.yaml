@@ -5,6 +5,9 @@ info:
   version: "1.0"
 
 servers:
+  - url: /
+    # '/' is a relative path to this host.
+    description: The server hosting this Swagger UI
   - url: https://broad-bond-prod.appspot.com/
     description: Production
   - url: https://broad-bond-dev.appspot.com/
@@ -82,7 +85,7 @@ paths:
                     type: array
                     items:
                       type: string
-                    example: dcf-fence
+                      example: dcf-fence
 
   /api/link/vi/{provider}/accesstoken:
     get:

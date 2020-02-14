@@ -1,6 +1,7 @@
 import flask
 import os
 from bond_app import routes
+from bond_app.swagger_ui import swaggerui_blueprint, SWAGGER_URL
 from bond_app.json_exception_handler import JsonExceptionHandler
 from google.cloud import ndb
 from google.auth.credentials import AnonymousCredentials
@@ -30,6 +31,7 @@ def create_app():
     """Initializes app."""
     flask_app = flask.Flask(__name__)
     flask_app.register_blueprint(routes.routes)
+    flask_app.register_blueprint(swaggerui_blueprint, url_prefix=SWAGGER_URL)
     CORS(flask_app)
     return flask_app
 
