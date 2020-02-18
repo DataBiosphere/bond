@@ -216,7 +216,7 @@ def authorization_url(args, provider):
     return protojson.encode_message((AuthorizationUrlResponse(url=authz_url)))
 
 
-@routes.route(v1_link_route_base + '/clear-expired-cache-datastore-entries', methods=["POST"], strict_slashes=False)
+@routes.route(v1_link_route_base + '/clear-expired-cache-datastore-entries', methods=["GET"], strict_slashes=False)
 def clear_expired_datastore_entries():
     # Only allow Appengine cron to hit this endpoint.
     if not request.headers.get("X-Appengine-Cron"):
