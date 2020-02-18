@@ -44,7 +44,7 @@ components:
     googleAuth:
       type: http
       scheme: bearer
-      bearerFormat: JWT
+      bearerFormat: GCloud access token
       description: Use your GCP auth token, i.e. `gcloud auth print-access-token`
 
 paths:
