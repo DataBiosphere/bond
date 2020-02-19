@@ -7,6 +7,7 @@ mock==2.0.0
 dpath==1.4.2
 google-auth==1.6.1
 google-cloud-core==1.1.0
+google-cloud-logging==1.14.0
 google-api-core[grpc]==1.15.0
 googleapis-common-protos==1.6.0
 google-cloud-ndb==0.2.1
