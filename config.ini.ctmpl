@@ -26,7 +26,7 @@ CLIENT_ID={{ $secrets.Data.client_id }}
 CLIENT_SECRET={{ $secrets.Data.client_secret }}
 OPEN_ID_CONFIG_URL=https://gen3.biodatacatalyst.nhlbi.nih.gov/user/.well-known/openid-configuration
 USER_NAME_PATH_EXPR=/context/user/name
-FENCE_BASE_URL=https://gen3.biodatacatalyst.nhlbi.nih.gov
+FENCE_BASE_URL=https://gen3.biodatacatalyst.nhlbi.nih.
 # For why we need Authz URL Params, see: https://broadworkbench.atlassian.net/browse/CA-458
 EXTRA_AUTHZ_URL_PARAMS={"idp": "fence"}
 
