@@ -3,6 +3,7 @@ import os
 from bond_app import routes
 from bond_app.json_exception_handler import JsonExceptionHandler
 from google.cloud import ndb
+import google.cloud.logging
 from google.auth.credentials import AnonymousCredentials
 from flask_cors import CORS
 
@@ -25,6 +26,15 @@ def ndb_wsgi_middleware(wsgi_app):
 
     return middleware
 
+def setup_stackdriver_logging():
+    if not os.environ.get('GAE_APPLICATION'):
+        # If we're not running as a GAE application, we do not need to set up Stackdriver logging.
+        # Stackdriver logging will encounter errors if it doesn't have access to the right project credentials.
+        return
+    logging_client = google.cloud.logging.Client()
+    # Connects the logger to the root logging handler; by default this captures
+    # all logs at INFO level and higher
+    logging_client.setup_logging()
 
 def create_app():
     """Initializes app."""
@@ -36,4 +46,5 @@ def create_app():
 
 app = create_app()
 app.wsgi_app = ndb_wsgi_middleware(app.wsgi_app)  # Wrap the app in middleware.
+setup_stackdriver_logging()
 handler = JsonExceptionHandler(app)
