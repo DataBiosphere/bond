@@ -1,5 +1,6 @@
 import json
 import datetime
+import logging
 
 from werkzeug import exceptions
 from .bond import FenceKeys
@@ -41,7 +42,13 @@ class FenceTokenVendingMachine:
             scopes = ["email", "profile"]
         key_json = self.get_service_account_key_json(user_info)
         credentials = service_account.Credentials.from_service_account_info(json.loads(key_json), scopes=scopes)
-        credentials.refresh(google.auth.transport.requests.Request())
+        try:
+            credentials.refresh(google.auth.transport.requests.Request())
+        except Exception as e:
+            logging.warning("Error refreshing service account credentials:\n%s".format(str(e)))
+            raise exceptions.InternalServerError(
+                description="Unable to refresh service account credentials. Consider relinking your account.\n%s".format(str(e)),
+                original_exception=e)
         return credentials.token
 
     def get_service_account_key_json(self, user_info):
