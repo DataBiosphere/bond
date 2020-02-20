@@ -15,7 +15,6 @@ google-cloud-datastore==1.10.0
 Flask==1.1.1
 Werkzeug==0.16.0
 webargs==5.5.2
-pycrypto==2.6.1
 grpcio==1.26.0
 protorpc==0.12.0
 gunicorn==20.0.4
