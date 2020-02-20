@@ -51,6 +51,16 @@ class PublicApiTestCase(BaseApiTestCase):
         response_json_dict = json.loads(r.text)
         validate(instance=response_json_dict, schema=json_schema_test_get_auth_url_with_only_redirect_param)
 
+    def test_get_swagger_ui(self):
+        url = self.bond_base_url + "/api/docs"
+        r = requests.get(url)
+        self.assertEqual(200, r.status_code)
+
+    def test_get_nonexistant_url(self):
+        url = self.bond_base_url + "/not/a/url/that/exists"
+        r = requests.get(url)
+        self.assertEqual(404, r.status_code)
+
 
 class CronApiTestCase(BaseApiTestCase):
     """Tests Bond APIs that are for GAE cron use."""
