@@ -1,4 +1,5 @@
 from datetime import datetime
+import logging
 from .jwt_token import JwtToken
 from .sam_api import SamKeys
 
@@ -51,8 +52,10 @@ class Bond:
         """
         token_response = self.oauth_adapter.exchange_authz_code(authz_code, redirect_uri)
         jwt_token = JwtToken(token_response.get(FenceKeys.ID_TOKEN), self.user_name_path_expr)
-        user_id = self.sam_api.user_info(user_info.token)[SamKeys.USER_ID_KEY]
+        user_id = self._fetch_user_id(user_info)
         if FenceKeys.REFRESH_TOKEN not in token_response:
+            logging.info(
+                "Exchange authz code did not include refresh token in response.\n{}".format(str(token_response)))
             raise exceptions.BadRequest("authorization response did not include " + FenceKeys.REFRESH_TOKEN)
         self.refresh_token_store.save(user_id, token_response.get(FenceKeys.REFRESH_TOKEN), jwt_token.issued_at,
                                       jwt_token.username, self.provider_name)
@@ -61,19 +64,21 @@ class Bond:
     def generate_access_token(self, user_info):
         """
         Given a user, lookup their refresh token and use it to generate a new refresh token from their OAuth
-        provider.  If a refresh token cannot be found for the user_id provided, a MissingTokenError will be raised.
+        provider.  If a refresh token cannot be found for the user_id provided, a NotFound will be raised.
         :param user_info: Information of the user who issued the request to Bond (not necessarily the same as
         the username for whom the refresh token was issued by the OAuth provider)
         :return: Two values: An Access Token string, datetime when that token expires
         """
-        user_id = self.sam_api.user_info(user_info.token)[SamKeys.USER_ID_KEY]
+        user_id = self._fetch_user_id(user_info)
         refresh_token = self.refresh_token_store.lookup(user_id, self.provider_name)
         if refresh_token is not None:
             token_response = self.oauth_adapter.refresh_access_token(refresh_token.token)
             expires_at = datetime.fromtimestamp(token_response.get(FenceKeys.EXPIRES_AT))
             return token_response.get("access_token"), expires_at
         else:
-            raise Bond.MissingTokenError("Could not find refresh token for user")
+            raise exceptions.NotFound(
+                "Could not find refresh token for user_id: {} provider_name: {}\nConsider relinking your account to Bond.".format(
+                    user_id, self.provider_name))
 
     def unlink_account(self, user_info):
         """
@@ -81,12 +86,16 @@ class Bond:
         :param user_info:
         :return:
         """
-        user_id = self.sam_api.user_info(user_info.token)[SamKeys.USER_ID_KEY]
+        user_id = self._fetch_user_id(user_info)
         refresh_token = self.refresh_token_store.lookup(user_id, self.provider_name)
         if refresh_token:
             self.fence_tvm.remove_service_account(user_id)
             self.oauth_adapter.revoke_refresh_token(refresh_token.token)
             self.refresh_token_store.delete(user_id, self.provider_name)
+        else:
+            logging.warning(
+                "Tried to remove user refresh token, but none was found: user_id: {}, provider_name: {}".format(user_id,
+                                                                                                                self.provider_name))
 
     def get_link_info(self, user_info):
         """
@@ -95,11 +104,14 @@ class Bond:
         the username for whom the refresh token was issued by the OAuth provider)
         :return: RefreshTokenInfo or None if not found.
         """
-        user_id = self.sam_api.user_info(user_info.token)[SamKeys.USER_ID_KEY]
+        user_id = self._fetch_user_id(user_info)
         return self.refresh_token_store.lookup(user_id, self.provider_name)
 
-    class MissingTokenError(Exception):
-        pass
+    def _fetch_user_id(self, user_info):
+        sam_result = self.sam_api.user_info(user_info.token)
+        if sam_result is None:
+            raise exceptions.Unauthorized("user not found in sam")
+        return sam_result[SamKeys.USER_ID_KEY]
 
 
 class FenceKeys:

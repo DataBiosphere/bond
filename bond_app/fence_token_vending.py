@@ -59,7 +59,6 @@ class FenceTokenVendingMachine:
         (key_json, expiration_datetime) = self.fence_token_storage.retrieve(
             provider_user, prep_key_fn=self._get_oauth_access_token,
             fence_fetch_fn=self.fence_api.get_credentials_google)
-
         seconds_to_expire = (expiration_datetime - datetime.datetime.now()).total_seconds()
         self.cache_api.add(namespace=self.provider_name, key=user_info.id, value=key_json, expires_in=seconds_to_expire)
         return key_json
@@ -73,6 +72,6 @@ class FenceTokenVendingMachine:
     def _get_oauth_access_token(self, provider_user):
         refresh_token = self.refresh_token_store.lookup(provider_user.user_id, self.provider_name)
         if refresh_token is None:
-            raise exceptions.BadRequest("Fence account not linked")
+            raise exceptions.NotFound("Fence account not linked. {}".format(str(provider_user)))
         access_token = self.fence_oauth_adapter.refresh_access_token(refresh_token.token).get(FenceKeys.ACCESS_TOKEN)
         return access_token

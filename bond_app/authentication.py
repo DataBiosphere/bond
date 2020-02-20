@@ -32,8 +32,8 @@ def _token_info(token):
     result = requests.get(
         '{}?{}'.format(_TOKENINFO_URL, urllib.parse.urlencode({'access_token': token})))
 
-    if result.status_code == 400:
-        raise exceptions.Unauthorized("Invalid authorization token")
+    if result.status_code == 400 or result.status_code == 404:
+        raise exceptions.Unauthorized("Invalid authorization token. {}".format(result.content))
     if result.status_code != 200:
         raise exceptions.InternalServerError('Token info endpoint returned status {}: {}'.format(result.status_code, result.content))
 

@@ -170,7 +170,7 @@ def link_info(provider):
     if refresh_token:
         return protojson.encode_message(LinkInfoResponse(issued_at=refresh_token.issued_at, username=refresh_token.username))
     else:
-        raise exceptions.NotFound("{} link does not exist".format(provider))
+        raise exceptions.NotFound("{} link does not exist. Consider re-linking your account.".format(provider))
 
 
 @routes.route(v1_link_route_base + '/<provider>', methods=["DELETE"], strict_slashes=False)
@@ -183,12 +183,8 @@ def delete_link(provider):
 @routes.route(v1_link_route_base + '/<provider>/accesstoken', methods=["GET"])
 def accesstoken(provider):
     user_info = auth.require_user_info(request)
-    try:
-        access_token, expires_at = _get_provider(provider).bond.generate_access_token(user_info)
-        return protojson.encode_message(AccessTokenResponse(token=access_token, expires_at=expires_at))
-    except Bond.MissingTokenError as err:
-        # TODO: I don't like throwing and rethrowing exceptions
-        raise exceptions.BadRequest(str(err))
+    access_token, expires_at = _get_provider(provider).bond.generate_access_token(user_info)
+    return protojson.encode_message(AccessTokenResponse(token=access_token, expires_at=expires_at))
 
 
 @routes.route(v1_link_route_base + '/<provider>/serviceaccount/key', methods=["GET"], strict_slashes=False)
@@ -220,7 +216,7 @@ def authorization_url(args, provider):
 def clear_expired_datastore_entries():
     # Only allow Appengine cron to hit this endpoint.
     if not request.headers.get("X-Appengine-Cron"):
-        raise exceptions.Unauthorized('Missing required cron header.')
+        raise exceptions.Forbidden('Missing required cron header.')
     DatastoreCacheApi.delete_expired_entries()
     return '', 204
 
