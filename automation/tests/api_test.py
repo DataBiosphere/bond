@@ -52,6 +52,23 @@ class PublicApiTestCase(BaseApiTestCase):
         validate(instance=response_json_dict, schema=json_schema_test_get_auth_url_with_only_redirect_param)
 
 
+class CronApiTestCase(BaseApiTestCase):
+    """Tests Bond APIs that are for GAE cron use."""
+    CRON_HEADER = {"X-Appengine-Cron": "true"}
+
+    def test_clear_cache_with_cron_header(self):
+        url = self.bond_base_url + "/api/link/v1/clear-expired-cache-datastore-entries"
+        r = requests.get(url, headers=CronApiTestCase.CRON_HEADER)
+        self.assertEqual(204, r.status_code)
+
+    def test_clear_cache_without_cron_header(self):
+        url = self.bond_base_url + "/api/link/v1/clear-expired-cache-datastore-entries"
+        r = requests.get(url, headers={})
+        self.assertEqual(401, r.status_code)
+        response_json_dict = json.loads(r.text)
+        self.assertEqual("Missing required cron header.", response_json_dict["error"]["message"])
+
+
 class AuthorizedBaseCase(BaseApiTestCase):
     """
     Provides UserCredentials objects for obtaining OAuth2 Access Tokens that we can use as bearer tokens during
@@ -200,6 +217,13 @@ class LinkedUserTestCase(AuthorizedBaseCase):
         self.assertEqual(200, r.status_code, "Response code was not 200.  Response Body: %s" % r.text)
         response_json_dict = json.loads(r.text)
         validate(instance=response_json_dict, schema=json_schema_test_get_serviceaccount_key)
+
+    def test_get_serviceaccount_accesstoken(self):
+        url = self.bond_base_url + "/api/link/v1/" + self.provider + "/serviceaccount/accesstoken"
+        r = requests.get(url, headers=self.bearer_token_header(LinkedUserTestCase.token))
+        self.assertEqual(200, r.status_code, "Response code was not 200.  Response Body: %s" % r.text)
+        response_json_dict = json.loads(r.text)
+        validate(instance=response_json_dict, schema=json_schema_test_get_serviceaccount_accesstoken)
 
 
 class UnlinkLinkedUserTestCase(AuthorizedBaseCase):

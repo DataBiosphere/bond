@@ -5,6 +5,7 @@ from werkzeug import exceptions
 from .bond import FenceKeys
 from .fence_token_storage import ProviderUser
 from google.oauth2 import service_account
+import google.auth.transport.requests
 from .sam_api import SamKeys
 
 
@@ -40,7 +41,8 @@ class FenceTokenVendingMachine:
             scopes = ["email", "profile"]
         key_json = self.get_service_account_key_json(user_info)
         credentials = service_account.Credentials.from_service_account_info(json.loads(key_json), scopes=scopes)
-        return credentials.get_access_token().access_token
+        credentials.refresh(google.auth.transport.requests.Request())
+        return credentials.token
 
     def get_service_account_key_json(self, user_info):
         """

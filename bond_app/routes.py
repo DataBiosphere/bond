@@ -139,20 +139,21 @@ authentication_config = authentication.AuthenticationConfig(config.get('bond_acc
                                                             os.environ.get('BOND_MAX_TOKEN_LIFE', 600))
 auth = authentication.Authentication(authentication_config, cache_api)
 
-api_routes_base = '/api/link/v1'
-
+api_version = 'v1'
+link_api_routes_base = '/api/link/'
+v1_link_route_base = link_api_routes_base + api_version
 
 @routes.route('/')
 def root():
     return "Bond - Account Linking Service"
 
 
-@routes.route(api_routes_base + '/providers', methods=["GET"])
+@routes.route(v1_link_route_base + '/providers', methods=["GET"], strict_slashes=False)
 def list_providers():
     return protojson.encode_message(ListProvidersResponse(providers=list(bond_providers.keys())))
 
 
-@routes.route(api_routes_base + '/<provider>/oauthcode', methods=["POST"])
+@routes.route(v1_link_route_base + '/<provider>/oauthcode', methods=["POST"], strict_slashes=False)
 @use_args({"oauthcode": fields.Str(required=True),
            "redirect_uri": fields.Str(required=True)},
           locations=("querystring",))
@@ -162,7 +163,7 @@ def oauthcode(args, provider):
     return protojson.encode_message(LinkInfoResponse(issued_at=issued_at, username=username))
 
 
-@routes.route(api_routes_base + '/<provider>', methods=["GET"])
+@routes.route(v1_link_route_base + '/<provider>', methods=["GET"], strict_slashes=False)
 def link_info(provider):
     user_info = auth.require_user_info(request)
     refresh_token = _get_provider(provider).bond.get_link_info(user_info)
@@ -172,14 +173,14 @@ def link_info(provider):
         raise exceptions.NotFound("{} link does not exist".format(provider))
 
 
-@routes.route(api_routes_base + '/<provider>', methods=["DELETE"])
+@routes.route(v1_link_route_base + '/<provider>', methods=["DELETE"], strict_slashes=False)
 def delete_link(provider):
     user_info = auth.require_user_info(request)
     _get_provider(provider).bond.unlink_account(user_info)
     return protojson.encode_message(message_types.VoidMessage()), 204
 
 
-@routes.route(api_routes_base + '/<provider>/accesstoken', methods=["GET"])
+@routes.route(v1_link_route_base + '/<provider>/accesstoken', methods=["GET"])
 def accesstoken(provider):
     user_info = auth.require_user_info(request)
     try:
@@ -190,14 +191,14 @@ def accesstoken(provider):
         raise exceptions.BadRequest(str(err))
 
 
-@routes.route(api_routes_base + '/<provider>/serviceaccount/key', methods=["GET"])
+@routes.route(v1_link_route_base + '/<provider>/serviceaccount/key', methods=["GET"], strict_slashes=False)
 def service_account_key(provider):
     user_info = auth.require_user_info(request)
     return protojson.encode_message(ServiceAccountKeyResponse(data=json.loads(
         _get_provider(provider).fence_tvm.get_service_account_key_json(user_info))))
 
 
-@routes.route(api_routes_base + '/<provider>/serviceaccount/accesstoken', methods=["GET"])
+@routes.route(v1_link_route_base + '/<provider>/serviceaccount/accesstoken', methods=["GET"], strict_slashes=False)
 @use_args({"scopes": fields.List(fields.Str(), missing=None)},
           locations=("querystring",))
 def service_account_accesstoken(args, provider):
@@ -205,7 +206,7 @@ def service_account_accesstoken(args, provider):
     return protojson.encode_message(ServiceAccountAccessTokenResponse(token=_get_provider(provider).fence_tvm.get_service_account_access_token(user_info, args['scopes'])))
 
 
-@routes.route(api_routes_base + '/<provider>/authorization-url', methods=["GET"])
+@routes.route(v1_link_route_base + '/<provider>/authorization-url', methods=["GET"], strict_slashes=False)
 @use_args({"scopes": fields.List(fields.Str(), missing=None),
            "redirect_uri": fields.Str(required=True),
            "state": fields.Str(missing=None)},
@@ -215,7 +216,7 @@ def authorization_url(args, provider):
     return protojson.encode_message((AuthorizationUrlResponse(url=authz_url)))
 
 
-@routes.route(api_routes_base + '/clear-expired-cache-datastore-entries', methods=["POST"])
+@routes.route(v1_link_route_base + '/clear-expired-cache-datastore-entries', methods=["GET"], strict_slashes=False)
 def clear_expired_datastore_entries():
     # Only allow Appengine cron to hit this endpoint.
     if not request.headers.get("X-Appengine-Cron"):

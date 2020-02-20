@@ -671,6 +671,19 @@ json_schema_test_get_serviceaccount_key = {
     }
   }
 }
+json_schema_test_get_serviceaccount_accesstoken = {
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "required": [
+    "token"
+  ],
+  "properties": {
+    "token": {
+      "type": "string",
+      "pattern": "ya29"
+    }
+  }
+}
 
 """Json Schemas for UnlinkLinkedUserTestCase tests"""
 json_schema_test_delete_link_for_linked_user = ""  # Delete call returns an empty body
