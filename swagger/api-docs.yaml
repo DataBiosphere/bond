@@ -48,7 +48,7 @@ components:
       description: Use your GCP auth token, i.e. `gcloud auth print-access-token`
 
 paths:
-  /api/link/vi/{provider}:
+  /api/link/v1/{provider}:
     get:
       summary: Returns info about the linked account for the provider, if an account has been linked.
       parameters:
@@ -87,7 +87,7 @@ paths:
                       type: string
                       example: dcf-fence
 
-  /api/link/vi/{provider}/accesstoken:
+  /api/link/v1/{provider}/accesstoken:
     get:
       summary: Gets a new access token from the provider if the account has been linked.
       parameters:
