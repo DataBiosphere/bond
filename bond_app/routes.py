@@ -75,11 +75,18 @@ class AuthorizationUrlResponse(messages.Message):
     url = messages.StringField(1)
 
 
+def json_response(message):
+    """Given a protorpc message, return a json response tuple understood by flask: (json, status code, headers)"""
+    return protojson.encode_message(message), 200, {'Content-Type': 'application/json'}
+
+
 config = configparser.ConfigParser()
 config.read("config.ini")
 
+
 def is_provider(section_name):
     return section_name != 'sam' and section_name != 'bond_accepted'
+
 
 def create_provider(provider_name):
     client_id = config.get(provider_name, 'CLIENT_ID')
@@ -143,6 +150,7 @@ api_version = 'v1'
 link_api_routes_base = '/api/link/'
 v1_link_route_base = link_api_routes_base + api_version
 
+
 @routes.route('/')
 def root():
     return "Bond - Account Linking Service"
@@ -150,7 +158,7 @@ def root():
 
 @routes.route(v1_link_route_base + '/providers', methods=["GET"], strict_slashes=False)
 def list_providers():
-    return protojson.encode_message(ListProvidersResponse(providers=list(bond_providers.keys())))
+    return json_response(ListProvidersResponse(providers=list(bond_providers.keys())))
 
 
 @routes.route(v1_link_route_base + '/<provider>/oauthcode', methods=["POST"], strict_slashes=False)
@@ -159,8 +167,9 @@ def list_providers():
           locations=("querystring",))
 def oauthcode(args, provider):
     user_info = auth.require_user_info(request)
-    issued_at, username = _get_provider(provider).bond.exchange_authz_code(args['oauthcode'], args['redirect_uri'], user_info)
-    return protojson.encode_message(LinkInfoResponse(issued_at=issued_at, username=username))
+    issued_at, username = _get_provider(provider).bond.exchange_authz_code(args['oauthcode'], args['redirect_uri'],
+                                                                           user_info)
+    return json_response(LinkInfoResponse(issued_at=issued_at, username=username))
 
 
 @routes.route(v1_link_route_base + '/<provider>', methods=["GET"], strict_slashes=False)
@@ -168,7 +177,7 @@ def link_info(provider):
     user_info = auth.require_user_info(request)
     refresh_token = _get_provider(provider).bond.get_link_info(user_info)
     if refresh_token:
-        return protojson.encode_message(LinkInfoResponse(issued_at=refresh_token.issued_at, username=refresh_token.username))
+        return json_response(LinkInfoResponse(issued_at=refresh_token.issued_at, username=refresh_token.username))
     else:
         raise exceptions.NotFound("{} link does not exist. Consider re-linking your account.".format(provider))
 
@@ -177,20 +186,20 @@ def link_info(provider):
 def delete_link(provider):
     user_info = auth.require_user_info(request)
     _get_provider(provider).bond.unlink_account(user_info)
-    return protojson.encode_message(message_types.VoidMessage()), 204
+    return '', 204
 
 
 @routes.route(v1_link_route_base + '/<provider>/accesstoken', methods=["GET"])
 def accesstoken(provider):
     user_info = auth.require_user_info(request)
     access_token, expires_at = _get_provider(provider).bond.generate_access_token(user_info)
-    return protojson.encode_message(AccessTokenResponse(token=access_token, expires_at=expires_at))
+    return json_response(AccessTokenResponse(token=access_token, expires_at=expires_at))
 
 
 @routes.route(v1_link_route_base + '/<provider>/serviceaccount/key', methods=["GET"], strict_slashes=False)
 def service_account_key(provider):
     user_info = auth.require_user_info(request)
-    return protojson.encode_message(ServiceAccountKeyResponse(data=json.loads(
+    return json_response(ServiceAccountKeyResponse(data=json.loads(
         _get_provider(provider).fence_tvm.get_service_account_key_json(user_info))))
 
 
@@ -199,7 +208,8 @@ def service_account_key(provider):
           locations=("querystring",))
 def service_account_accesstoken(args, provider):
     user_info = auth.require_user_info(request)
-    return protojson.encode_message(ServiceAccountAccessTokenResponse(token=_get_provider(provider).fence_tvm.get_service_account_access_token(user_info, args['scopes'])))
+    return json_response(ServiceAccountAccessTokenResponse(
+        token=_get_provider(provider).fence_tvm.get_service_account_access_token(user_info, args['scopes'])))
 
 
 @routes.route(v1_link_route_base + '/<provider>/authorization-url', methods=["GET"], strict_slashes=False)
@@ -209,7 +219,7 @@ def service_account_accesstoken(args, provider):
           locations=("querystring",))
 def authorization_url(args, provider):
     authz_url = _get_provider(provider).bond.build_authz_url(args['scopes'], args['redirect_uri'], args['state'])
-    return protojson.encode_message((AuthorizationUrlResponse(url=authz_url)))
+    return json_response((AuthorizationUrlResponse(url=authz_url)))
 
 
 @routes.route(v1_link_route_base + '/clear-expired-cache-datastore-entries', methods=["GET"], strict_slashes=False)
@@ -233,11 +243,11 @@ def get_status():
 
     subsystems = status_service.get()
     ok = all(subsystem["ok"] for subsystem in subsystems)
-    response = protojson.encode_message(StatusResponse(ok=ok,
-                              subsystems=[SubSystemStatusResponse(ok=subsystem["ok"],
-                                                                  message=subsystem["message"],
-                                                                  subsystem=subsystem["subsystem"])
-                                          for subsystem in subsystems]))
+    response = json_response(StatusResponse(ok=ok,
+                                            subsystems=[SubSystemStatusResponse(ok=subsystem["ok"],
+                                                                                message=subsystem["message"],
+                                                                                subsystem=subsystem["subsystem"])
+                                                        for subsystem in subsystems]))
     if ok:
         return response
     else:
