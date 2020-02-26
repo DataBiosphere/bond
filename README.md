@@ -1,7 +1,7 @@
 # Bond
 
 Service for linking [Sam](https://github.com/broadinstitute/sam) User accounts with registered 3rd party services via
-Oauth2. Bond is a [Google Endpoints](https://cloud.google.com/endpoints/) application written in Python 2.7.
+Oauth2. Bond is a Flask application written in Python 3.7 deployed on Google App Engine.
 
 # Setup
 
@@ -31,7 +31,7 @@ When you are ready to exit or deactivate your Bond virtualenv, just type the com
 
 Bond has unit tests, integration tests, and automation tests. 
 
-Bond supports test runners: [unittest](https://docs.python.org/2/library/unittest.html).
+Bond supports test runners: [unittest](https://docs.python.org/3/library/unittest.html).
 
 ## Unit tests
 
@@ -103,13 +103,13 @@ Choose one of the options below:
 a) To run an existing image:
 
 1) Browse the available tags [here](https://quay.io/repository/databiosphere/bond?tag=latest&tab=tags)
-2) With your tag of choice (such as `develop`), run `docker run -v $PWD/config.ini:/app/config.ini -v $PWD/app.yaml:/app/app.yaml -p=8080:8080 quay.io/databiosphere/bond:{TAG}`
+2) With your tag of choice (such as `develop`), run `IMAGE_ID=quay.io/databiosphere/bond:{TAG} docker-compose -f docker/local-docker-compose.yml up`
 3) Check http://localhost:8080/api/status/v1/status to make sure you're up and running
 
 b) Run your local code:
 
 1) Build your image: `docker build -f docker/Dockerfile .`
-2) Grab the Image ID and run: `docker run -v $PWD/config.ini:/app/config.ini -v $PWD/app.yaml:/app/app.yaml -p=8080:8080 {IMAGE_ID}`
+2) Grab the Image ID and run: `IMAGE_ID={your image id} docker-compose -f docker/local-docker-compose.yml up`
 3) Check http://localhost:8080/api/status/v1/status to make sure you're up and running
 
 # Deployment (for Broad only)
