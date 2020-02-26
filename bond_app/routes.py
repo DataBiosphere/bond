@@ -251,5 +251,5 @@ def get_status():
     if ok:
         return response
     else:
-        logging.warning("Bond status NOT OK:\n%s" % response)
-        raise exceptions.InternalServerError(response)
+        logging.warning("Bond status NOT OK:\n%s" % response[0])
+        raise exceptions.InternalServerError(response[0])
