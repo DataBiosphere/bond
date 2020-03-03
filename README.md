@@ -91,7 +91,7 @@ Then, start a local flask server.
 
 ```run_local.sh```
 
-You can check [http://localhost:8080/api/status/v1/status](http://localhost:8080/api/status/v1/status) to make sure you're up and running.
+You can check [http://127.0.0.1:8080/api/status/v1/status](http://127.0.0.1:8080/api/status/v1/status) to make sure you're up and running.
 
 You can also check [http://0.0.0.0:8432](http://0.0.0.0:8432) which should show 'Ok' if the datastore emulator is working properly.
 
@@ -104,13 +104,13 @@ a) To run an existing image:
 
 1) Browse the available tags [here](https://quay.io/repository/databiosphere/bond?tag=latest&tab=tags)
 2) With your tag of choice (such as `develop`), run `IMAGE_ID=quay.io/databiosphere/bond:{TAG} docker-compose -f docker/local-docker-compose.yml up`
-3) Check http://localhost:8080/api/status/v1/status to make sure you're up and running
+3) Check http://127.0.0.1:8080/api/status/v1/status to make sure you're up and running
 
 b) Run your local code:
 
 1) Build your image: `docker build -f docker/Dockerfile .`
 2) Grab the Image ID and run: `IMAGE_ID={your image id} docker-compose -f docker/local-docker-compose.yml up`
-3) Check http://localhost:8080/api/status/v1/status to make sure you're up and running
+3) Check http://127.0.0.1:8080/api/status/v1/status to make sure you're up and running
 
 # Deployment (for Broad only)
 
