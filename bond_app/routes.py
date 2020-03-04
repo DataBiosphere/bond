@@ -133,7 +133,7 @@ class BondProvider:
         self.bond = bond
 
 
-routes = Blueprint('bond', __name__, '/')
+routes = Blueprint('bond', __name__)
 
 cache_api = DatastoreCacheApi()
 refresh_token_store = TokenStore()
