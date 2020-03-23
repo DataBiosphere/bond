@@ -98,6 +98,9 @@ You can also check [http://0.0.0.0:8432](http://0.0.0.0:8432) which should show 
 
 ## Run in a Docker container
 
+First, render configs (see above). If you try to run the docker compose before rendering, subsequent rendering may not
+work. Try removing created directories and re-rendering.
+
 Choose one of the options below:
 
 a) To run an existing image:
