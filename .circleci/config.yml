@@ -55,6 +55,19 @@ jobs:
             ./tests/datastore_emulator/test.sh
 
 
+  # Exit with a non-zero exit code if issues found
+  security-analysis:
+    executor: circleci/python:3.7.4-stretch-node
+    steps:
+      - checkout
+      - run:
+          name: "Install bento for continuous security analysis"
+          command: pip3 install bento-cli && bento --version
+      - run: 
+          name: "Run security checks"
+          command: bento --agree --email=adrazhi@broadinstitute.org check --all 2>&1 | cat
+
+
   build-docker-image:
     docker:
       - image: circleci/python:3.7.4
