@@ -63,7 +63,7 @@ jobs:
       - checkout
       - run:
           name: "Install bento for continuous security analysis"
-          command: pip3 install bento-cli && bento --version
+          command: pip3 install bento-cli --user && bento --version 
       - run: 
           name: "Run security checks"
           command: bento --agree --email=adrazhi@broadinstitute.org check --all 2>&1 | cat
