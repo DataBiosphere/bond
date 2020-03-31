@@ -57,7 +57,8 @@ jobs:
 
   # Exit with a non-zero exit code if issues found
   security-analysis:
-    executor: circleci/python:3.7.4-stretch-node
+    docker:
+      - image: circleci/python:3.7.4
     steps:
       - checkout
       - run:
