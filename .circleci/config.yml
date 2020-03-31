@@ -122,6 +122,7 @@ workflows:
   test-and-tag:
     jobs:
       - test
+      - security-analysis
       - tag:
           requires:
             - test
