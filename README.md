@@ -98,19 +98,26 @@ You can also check [http://0.0.0.0:8432](http://0.0.0.0:8432) which should show 
 
 ## Run in a Docker container
 
+First, render configs (see above). If you try to run the docker compose before rendering, subsequent rendering may not
+work. `docker-compose` may create directories when it tries to access configuration files that do not exist. Try
+removing created directories (e.g. remove `config.ini` which should be created from `config.ini.ctmpl`) and
+re-rendering.
+
 Choose one of the options below:
 
-a) To run an existing image:
+A) To run an existing image:
 
-1) Browse the available tags [here](https://quay.io/repository/databiosphere/bond?tag=latest&tab=tags)
-2) With your tag of choice (such as `develop`), run `IMAGE_ID=quay.io/databiosphere/bond:{TAG} docker-compose -f docker/local-docker-compose.yml up`
-3) Check http://127.0.0.1:8080/api/status/v1/status to make sure you're up and running
+1) Render configs.
+2) Browse the available tags [here](https://quay.io/repository/databiosphere/bond?tag=latest&tab=tags)
+3) With your tag of choice (such as `develop`), run `IMAGE_ID=quay.io/databiosphere/bond:{TAG} docker-compose -f docker/local-docker-compose.yml up`
+4) Check http://127.0.0.1:8080/api/status/v1/status to make sure you're up and running
 
-b) Run your local code:
+B) Run your local code:
 
-1) Build your image: `docker build -f docker/Dockerfile .`
-2) Grab the Image ID and run: `IMAGE_ID={your image id} docker-compose -f docker/local-docker-compose.yml up`
-3) Check http://127.0.0.1:8080/api/status/v1/status to make sure you're up and running
+1) Render configs.
+2) Build your image: `docker build -f docker/Dockerfile .`
+3) Grab the Image ID and run: `IMAGE_ID={your image id} docker-compose -f docker/local-docker-compose.yml up`
+4) Check http://127.0.0.1:8080/api/status/v1/status to make sure you're up and running
 
 # Deployment (for Broad only)
 
