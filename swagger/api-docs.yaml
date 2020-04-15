@@ -58,6 +58,8 @@ paths:
           $ref: '#/components/responses/LinkInfoResponse'
         '404':
           $ref: '#/components/responses/LinkNotFound'
+      security:
+        - googleAuth: []
     delete:
       summary: Delete the account link for the provider, if an account has been linked.
       parameters:
