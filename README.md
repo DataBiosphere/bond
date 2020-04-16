@@ -141,20 +141,49 @@ deployment of the `develop` branch will be triggered if anyone commits or pushes
    the `SLACK_CHANNEL` that you would like to receive notifications of the deploy jobs success/failure  
 1. Click the `Build` button
 
-## Deploy to the "prod" environment
+## Production Deployment Checklist
 
-Production deployments are very similar to deployments for any other environment.  The few differences are that you may 
-only deploy to Production from the prod Jenkins instance, and you are only allowed to deploy tags, not branches.
+When doing a production deployment, each step of the checklist must be performed.
 
-1. Create a `git tag` for the commit that you want to release and push it to the [Bond repository on Github](https://github.com/DataBiosphere/bond)
-1. Log in to [Prod Jenkins](https://fcprod-jenkins.dsp-techops.broadinstitute.org/)
-1. Navigate to the [bond-manual-deploy](https://fcprod-jenkins.dsp-techops.broadinstitute.org/view/Indie%20Deploys/job/bond-manual-deploy/)
-   job
-1. In the left menu, click [Build with Parameters](https://fcprod-jenkins.dsp-techops.broadinstitute.org/view/Indie%20Deploys/job/bond-manual-deploy/build?delay=0sec)
-   and select the `TAG` that you want to deploy, select `prod` as the `TARGET` environment to which you want to deploy, 
-   and enter the `SLACK_CHANNEL` that you would like to receive notifications of the deploy 
-   jobs success/failure  
-1. Click the `Build` button
+### Production Deployment Preparation
+
+- [ ] When the latest code passes tests in CircleCI, it is tagged `dev_tests_passed_[timestamp]` where `[timestamp]` is the
+      epoch time when the tag was created.  Confirm that this tag was created for the commit you wish to deploy.
+- [ ] Create and push a new [semver](https://semver.org/) tag for this same commit.  You should look at the existing tags 
+      to ensure that the tag is incremented properly based on the last released version.  Tags should be plain semver numbers 
+      like `1.0.0` and should not have any additional prefix like `v1.0.0` or `releases/1.0.0`.  Suffixes are permitted so 
+      long as they conform to the [semver spec](https://semver.org/).
+- [ ] In Jira, make sure the Bond Release exists or create a new one in the [Cloud Integration Project](https://broadworkbench.atlassian.net/projects/CA?selectedItem=com.atlassian.jira.jira-projects-plugin%3Arelease-page)
+      named like: `Bond-X.Y.Z` where `X.Y.Z` is the same semantic version number you created in the previous step.
+- [ ] For each Jira Issue included in this release, set the `Fix Version` field to the release name you created in the
+      previous step.  The status of each of these issues should be: "Merged to Dev".  If the status is something else,
+      then either: the issue should not be included in the release, the release is not ready, or the issue has already 
+      been released.
+
+### Deploy and Test
+You must deploy to each tier one-by-one and [manually test](https://docs.google.com/document/d/1-SXw-tgt1tb3FEuNCGHWIZJ304POmfz5ragpphlq2Ng/edit?ts=5e964fbe#)
+in each tier after you deploy to it.  Your deployment to a tier should not be considered complete until you have 
+successfully executed each step of the [manual test](https://docs.google.com/document/d/1-SXw-tgt1tb3FEuNCGHWIZJ304POmfz5ragpphlq2Ng/edit?ts=5e964fbe#)
+on that tier.  To deploy the application code, navigate to the [Bond Manual Deploy](https://fc-jenkins.dsp-techops.broadinstitute.org/view/Indie%20Deploys/job/bond-manual-deploy/)
+job and click the "Build with Parameters" link.  Select the `TAG` that you just created during the preparation steps and
+the `TIER` to which you want to deploy:
+    
+- [ ] `dev` deploy job succeeded and [manual test](https://docs.google.com/document/d/1-SXw-tgt1tb3FEuNCGHWIZJ304POmfz5ragpphlq2Ng/edit?ts=5e964fbe#) passed 
+      - (Technically, this same commit is probably already running on `dev` courtesy of the automatic `dev` deployment 
+      job. However, deploying again is an important step because someone else may have triggered a `dev` deployment and 
+      we want to ensure that you understand the deployment process, the deployment tools are working properly, and that 
+      everything is working as intended.)
+- [ ] `alpha` deploy job succeeded and [manual test](https://docs.google.com/document/d/1-SXw-tgt1tb3FEuNCGHWIZJ304POmfz5ragpphlq2Ng/edit?ts=5e964fbe#) passed
+- [ ] `staging` deploy job succeeded and [manual test](https://docs.google.com/document/d/1-SXw-tgt1tb3FEuNCGHWIZJ304POmfz5ragpphlq2Ng/edit?ts=5e964fbe#) passed
+- [ ] `prod` deploy job succeeded and [manual test](https://docs.google.com/document/d/1-SXw-tgt1tb3FEuNCGHWIZJ304POmfz5ragpphlq2Ng/edit?ts=5e964fbe#) passed
+      - In order to deploy to `prod`, you must be on the DSP Suitability Roster.  You will need to log into the 
+      production Jenkins instance and use the "Bond Manual Deploy" job to release the same tag to production.
+
+**NOTE:** 
+* It is important that you deploy to all tiers.  Because Bond is an "indie service", we should strive to make sure
+that all tiers other than `dev` are kept in sync and are running the same versions of code.  This is essential so that
+as other DSP services are tested during their release process, they can ensure that their code will work properly with 
+the latest version of Bond running in `prod`. 
 
 # Git Secrets
 
