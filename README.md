@@ -143,6 +143,10 @@ deployment of the `develop` branch will be triggered if anyone commits or pushes
 
 ## Production Deployment Checklist
 
+When doing a production deployment, each step of the checklist must be performed.
+
+### Production Deployment Preparation
+
 - [ ] When the latest code passes tests in CircleCI, it is tagged `dev_tests_passed_[timestamp]` where `[timestamp]` is the
       epoch time when the tag was created.  Confirm that this tag was created for the commit you wish to deploy.
 - [ ] Create and push a new [semver](https://semver.org/) tag for this same commit.  You should look at the existing tags 
@@ -152,15 +156,17 @@ deployment of the `develop` branch will be triggered if anyone commits or pushes
 - [ ] In Jira, make sure the Bond Release exists or create a new one in the [Cloud Integration Project](https://broadworkbench.atlassian.net/projects/CA?selectedItem=com.atlassian.jira.jira-projects-plugin%3Arelease-page)
       named like: `Bond-X.Y.Z` where `X.Y.Z` is the same semantic version number you created in the previous step.
 - [ ] For each Jira Issue included in this release, set the `Fix Version` field to the release name you created in the
-      previous step.
-- [ ] Navigate to [Bond Manual Deploy](https://fc-jenkins.dsp-techops.broadinstitute.org/view/Indie%20Deploys/job/bond-manual-deploy/)
-      and click the "Build with Parameters" link.  Select the `TAG` that you just created and the tier to which you want
-      to deploy.
+      previous step.  The status of each of these issues should be: "Merged to Dev".  If the status is something else,
+      then either: the issue should not be included in the release, the release is not ready, or the issue has already 
+      been released.
 
-You must deploy to each of the following tiers one-by-one and [manually test](https://docs.google.com/document/d/1-SXw-tgt1tb3FEuNCGHWIZJ304POmfz5ragpphlq2Ng/edit?ts=5e964fbe#)
+### Deploy and Test
+You must deploy to each tier one-by-one and [manually test](https://docs.google.com/document/d/1-SXw-tgt1tb3FEuNCGHWIZJ304POmfz5ragpphlq2Ng/edit?ts=5e964fbe#)
 in each tier after you deploy to it.  Your deployment to a tier should not be considered complete until you have 
 successfully executed each step of the [manual test](https://docs.google.com/document/d/1-SXw-tgt1tb3FEuNCGHWIZJ304POmfz5ragpphlq2Ng/edit?ts=5e964fbe#)
-on that tier:
+on that tier.  To deploy the application code, navigate to the [Bond Manual Deploy](https://fc-jenkins.dsp-techops.broadinstitute.org/view/Indie%20Deploys/job/bond-manual-deploy/)
+job and click the "Build with Parameters" link.  Select the `TAG` that you just created during the preparation steps and
+the `TIER` to which you want to deploy:
     
 - [ ] `dev` deploy job succeeded and [manual test](https://docs.google.com/document/d/1-SXw-tgt1tb3FEuNCGHWIZJ304POmfz5ragpphlq2Ng/edit?ts=5e964fbe#) passed 
       - (Technically, this same commit is probably already running on `dev` courtesy of the automatic `dev` deployment 
