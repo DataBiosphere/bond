@@ -178,6 +178,9 @@ the `TIER` to which you want to deploy:
 - [ ] `prod` deploy job succeeded and [manual test](https://docs.google.com/document/d/1-SXw-tgt1tb3FEuNCGHWIZJ304POmfz5ragpphlq2Ng/edit?ts=5e964fbe#) passed
       - In order to deploy to `prod`, you must be on the DSP Suitability Roster.  You will need to log into the 
       production Jenkins instance and use the "Bond Manual Deploy" job to release the same tag to production.
+- [ ] In Jira, transition all tickets in the Release to "Done"
+- [ ] Navigate to the [Releases Page](https://broadworkbench.atlassian.net/projects/CA?selectedItem=com.atlassian.jira.jira-projects-plugin%3Arelease-page)
+      in Jira and mark the version as "Released"
 
 **NOTE:** 
 * It is important that you deploy to all tiers.  Because Bond is an "indie service", we should strive to make sure
