@@ -26,6 +26,7 @@ class OauthAdapterTestCase(unittest.TestCase):
         OauthAdapterTestCase.config = configparser.ConfigParser()
         OauthAdapterTestCase.config.read("config.ini")
         OauthAdapterTestCase.oauth_adapters = OauthAdapterTestCase.init_oauth_adapters(OauthAdapterTestCase.config)
+        print("Testing %i provider(s) per test: [%s]" % (len(OauthAdapterTestCase.oauth_adapters), list(OauthAdapterTestCase.oauth_adapters)))
         OauthAdapterTestCase.authz_responses = OauthAdapterTestCase.authorize_with_providers(OauthAdapterTestCase.oauth_adapters)
 
     @classmethod

@@ -21,6 +21,13 @@ OPEN_ID_CONFIG_URL=https://storage.googleapis.com/wb-dev-mock-provider/well-know
 USER_NAME_PATH_EXPR=/username
 FENCE_BASE_URL=https://us-central1-broad-dsde-dev.cloudfunctions.net
 
+[anvil]
+CLIENT_ID=ignored
+CLIENT_SECRET=ignored
+OPEN_ID_CONFIG_URL=https://storage.googleapis.com/wb-dev-mock-provider/well-known.json
+USER_NAME_PATH_EXPR=/username
+FENCE_BASE_URL=https://us-central1-broad-dsde-dev.cloudfunctions.net
+
 {{else if eq $environment "prod"}}
 [fence]
 CLIENT_ID={{ $secrets.Data.client_id }}
