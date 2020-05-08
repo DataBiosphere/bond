@@ -217,6 +217,11 @@ Once installed, you can add the following patterns:
 git secrets --add 'CLIENT_ID\s*=\s*.+'
 git secrets --add 'CLIENT_SECRET\s*=\s*.+'
 git secrets --add --allowed 'REPLACE_ME'
-git secrets --add --allowed '\{\{ \$fenceSecrets\.Data\.client_id \}\}'
-git secrets --add --allowed '\{\{ \$fenceSecrets\.Data\.client_secret \}\}'
+git secrets --add --allowed 'ignored'
+git secrets --add --allowed '\{\{ \$secrets\.Data\.client_id \}\}'
+git secrets --add --allowed '\{\{ \$secrets\.Data\.client_secret \}\}'
+git secrets --add --allowed '\{\{ \$secrets\.Data\.dcf_fence_client_id \}\}'
+git secrets --add --allowed '\{\{ \$secrets\.Data\.dcf_fence_client_secret \}\}'
+git secrets --add --allowed '\{\{ \$secrets\.Data\.anvil_client_id \}\}'
+git secrets --add --allowed '\{\{ \$secrets\.Data\.anvil_secret \}\}'
 ```
