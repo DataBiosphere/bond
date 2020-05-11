@@ -1,15 +1,17 @@
 import configparser
-import unittest
 import re
-import urllib.request, urllib.parse, urllib.error
 import sys
 import time
+import unittest
+import urllib.error
+import urllib.parse
+import urllib.request
 
 from bond_app.bond import FenceKeys
-from tests.unit.fake_cache_api import FakeCacheApi
 from bond_app.jwt_token import JwtToken
 from bond_app.oauth_adapter import OauthAdapter
 from bond_app.open_id_config import OpenIdConfig
+from tests.unit.fake_cache_api import FakeCacheApi
 
 
 class OauthAdapterTestCase(unittest.TestCase):
@@ -24,6 +26,7 @@ class OauthAdapterTestCase(unittest.TestCase):
         OauthAdapterTestCase.config = configparser.ConfigParser()
         OauthAdapterTestCase.config.read("config.ini")
         OauthAdapterTestCase.oauth_adapters = OauthAdapterTestCase.init_oauth_adapters(OauthAdapterTestCase.config)
+        print("Testing %i provider(s) per test: [%s]" % (len(OauthAdapterTestCase.oauth_adapters), list(OauthAdapterTestCase.oauth_adapters)))
         OauthAdapterTestCase.authz_responses = OauthAdapterTestCase.authorize_with_providers(OauthAdapterTestCase.oauth_adapters)
 
     @classmethod
@@ -49,14 +52,27 @@ class OauthAdapterTestCase(unittest.TestCase):
                                                       redirect_uri,
                                                       state,
                                                       extra_authz_url_params={"foo": "bar"})
-            print("Please go to %s to authorize access: %s" % (provider, authz_url))
-            print("YOU WILL BE REDIRECTED TO %s WHICH WILL PROBABLY UNREACHABLE -- THIS IS EXPECTED!" % redirect_uri)
-            print("Please copy/paste the \"code\" parameter from the resulting URL: ")
-            sys.stdout.flush()
-            # auth_code = sys.stdin.readline().strip()
-            auth_code = "X"
+            auth_code = cls.get_auth_code(authz_url, provider, redirect_uri)
             authz_responses[provider] = oauth_adapter.exchange_authz_code(auth_code, redirect_uri)
         return authz_responses
+
+    # If we're testing against mock providers, we don't care what the `auth_code` is that we exchange with the provider.
+    # If you want to run these tests against real providers, you will need to set the `using_mock_providers` variable to
+    # be `False`, which means that the test execution will require the test runner to follow the generated links to
+    # log into each provider and paste the auth code into the terminal in order to complete the oauth token exchange
+    # required for the tests to execute against a real provider.
+    @classmethod
+    def get_auth_code(cls, authz_url, provider, redirect_uri):
+        using_mock_providers = True
+        return "X" if using_mock_providers else cls.ask_user_for_auth_code(authz_url, provider, redirect_uri)
+
+    @classmethod
+    def ask_user_for_auth_code(cls, authz_url, provider, redirect_uri):
+        print("Please go to %s to authorize access: %s" % (provider, authz_url))
+        print("YOU WILL BE REDIRECTED TO %s WHICH WILL PROBABLY UNREACHABLE -- THIS IS EXPECTED!" % redirect_uri)
+        print("Please copy/paste the \"code\" parameter from the resulting URL: ")
+        sys.stdout.flush()
+        return sys.stdin.readline().strip()
 
     @staticmethod
     def param_regex(key, value):

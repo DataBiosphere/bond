@@ -44,10 +44,27 @@ When writing new tests, do not put any tests in the root `tests/` directory.  In
 
 To run integration tests, provide the `test-path` parameter to with the path to the integration tests:
 
-`python -m unittest discover -s tests/integration -p "*_test.py"`
+`python -m unittest discover -s tests/integration -p "*_test.py"` 
 
 When writing new tests, do not put any tests in the root `tests/` directory.  Instead, write new integration tests in 
 the `tests/integration` directory.
+
+### Integration testing with real providers
+Integration tests are written to be run against the [mock provider service](https://github.com/broadinstitute/mock-provider).
+The mock provider service skips the authentication step of the oauth dance in order to make testing easier.  
+
+If you want to test against _real_ providers, do the following:
+
+1. Update `config.ini` to have all the requisite data for the real providers
+1. In the `get_auth_code` method in `tests/integration/oauth_adapter_test.py`, set the variable `using_mock_providers =
+False`. 
+1. Run the Integration Tests the same way as described above.  The tests will stop and print instructions and a link to 
+authenticate with each provider.  Follow the instructions and copy/paste the `auth_code` into the command line for each 
+provider to complete the oauth dance.
+
+Because the test execution will become an interactive experience, you **_must_** run these tests in an environment
+where you can provide the required command line inputs.  In other words, you won't be able to run tests this way on a 
+build server, but you will be able to run them in your local environment.
 
 ## Datastore Emulator tests
 To run the integration tests that require the Datastore emulator locally, follow [the instructions in the readme](tests/datastore_emulator/README.md). 
@@ -200,6 +217,11 @@ Once installed, you can add the following patterns:
 git secrets --add 'CLIENT_ID\s*=\s*.+'
 git secrets --add 'CLIENT_SECRET\s*=\s*.+'
 git secrets --add --allowed 'REPLACE_ME'
-git secrets --add --allowed '\{\{ \$fenceSecrets\.Data\.client_id \}\}'
-git secrets --add --allowed '\{\{ \$fenceSecrets\.Data\.client_secret \}\}'
+git secrets --add --allowed 'ignored'
+git secrets --add --allowed '\{\{ \$secrets\.Data\.client_id \}\}'
+git secrets --add --allowed '\{\{ \$secrets\.Data\.client_secret \}\}'
+git secrets --add --allowed '\{\{ \$secrets\.Data\.dcf_fence_client_id \}\}'
+git secrets --add --allowed '\{\{ \$secrets\.Data\.dcf_fence_client_secret \}\}'
+git secrets --add --allowed '\{\{ \$secrets\.Data\.anvil_client_id \}\}'
+git secrets --add --allowed '\{\{ \$secrets\.Data\.anvil_secret \}\}'
 ```

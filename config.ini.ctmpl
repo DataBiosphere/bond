@@ -38,6 +38,13 @@ OPEN_ID_CONFIG_URL=https://nci-crdc.datacommons.io/user/.well-known/openid-confi
 USER_NAME_PATH_EXPR=/context/user/name
 FENCE_BASE_URL=https://nci-crdc.datacommons.io
 
+[anvil]
+CLIENT_ID={{ $secrets.Data.anvil_client_id }}
+CLIENT_SECRET={{ $secrets.Data.anvil_secret }}
+OPEN_ID_CONFIG_URL=https://gen3.theanvil.io/user/.well-known/openid-configuration
+USER_NAME_PATH_EXPR=/context/user/name
+FENCE_BASE_URL=https://gen3.theanvil.io/
+
 {{else}}
 # Non-production environments
 [fence]
@@ -54,6 +61,13 @@ CLIENT_SECRET={{ $secrets.Data.dcf_fence_client_secret }}
 OPEN_ID_CONFIG_URL=https://nci-crdc-staging.datacommons.io/user/.well-known/openid-configuration
 USER_NAME_PATH_EXPR=/context/user/name
 FENCE_BASE_URL=https://nci-crdc-staging.datacommons.io
+
+[anvil]
+CLIENT_ID={{ $secrets.Data.anvil_client_id }}
+CLIENT_SECRET={{ $secrets.Data.anvil_secret }}
+OPEN_ID_CONFIG_URL=https://staging.theanvil.io/user/.well-known/openid-configuration
+USER_NAME_PATH_EXPR=/context/user/name
+FENCE_BASE_URL=https://staging.theanvil.io/
 
 {{end}}
 

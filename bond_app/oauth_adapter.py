@@ -32,6 +32,7 @@ class OauthAdapter:
         authz_endpoint = self.open_id_config.get_config_value("authorization_endpoint")
         oauth = OAuth2Session(self.client_id, redirect_uri=redirect_uri, scope=scopes, state=state)
         authorization_url, state = oauth.authorization_url(authz_endpoint, **extra_authz_url_params)
+        oauth.close()
         return authorization_url
 
     def exchange_authz_code(self, authz_code, redirect_uri):
@@ -42,7 +43,9 @@ class OauthAdapter:
         :return: A token dict including the access token, refresh token, and token type (amongst other details)
         """
         oauth = OAuth2Session(self.client_id, redirect_uri=redirect_uri)
-        return oauth.fetch_token(self.open_id_config.get_token_info_url(), code=authz_code, auth=self.basic_auth)
+        token_dict = oauth.fetch_token(self.open_id_config.get_token_info_url(), code=authz_code, auth=self.basic_auth)
+        oauth.close()
+        return token_dict
 
     def refresh_access_token(self, refresh_token_str):
         """
@@ -52,7 +55,9 @@ class OauthAdapter:
         """
         token_dict = {'refresh_token': refresh_token_str}
         oauth = OAuth2Session(self.client_id, token=token_dict)
-        return oauth.refresh_token(self.open_id_config.get_token_info_url(), auth=self.basic_auth)
+        token = oauth.refresh_token(self.open_id_config.get_token_info_url(), auth=self.basic_auth)
+        oauth.close()
+        return token
 
     def revoke_refresh_token(self, refresh_token):
         """
