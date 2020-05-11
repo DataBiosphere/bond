@@ -20,6 +20,7 @@ class OauthAdapterTestCase(unittest.TestCase):
     config = None
     oauth_adapters = {}
     authz_responses = {}
+    using_mock_providers = True
 
     @classmethod
     def setUpClass(cls):
@@ -63,8 +64,7 @@ class OauthAdapterTestCase(unittest.TestCase):
     # required for the tests to execute against a real provider.
     @classmethod
     def get_auth_code(cls, authz_url, provider, redirect_uri):
-        using_mock_providers = True
-        return "X" if using_mock_providers else cls.ask_user_for_auth_code(authz_url, provider, redirect_uri)
+        return "X" if cls.using_mock_providers else cls.ask_user_for_auth_code(authz_url, provider, redirect_uri)
 
     @classmethod
     def ask_user_for_auth_code(cls, authz_url, provider, redirect_uri):
@@ -112,9 +112,18 @@ class OauthAdapterTestCase(unittest.TestCase):
                 refresh_token = authz[FenceKeys.REFRESH_TOKEN]
                 self.assert_token_response(oauth_adapter.refresh_access_token(refresh_token), provider)
 
-    @unittest.skip("Test should be implemented.  Saving time now by not implementing so we can get mock Fence working")
+    # Note: Since this test revokes the refresh token, it can/will break other tests if it doesn't run last.
+    # Thankfully, unittest runs tests alphabetically by default and revoke_refresh_token is alphabetically last in this
+    # test suite. Yes, we are aware that this is not ideal and a bit fragile, but this whole test suite isn't ideal,
+    # so we're okay with it. If you are adding a new test, you'll want to name it so it runs before this test
+    @unittest.skipIf(using_mock_providers,
+                     "Since the mock provider can't actually revoke refresh tokens, we won't test that it can")
     def test_revoke_refresh_token(self):
-        self.assertTrue(False, "This test needs to be implemented")
+        for provider, oauth_adapter in self.oauth_adapters.items():
+            refresh_token = self.authz_responses[provider][FenceKeys.REFRESH_TOKEN]
+            oauth_adapter.revoke_refresh_token(refresh_token)
+            with self.assertRaises(Exception):
+                oauth_adapter.refresh_access_token(refresh_token)
 
     def assert_token_response(self, authz, provider):
         self.assertEqual("Bearer", authz[FenceKeys.TOKEN_TYPE], "Token type should be \"Bearer\" for provider: " + provider)

@@ -56,7 +56,7 @@ The mock provider service skips the authentication step of the oauth dance in or
 If you want to test against _real_ providers, do the following:
 
 1. Update `config.ini` to have all the requisite data for the real providers
-1. In the `get_auth_code` method in `tests/integration/oauth_adapter_test.py`, set the variable `using_mock_providers =
+1. At the top of `tests/integration/oauth_adapter_test.py`, set the variable `using_mock_providers =
 False`. 
 1. Run the Integration Tests the same way as described above.  The tests will stop and print instructions and a link to 
 authenticate with each provider.  Follow the instructions and copy/paste the `auth_code` into the command line for each 
