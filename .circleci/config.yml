@@ -57,7 +57,7 @@ jobs:
       - run: 
           name: "Run Python security checks"
           command: |
-            bento check --all 2>&1 | cat
+            bento --agree --email=appsec@broadinstitute.org check --all 2>&1 | cat
 
 
   build-docker-image:
