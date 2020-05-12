@@ -34,7 +34,9 @@ class OauthAdapter:
         oauth = OAuth2Session(self.client_id, redirect_uri=redirect_uri, scope=scopes, state=state)
         authorization_url, state = oauth.authorization_url(authz_endpoint, **extra_authz_url_params)
         oauth.close()
-        json.dumps(['foo', {'bar': ('baz', None, 1.0, 2)}])
+        a = 1
+        b = 2
+        json.dumps(result=a+b)
         return authorization_url
 
     def exchange_authz_code(self, authz_code, redirect_uri):
