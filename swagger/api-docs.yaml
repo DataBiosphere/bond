@@ -119,15 +119,30 @@ paths:
         - name: redirect_uri
           in: query
           required: true
-          description:  A URL encoded string representing the URI that the Authorizing Service will redirect the user to after the user successfully authorizes this client. Note that the redirect_uri must be registered with the provider.
+          description:  The URI that the Authorizing Service will redirect the user to after the user successfully authorizes this client. If calling API via Swagger UI, you can enter the raw string and the Swagger will encode the string for you.  Note that the redirect_uri must be registered with the provider.
           schema:
             type: string
+          example: http://local.broadinstitute.org/#fence-callback
         - name: state
           in: query
-          required: true
+          required: false
           description: A URL encoded Base64 string representing a JSON object of state information that the requester requires back with the redirect.
           schema:
             type: string
+        - name: scopes
+          in: query
+          required: false
+          description: Technically can be left empty, but if you authorize with no scopes you will not be able to do anything.  Recommended values are "openid" and "google_credentials"
+          schema:
+            type: array
+            items:
+              type: string
+          style: form
+          explode: true
+          example:
+            - openid
+            - google_credentials
+
       responses:
         '200':
           description: OK
@@ -145,7 +160,7 @@ paths:
       summary: Link the user's account with the provider.
       parameters:
         - $ref: '#/components/parameters/providerParam'
-        - name: oauthcodde
+        - name: oauthcode
           in: query
           required: true
           description: The authorization code from the provider.
@@ -154,9 +169,10 @@ paths:
         - name: redirect_uri
           in: query
           required: true
-          description: The redirect url that was used when generating the authorization code.
+          description: The redirect url that was used when generating the authorization code.  Swagger UI will properly encode this string for you.
           schema:
             type: string
+            example: http://local.broadinstitute.org/#fence-callback
       responses:
         '200':
           $ref: '#/components/responses/LinkInfoResponse'
