@@ -78,11 +78,12 @@ jobs:
       - run:
           name: Install trivy
           command: |
+            source virtualenv/bin/activate
             curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/master/contrib/install.sh | sh -s -- -b /usr/local/bin
 
       - run:
           name: Scan the local image with trivy (light)
-          command: trivy --exit-code 0 --no-progress ${IMAGE_NAME}:${CIRCLE_BRANCH}
+          command: trivy --exit-code 1 --no-progress ${IMAGE_NAME}:${CIRCLE_BRANCH}
 
       - run:
           name: Run functional tests
