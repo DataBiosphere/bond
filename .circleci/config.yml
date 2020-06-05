@@ -78,8 +78,6 @@ jobs:
       - run:
           name: Install trivy
           command: |
-            apt-get update
-            apt-get -y install curl
             curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/master/contrib/install.sh | sh -s -- -b /usr/local/bin
 
       - run:
