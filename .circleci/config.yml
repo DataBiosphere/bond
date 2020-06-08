@@ -36,10 +36,20 @@ jobs:
             pip3 install -r requirements.txt --ignore-installed
 
       - run:
+          name: Start Burp tool in background
+          command: |
+            security/burp_start.sh ${BURP_DOCKER_IMAGE} ${BURP_DOCKER_KEY}
+
+      - run:
           name: Run tests
           command: |
             source virtualenv/bin/activate
             python -m unittest discover -s tests/unit -p "*_test.py"
+
+      - run:
+          name: Scan with Burp
+          command: |
+            security/burp_scan.sh ${BURP_DOCKER_IMAGE}
 
       - run:
           name: Start Datastore Emulator
