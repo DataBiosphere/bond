@@ -38,7 +38,7 @@ jobs:
       - run:
           name: Start Burp tool in background
           command: |
-            security/burp_start.sh ${BURP_DOCKER_IMAGE} ${BURP_DOCKER_KEY}
+            sh security/burp_start.sh ${BURP_DOCKER_IMAGE} ${BURP_DOCKER_KEY}
 
       - run:
           name: Run tests
@@ -49,7 +49,7 @@ jobs:
       - run:
           name: Scan with Burp
           command: |
-            security/burp_scan.sh ${BURP_DOCKER_IMAGE}
+            sh security/burp_scan.sh ${BURP_DOCKER_IMAGE}
 
       - run:
           name: Start Datastore Emulator
