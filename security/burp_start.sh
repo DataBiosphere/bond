@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-
 set -eu
 
 IMAGE="$1" # Burp private Docker image URL
