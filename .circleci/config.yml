@@ -82,7 +82,7 @@ jobs:
 
       - run:
           name: Scan the local image with trivy (light)
-          command: trivy --exit-code 1 --severity CRITICAL --no-progress ${IMAGE_NAME}:${CIRCLE_BRANCH}
+          command: trivy --exit-code 1 --severity CRITICAL --no-progress ${IMAGE_NAME}:latest
 
       - run:
           name: Run functional tests
