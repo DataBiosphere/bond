@@ -87,6 +87,7 @@ jobs:
       - run:
           name: Start Burp tool in background
           command: |
+            sudo apt-get install --reinstall iptables
             sh security/burp_start.sh ${BURP_DOCKER_IMAGE} ${BURP_DOCKER_KEY}
 
       - run:
