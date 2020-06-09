@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+
 set -eu
 
 IMAGE="$1" # Burp private Docker image URL
@@ -16,4 +17,6 @@ docker run --rm -d --net host --name "${CONTAINER}" "${IMAGE}"
 ( docker logs "${CONTAINER}" -f & ) | grep -q "Started BurpApplication"
 
 # Update iptables so all "under test" container traffic is proxied through the Burp container
-sudo iptables -t nat -A PREROUTING -p tcp --dport 80,443 -j REDIRECT --to-ports 8080
+# sudo iptables -t nat -A PREROUTING -p tcp -m multiport --dport 80,443 -j REDIRECT --to-ports 8080
+sudo iptables --help
+sudo iptables -t nat -A PREROUTING -p tcp --match multiport --destination-port 80,443 -j REDIRECT --to-ports 8080
