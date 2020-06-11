@@ -56,8 +56,7 @@ jobs:
 
 
   build-docker-image:
-    machine:
-      - image: default
+    machine: true
 
     environment:
       QUAY_USER: databiosphere+bond_circle_bot
