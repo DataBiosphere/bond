@@ -13,7 +13,7 @@ jobs:
       - run:
           name: Check Python version
           command: |
-            export VER_REGEX="^Python 3\.7(\.[0-9]+)?$"
+            export VER_REGEX="^Python 3\.8(\.[0-9]+)?$"
             export PY_VER=$(python3 --version 2>&1)
             if ! [[ "$PY_VER" =~ $VER_REGEX ]] ; then echo "$PY_VER is not the expected version" && exit 1 ; fi
 
@@ -77,6 +77,9 @@ jobs:
 
     steps:
       - checkout
+
+      - setup_remote_docker:
+          docker_layer_caching: true
 
       - run:
           name: Build image
