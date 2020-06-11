@@ -18,4 +18,4 @@ docker run --rm -d --net host --name "${CONTAINER}" "${IMAGE}"
 
 # Update iptables so all "under test" container traffic is proxied through the Burp container
 # sudo iptables -t nat -A PREROUTING -p tcp -m multiport --dport 80,443 -j REDIRECT --to-ports 8080
-sudo iptables -t nat -A PREROUTING -p tcp --match multiport --destination-port 80 -j REDIRECT --to-ports 8080
+sudo iptables -t nat -A PREROUTING -p tcp --match multiport --destination-port 80,443 -j REDIRECT --to-ports 8080
