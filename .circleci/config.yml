@@ -57,6 +57,7 @@ jobs:
 
   build-docker-image:
     machine: true
+    docker_layer_caching: true
 
     environment:
       QUAY_USER: databiosphere+bond_circle_bot
