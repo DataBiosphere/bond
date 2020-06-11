@@ -6,14 +6,14 @@ version: 2
 jobs:
   test:
     machine: 
-      image: ubuntu-1604:202004-01
+      image: circleci/classic:201808-01
       docker_layer_caching: true
 
     steps:
       - run:
           name: Check Python version
           command: |
-            export VER_REGEX="^Python 3\.8(\.[0-9]+)?$"
+            export VER_REGEX="^Python 3\.7(\.[0-9]+)?$"
             export PY_VER=$(python3 --version 2>&1)
             if ! [[ "$PY_VER" =~ $VER_REGEX ]] ; then echo "$PY_VER is not the expected version" && exit 1 ; fi
 
