@@ -57,7 +57,8 @@ jobs:
 
   build-docker-image:
     docker:
-      - image: circleci/python:3.7.4
+      image: ubuntu-1604:201903-01
+      docker_layer_caching: true
 
     environment:
       QUAY_USER: databiosphere+bond_circle_bot
@@ -87,6 +88,7 @@ jobs:
       - run:
           name: Start Burp tool in background
           command: |
+            sudo apt-get install --reinstall iptables
             sh security/burp_start.sh ${BURP_DOCKER_IMAGE} ${BURP_DOCKER_KEY}
 
       - run:
