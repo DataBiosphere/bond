@@ -6,7 +6,7 @@ version: 2
 jobs:
   test:
     machine: 
-      image: circleci/classic:201808-01
+      image: ubuntu-1604:202004-01
       docker_layer_caching: true
 
     steps:
@@ -27,6 +27,7 @@ jobs:
           command: |
             sudo apt-get update
             sudo apt-get -y install python3-pip
+            pyenv install 3.7.0
             pip3 install virtualenv
             python3 -m virtualenv -p python3 virtualenv
 
