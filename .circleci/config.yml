@@ -56,8 +56,9 @@ jobs:
 
 
   build-docker-image:
-    machine: true
-    docker_layer_caching: true
+    machine: 
+      image: ubuntu-1604:202004-01
+      docker_layer_caching: true
 
     environment:
       QUAY_USER: databiosphere+bond_circle_bot
@@ -65,9 +66,6 @@ jobs:
 
     steps:
       - checkout
-
-      - setup_remote_docker:
-          docker_layer_caching: true
 
       - run:
           name: Build image
