@@ -14,6 +14,7 @@ jobs:
           name: Check Python version
           command: |
             export VER_REGEX="^Python 3\.7(\.[0-9]+)?$"
+            pyenv global 3.7.0
             export PY_VER=$(python3 --version 2>&1)
             if ! [[ "$PY_VER" =~ $VER_REGEX ]] ; then echo "$PY_VER is not the expected version" && exit 1 ; fi
 
