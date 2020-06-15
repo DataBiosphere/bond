@@ -31,6 +31,8 @@ jobs:
             pip3 install virtualenv
             sudo rm /var/lib/apt/lists/lock
             sudo rm /var/lib/dpkg/lock
+            sudo dpkg --configure -a
+            sudo apt install -f
             python3 -m virtualenv -p python3 virtualenv
 
       - run:
