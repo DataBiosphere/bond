@@ -67,10 +67,6 @@ jobs:
       - checkout
 
       - run:
-          name: "Set Python Version"
-          command: pyenv global 3.7.0
-
-      - run:
           name: Build image
           command: |
             docker build -t ${IMAGE_NAME}:${CIRCLE_BRANCH} -f docker/Dockerfile .
@@ -90,6 +86,10 @@ jobs:
           command: |
             sudo apt-get install --reinstall iptables
             sh security/burp_start.sh ${BURP_DOCKER_IMAGE} ${BURP_DOCKER_KEY}
+
+      - run:
+        name: "Set Python Version"
+        command: pyenv global 3.7.0
 
       - run:
           name: Run functional tests
