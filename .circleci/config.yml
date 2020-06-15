@@ -19,6 +19,7 @@ jobs:
             if ! [[ "$PY_VER" =~ $VER_REGEX ]] ; then echo "$PY_VER is not the expected version" && exit 1 ; fi
 
       - checkout
+      
 
       # NOTE: each "run" command is executed in its own shell, so if you want future "run" blocks to execute in a
       #       virtualenv, you will need to activate virtualenv inside each "run" block
