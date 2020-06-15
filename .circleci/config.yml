@@ -95,6 +95,8 @@ jobs:
       - run:
           name: Scan with Burp
           command: |
+            docker logs burp --tail 10
+            curl -s localhost:8081/burp/proxy/history | jq '.messages[].url'
             sh security/burp_scan.sh ${BURP_DOCKER_IMAGE}
 
       - run:
