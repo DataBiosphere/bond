@@ -5,28 +5,25 @@
 version: 2
 jobs:
   test:
-    machine: 
-      image: ubuntu-1604:202004-01
-      docker_layer_caching: true
+    docker:
+      - image: google/cloud-sdk:276.0.0
 
     steps:
       - run:
           name: Check Python version
           command: |
             export VER_REGEX="^Python 3\.7(\.[0-9]+)?$"
-            pyenv global 3.7.0
             export PY_VER=$(python3 --version 2>&1)
             if ! [[ "$PY_VER" =~ $VER_REGEX ]] ; then echo "$PY_VER is not the expected version" && exit 1 ; fi
 
       - checkout
-      
 
       # NOTE: each "run" command is executed in its own shell, so if you want future "run" blocks to execute in a
       #       virtualenv, you will need to activate virtualenv inside each "run" block
       - run: 
           name: Setup virtualenv
           command: |
-            sudo apt-get update && 
+            sudo apt-get update
             sudo apt-get -y install python3-pip
             pip3 install virtualenv
             python3 -m virtualenv -p python3 virtualenv
@@ -37,12 +34,6 @@ jobs:
             source virtualenv/bin/activate
             sudo apt-get -y install google-cloud-sdk-datastore-emulator
             pip3 install -r requirements.txt --ignore-installed
-  
-      - run:
-          name: Start Burp tool in background
-          command: |
-            sudo apt-get install --reinstall iptables
-            sh security/burp_start.sh ${BURP_DOCKER_IMAGE} ${BURP_DOCKER_KEY}
 
       - run:
           name: Run tests
@@ -63,15 +54,11 @@ jobs:
             source virtualenv/bin/activate
             ./tests/datastore_emulator/test.sh
 
-      - run:
-          name: Scan with Burp
-          command: |
-            sh security/burp_scan.sh ${BURP_DOCKER_IMAGE}
-
 
   build-docker-image:
-    docker:
-      - image: circleci/python:3.7.4
+    machine: 
+      image: ubuntu-1604:202004-01
+      docker_layer_caching: true
 
     environment:
       QUAY_USER: databiosphere+bond_circle_bot
@@ -99,9 +86,20 @@ jobs:
           command: trivy --exit-code 1 --severity CRITICAL --no-progress ${IMAGE_NAME}:latest
 
       - run:
+          name: Start Burp tool in background
+          command: |
+            sudo apt-get install --reinstall iptables
+            sh security/burp_start.sh ${BURP_DOCKER_IMAGE} ${BURP_DOCKER_KEY}
+
+      - run:
           name: Run functional tests
           command: |
             docker run --entrypoint /bin/bash --workdir "/app" ${IMAGE_NAME}:${CIRCLE_BRANCH} -c "./tests/functional_test.sh"
+
+      - run:
+          name: Scan with Burp
+          command: |
+            sh security/burp_scan.sh ${BURP_DOCKER_IMAGE}
 
       - run:
           # By not specifying a tag in the `docker push` command, this will ensure that all tags/images for the ${IMAGE_NAME} will be pushed
