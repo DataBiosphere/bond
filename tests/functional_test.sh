@@ -2,4 +2,4 @@
 
 cp tests/config/config.ini config.ini
 
-python -m unittest discover -s tests/integration -p "*_test.py"
+python -m unittest discover -s tests/unit -p "*_test.py"
