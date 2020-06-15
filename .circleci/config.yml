@@ -26,13 +26,12 @@ jobs:
       - run: 
           name: Setup virtualenv
           command: |
-            sudo apt-get update
+            sudo apt-get update && 
             sudo apt-get -y install python3-pip
             pip3 install virtualenv
-            sudo rm /var/lib/apt/lists/lock
-            sudo rm /var/cache/apt/archives/lock
-            sudo rm /var/lib/dpkg/lock
-            sudo apt-get update
+            sudo rm -rf /var/lib/apt/lists/lock
+            sudo rm -rf /var/cache/apt/archives/lock
+            sudo rm -rf /var/lib/dpkg/lock
             python3 -m virtualenv -p python3 virtualenv
 
       - run:
