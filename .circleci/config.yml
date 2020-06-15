@@ -28,11 +28,9 @@ jobs:
           command: |
             sudo apt-get update && 
             sudo apt-get -y install python3-pip
-            pip3 install virtualenv
-            sudo rm -rf /var/lib/apt/lists/lock
-            sudo rm -rf /var/cache/apt/archives/lock
-            sudo rm -rf /var/lib/dpkg/lock
-            python3 -m virtualenv -p python3 virtualenv
+            sudo pip3 install virtualenv
+            virtualenv -p python3 virtualenv
+            python3 -m venv virtualenv
 
       - run:
           name: Install dependencies
