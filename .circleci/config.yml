@@ -15,16 +15,15 @@ jobs:
             export VER_REGEX="^Python 3\.7(\.[0-9]+)?$"
             export PY_VER=$(python3 --version 2>&1)
             if ! [[ "$PY_VER" =~ $VER_REGEX ]] ; then echo "$PY_VER is not the expected version" && exit 1 ; fi
-
       - checkout
 
       # NOTE: each "run" command is executed in its own shell, so if you want future "run" blocks to execute in a
       #       virtualenv, you will need to activate virtualenv inside each "run" block
-      - run: 
+      - run:
           name: Setup virtualenv
           command: |
-            sudo apt-get update
-            sudo apt-get -y install python3-pip
+            apt-get update
+            apt-get -y install python3-pip
             pip3 install virtualenv
             python3 -m virtualenv -p python3 virtualenv
 
@@ -32,7 +31,7 @@ jobs:
           name: Install dependencies
           command: |
             source virtualenv/bin/activate
-            sudo apt-get -y install google-cloud-sdk-datastore-emulator
+            apt-get -y install google-cloud-sdk-datastore-emulator
             pip3 install -r requirements.txt --ignore-installed
 
       - run:
@@ -104,7 +103,6 @@ jobs:
           command: |
             docker login -u="${QUAY_USER}" -p="${QUAY_USER_PW}" quay.io
             docker push ${IMAGE_NAME}
-
   tag:
     docker:
       - image: alpine/git
@@ -113,7 +111,9 @@ jobs:
       - add_ssh_keys:
           fingerprints:
             - "ab:2d:12:de:d1:ac:36:0b:6a:02:92:3f:2c:49:98:c9"
+
       - checkout
+
       - run:
           when: on_success
           command: |
@@ -121,7 +121,7 @@ jobs:
             source $BASH_ENV
             git tag $TAG_NAME
             git push origin $TAG_NAME
-
+            
 workflows:
   version: 2
   test-and-tag:
