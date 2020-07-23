@@ -37,7 +37,9 @@ class FenceApi:
     def revoke_refresh_token(self, refresh_token):
         result = requests.post(url=self.revoke_url, data=refresh_token)
         if result.status_code // 100 != 2:
-            raise exceptions.InternalServerError("fence status code {}, error body {}".format(result.status_code, result.content))
+            if result.status_code != 400:
+                raise exceptions.InternalServerError("fence status code {}, error body {}"
+                                                     .format(result.status_code, result.content))
 
     def status(self):
         """
