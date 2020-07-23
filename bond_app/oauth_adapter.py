@@ -71,5 +71,8 @@ class OauthAdapter:
                                headers={"Authorization": "Basic %s" % base64.b64encode(
                                    "{}:{}".format(self.client_id, self.client_secret).encode()).decode()})
         if result.status_code // 100 != 2:
-            raise exceptions.InternalServerError("revoke url {}, status code {}, error body {}".
-                                                 format(revoke_url, result.status_code, result.content))
+            # If the refresh token has already expired, the auth provider will return a 400 when we try to revoke it.
+            # We don't want to fail if that happens, we just want to keep going and delete the expired token on our end
+            if result.status_code != 400:
+                raise exceptions.InternalServerError("revoke url {}, status code {}, error body {}"
+                                                     .format(revoke_url, result.status_code, result.content))
