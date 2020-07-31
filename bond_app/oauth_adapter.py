@@ -71,7 +71,7 @@ class OauthAdapter:
                                data={"token": refresh_token},
                                headers={"Authorization": "Basic %s" % base64.b64encode(
                                    "{}:{}".format(self.client_id, self.client_secret).encode()).decode()})
-        logging.info("POST {} - status code: {}".format(revoke_url, result.status_code))
+        logging.info("request: POST {} - status code: {}".format(revoke_url, result.status_code))
         if result.status_code // 100 != 2:
             # If the refresh token has already expired, the auth provider will return a 400 when we try to revoke it.
             # We don't want to fail if that happens, we just want to keep going and delete the expired token on our end
