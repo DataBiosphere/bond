@@ -46,3 +46,12 @@ class FakeCacheApi(CacheApi):
         else:
             timed_value = self.cache.get(key)
         return timed_value.get_valid_value() if timed_value else None
+
+    def delete(self, key, namespace=None):
+        if namespace:
+            namespace_dict = self.namespaces.get(namespace)
+            if not namespace_dict:
+                return None
+            namespace_dict.pop(key, None)
+        else:
+            self.cache.pop(key, None)

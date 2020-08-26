@@ -27,7 +27,8 @@ class FenceTokenVendingMachine:
         if key_json:
             access_token = self._get_oauth_access_token(provider_user)
             key_id = json.loads(key_json)["private_key_id"]
-            # deleting the key will invalidate anything cached
+            # keys in cache will be invalid after we delete them with Google, but clear out the cache for good measure
+            self.cache_api.delete(namespace=self.provider_name, key=user_id)
             self.fence_api.delete_credentials_google(access_token, key_id)
 
     def get_service_account_access_token(self, user_info, scopes=None):

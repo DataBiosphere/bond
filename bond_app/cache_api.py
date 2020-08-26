@@ -18,3 +18,12 @@ class CacheApi:
         :return: The value of the key if found, else None.
         """
         raise NotImplementedError
+
+    def delete(self, key, namespace=None):
+        """
+        Deletes the value specified by key
+        :param key: A string key
+        :param namespace: The namespace used for the 'add' if any.
+        :return: None if entry at key was deleted or not found
+        """
+        raise NotImplementedError

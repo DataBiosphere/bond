@@ -35,6 +35,9 @@ class DatastoreCacheApi(CacheApi):
             return None
         return entry.value
 
+    def delete(self, key, namespace=None):
+        DatastoreCacheApi._build_cache_key(key, namespace).delete()
+
     @staticmethod
     def delete_expired_entries():
         """Deletes the entries that have expired. This must be done periodically. """
