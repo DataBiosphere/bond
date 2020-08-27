@@ -14,7 +14,7 @@ from bond_app.fence_token_vending import FenceTokenVendingMachine
 from bond_app.oauth_adapter import OauthAdapter
 from bond_app.sam_api import SamApi
 from bond_app.sam_api import SamKeys
-from tests.unit.fake_token_store import  FakeTokenStore
+from tests.unit.fake_token_store import FakeTokenStore
 from tests.unit.fake_cache_api import FakeCacheApi
 from tests.unit.fake_fence_token_storage import FakeFenceTokenStorage
 
@@ -91,6 +91,25 @@ class BondTestCase(unittest.TestCase):
 
         with self.assertRaises(exceptions.BadRequest):
             bond.exchange_authz_code("irrelevantString", "redirect", UserInfo(str(uuid.uuid4()), "", "", 30))
+
+    def test_exchange_authz_code_existing_token_clears_cache(self):
+        token = str(uuid.uuid4())
+        user_info = UserInfo(self.user_id, 'fake@email.com', token, 30)
+        self.refresh_token_store.save(user_id=self.user_id,
+                                      refresh_token_str=token,
+                                      issued_at=datetime.fromtimestamp(self.issued_at_epoch),
+                                      username=self.name,
+                                      provider_name=provider_name)
+        self.bond.fence_api.get_credentials_google = MagicMock(
+            return_value=json.dumps({"private_key_id": "before_key"})
+        )
+        before_key = self.bond.fence_tvm.get_service_account_key_json(user_info)
+        self.bond.exchange_authz_code("irrelevantString", "redirect", user_info)
+        self.bond.fence_api.get_credentials_google = MagicMock(
+            return_value=json.dumps({"private_key_id": "after_key"})
+        )
+        after_key = self.bond.fence_tvm.get_service_account_key_json(user_info)
+        self.assertNotEqual(before_key, after_key)
 
     def test_generate_access_token(self):
         token = str(uuid.uuid4())

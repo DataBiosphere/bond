@@ -57,6 +57,10 @@ class Bond:
             logging.info(
                 "Exchange authz code did not include refresh token in response.\n{}".format(str(token_response)))
             raise exceptions.BadRequest("authorization response did not include " + FenceKeys.REFRESH_TOKEN)
+
+        if self.refresh_token_store.lookup(user_id, self.provider_name) is not None:
+            # clear out any existing information if user has previously linked this account before relinking
+            self.unlink_account(user_info)
         self.refresh_token_store.save(user_id, token_response.get(FenceKeys.REFRESH_TOKEN), jwt_token.issued_at,
                                       jwt_token.username, self.provider_name)
         return jwt_token.issued_at, jwt_token.username
