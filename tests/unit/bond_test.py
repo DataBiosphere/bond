@@ -12,8 +12,6 @@ from bond_app.bond import Bond, FenceKeys
 from bond_app.fence_api import FenceApi
 from bond_app.fence_token_vending import FenceTokenVendingMachine
 from bond_app.oauth_adapter import OauthAdapter
-from bond_app.sam_api import SamApi
-from bond_app.sam_api import SamKeys
 from tests.unit.fake_token_store import FakeTokenStore
 from tests.unit.fake_cache_api import FakeCacheApi
 from tests.unit.fake_fence_token_storage import FakeFenceTokenStorage
@@ -45,13 +43,11 @@ class BondTestCase(unittest.TestCase):
         mock_oauth_adapter.build_authz_url = MagicMock(name="build_authz_url")
 
         fence_api = self._mock_fence_api(json.dumps({"private_key_id": "asfasdfasdf"}))
-        sam_api = self._mock_sam_api(self.user_id, "email")
         self.refresh_token_store = FakeTokenStore()
         self.bond = Bond(mock_oauth_adapter,
                          fence_api,
-                         sam_api,
                          self.refresh_token_store,
-                         FenceTokenVendingMachine(fence_api, sam_api, FakeCacheApi(), self.refresh_token_store,
+                         FenceTokenVendingMachine(fence_api, FakeCacheApi(), self.refresh_token_store,
                                                   mock_oauth_adapter,
                                                   provider_name, FakeFenceTokenStorage()),
                          provider_name,
@@ -59,8 +55,7 @@ class BondTestCase(unittest.TestCase):
                          {})
 
     def test_exchange_authz_code(self):
-        issued_at, username = self.bond.exchange_authz_code("irrelevantString", "redirect",
-                                                            UserInfo(str(uuid.uuid4()), "", "", 30))
+        issued_at, username = self.bond.exchange_authz_code("irrelevantString", "redirect", self.user_id)
         self.assertEqual(self.name, username)
         self.assertEqual(datetime.fromtimestamp(self.issued_at_epoch), issued_at)
 
@@ -77,12 +72,10 @@ class BondTestCase(unittest.TestCase):
         mock_oauth_adapter.revoke_refresh_token = MagicMock()
 
         fence_api = self._mock_fence_api(json.dumps({"private_key_id": "asfasdfasdf"}))
-        sam_api = self._mock_sam_api(self.user_id, "email")
         bond = Bond(mock_oauth_adapter,
                     fence_api,
-                    sam_api,
                     self.refresh_token_store,
-                    FenceTokenVendingMachine(fence_api, sam_api, FakeCacheApi(), self.refresh_token_store,
+                    FenceTokenVendingMachine(fence_api, FakeCacheApi(), self.refresh_token_store,
                                              mock_oauth_adapter, provider_name,
                                              FakeFenceTokenStorage()),
                     provider_name,
@@ -94,7 +87,6 @@ class BondTestCase(unittest.TestCase):
 
     def test_exchange_authz_code_existing_token_clears_cache(self):
         token = str(uuid.uuid4())
-        user_info = UserInfo(self.user_id, 'fake@email.com', token, 30)
         self.refresh_token_store.save(user_id=self.user_id,
                                       refresh_token_str=token,
                                       issued_at=datetime.fromtimestamp(self.issued_at_epoch),
@@ -103,12 +95,12 @@ class BondTestCase(unittest.TestCase):
         self.bond.fence_api.get_credentials_google = MagicMock(
             return_value=json.dumps({"private_key_id": "before_key"})
         )
-        before_key = self.bond.fence_tvm.get_service_account_key_json(user_info)
-        self.bond.exchange_authz_code("irrelevantString", "redirect", user_info)
+        before_key = self.bond.fence_tvm.get_service_account_key_json(self.user_id)
+        self.bond.exchange_authz_code("irrelevantString", "redirect", self.user_id)
         self.bond.fence_api.get_credentials_google = MagicMock(
             return_value=json.dumps({"private_key_id": "after_key"})
         )
-        after_key = self.bond.fence_tvm.get_service_account_key_json(user_info)
+        after_key = self.bond.fence_tvm.get_service_account_key_json(self.user_id)
         self.assertNotEqual(before_key, after_key)
 
     def test_generate_access_token(self):
@@ -118,29 +110,32 @@ class BondTestCase(unittest.TestCase):
                                       issued_at=datetime.fromtimestamp(self.issued_at_epoch),
                                       username=self.name,
                                       provider_name=provider_name)
-        access_token, expires_at = self.bond.generate_access_token(UserInfo(str(uuid.uuid4()), "", "", 30))
+        access_token, expires_at = self.bond.generate_access_token(self.user_id)
         self.assertEqual(self.fake_access_token, access_token)
         self.assertEqual(datetime.fromtimestamp(self.expires_at_epoch), expires_at)
 
     def test_generate_access_token_errors_when_missing_token(self):
-        self.assertRaises(exceptions.NotFound, self.bond.generate_access_token,
-                          UserInfo(str(uuid.uuid4()), "", "", 30))
+        self.assertRaises(exceptions.NotFound, self.bond.generate_access_token, self.user_id)
 
     def test_revoke_link_exists(self):
         token = str(uuid.uuid4())
         self.refresh_token_store.save(self.user_id, token, datetime.now(), self.name, provider_name)
-        user_info = UserInfo(str(uuid.uuid4()), "", "", 30)
-        self.bond.fence_tvm.get_service_account_key_json(user_info)
+        self.bond.fence_tvm.get_service_account_key_json(self.user_id)
 
-        self.bond.unlink_account(user_info)
+        self.bond.unlink_account(self.user_id)
 
         self.assertIsNone(self.refresh_token_store.lookup(self.user_id, provider_name))
         self.bond.oauth_adapter.revoke_refresh_token.assert_called_once()
         self.bond.fence_api.delete_credentials_google.assert_called_once()
 
+        # there should be no remaining information for the deleted link
+        with self.assertRaises(exceptions.NotFound):
+            self.bond.generate_access_token(self.user_id)
+        with self.assertRaises(exceptions.NotFound):
+            self.bond.fence_tvm.get_service_account_key_json(self.user_id)
+
     def test_revoke_link_does_not_exists(self):
-        user_info = UserInfo(str(uuid.uuid4()), "", "", 30)
-        self.bond.unlink_account(user_info)
+        self.bond.unlink_account(self.user_id)
 
     def test_link_info_exists(self):
         token = str(uuid.uuid4())
@@ -149,11 +144,11 @@ class BondTestCase(unittest.TestCase):
                                       issued_at=datetime.fromtimestamp(self.issued_at_epoch),
                                       username=self.name,
                                       provider_name=provider_name)
-        link_info = self.bond.get_link_info(UserInfo(str(uuid.uuid4()), "", "", 30))
+        link_info = self.bond.get_link_info(self.user_id)
         self.assertEqual(token, link_info.token)
 
     def test_link_info_not_exists(self):
-        link_info = self.bond.get_link_info(UserInfo(str(uuid.uuid4()), "", "", 30))
+        link_info = self.bond.get_link_info(self.user_id)
         self.assertIsNone(link_info)
 
     def test_build_authz_url_without_extra_params(self):
@@ -178,9 +173,3 @@ class BondTestCase(unittest.TestCase):
         fence_api.get_credentials_google = MagicMock(return_value=service_account_json)
         fence_api.delete_credentials_google = MagicMock()
         return fence_api
-
-    @staticmethod
-    def _mock_sam_api(subject_id, email):
-        sam_api = SamApi("")
-        sam_api.user_info = MagicMock(return_value={SamKeys.USER_ID_KEY: subject_id, SamKeys.USER_EMAIL_KEY: email})
-        return sam_api

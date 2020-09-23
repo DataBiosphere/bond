@@ -1,6 +1,7 @@
 import urllib.request, urllib.parse, urllib.error
 import json
 import logging
+from .sam_api import SamKeys
 
 from werkzeug import exceptions
 import requests
@@ -48,21 +49,23 @@ class AuthenticationConfig:
 
 
 class Authentication:
-    def __init__(self, config, cache_api):
+    def __init__(self, config, cache_api, sam_api):
         """
         :param config: An AuthenticationConfig instance.
         :param cache_api: A CacheApi instance.
         """
         self.config = config
         self.cache_api = cache_api
+        self.sam_api = sam_api
 
     def require_user_info(self, request_state, token_info_fn=_token_info):
         """Get the user's info from cache or from google if not in cache, throwing unauthorized errors as appropriate
+        Verify user is registered in Sam with Google user info and return Sam user id
 
         :param request_state: self.request_state from a class extending protorpc.remote.Service
         :param token_info_fn: function to get token info, defaults to google http request, override for testing one
         parameter, the token string, returns json token info (see https://www.googleapis.com/oauth2/v1/tokeninfo)
-        :return: UserInfo instance
+        :return: UserId from Sam
         """
         auth_header = request_state.headers.get('Authorization')
         if auth_header is None:
@@ -74,17 +77,21 @@ class Authentication:
 
         token = auth_header_parts[1]
 
-        user_info = self.cache_api.get(key='access_token:' + token)
-        if user_info is None:
-            user_info = self._fetch_user_info(token, token_info_fn)
+        google_user_info = self.cache_api.get(key='access_token:' + token)
+        if google_user_info is None:
+            google_user_info = self._fetch_user_info(token, token_info_fn)
             # cache for 10 minutes or until token expires
-            expires_in = min([user_info.expires_in, self.config.max_token_life])
+            expires_in = min([google_user_info.expires_in, self.config.max_token_life])
             logging.debug("caching token %s for %s seconds", token, expires_in)
-            self.cache_api.add(key='access_token:' + token, value=user_info, expires_in=expires_in)
+            self.cache_api.add(key='access_token:' + token, value=google_user_info, expires_in=expires_in)
         else:
             logging.debug("auth token cache hit for token %s", token)
 
-        return user_info
+        sam_user_info = self.sam_api.user_info(google_user_info)
+        if sam_user_info is None or not sam_user_info[SamKeys.USER_ENABLED_KEY]:
+            raise exceptions.Unauthorized("user not found in sam")
+
+        return sam_user_info[SamKeys.USER_ID_KEY]
 
     def _fetch_user_info(self, token, token_info_fn):
         """Make the external call to get token info and create UserInfo object"""

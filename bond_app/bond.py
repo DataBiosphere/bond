@@ -10,7 +10,6 @@ class Bond:
     def __init__(self,
                  oauth_adapter,
                  fence_api,
-                 sam_api,
                  refresh_token_store,
                  fence_tvm,
                  provider_name,
@@ -19,7 +18,6 @@ class Bond:
 
         self.oauth_adapter = oauth_adapter
         self.fence_api = fence_api
-        self.sam_api = sam_api
         self.refresh_token_store = refresh_token_store
         self.fence_tvm = fence_tvm
         self.provider_name = provider_name
@@ -39,83 +37,70 @@ class Bond:
         """
         return self.oauth_adapter.build_authz_url(scopes, redirect_uri, state, self.extra_authz_url_params)
 
-    def exchange_authz_code(self, authz_code, redirect_uri, user_info):
+    def exchange_authz_code(self, authz_code, redirect_uri, sam_user_id):
         """
         Given an authz_code and user information, exchange that code for an OAuth Access Token and Refresh Token.  Store
         the refresh token for later, and return the datetime the token was issued along with the username for whom it
         was issued to by the OAuth provider.
         :param authz_code: Authorization code from OAuth provider
         :param redirect_uri: redirect url that was used when generating the code - will use default if None
-        :param user_info: Information of the user who issued the request to Bond (not necessarily the same as
-        the username for whom the refresh token was issued by the OAuth provider)
+        :param sam_user_id: Id stored in Sam for user who initiated request
         :return: Two values: datetime when token was issued, username for whom the token was issued
         """
         token_response = self.oauth_adapter.exchange_authz_code(authz_code, redirect_uri)
         jwt_token = JwtToken(token_response.get(FenceKeys.ID_TOKEN), self.user_name_path_expr)
-        user_id = self._fetch_user_id(user_info)
         if FenceKeys.REFRESH_TOKEN not in token_response:
             logging.info(
                 "Exchange authz code did not include refresh token in response.\n{}".format(str(token_response)))
             raise exceptions.BadRequest("authorization response did not include " + FenceKeys.REFRESH_TOKEN)
 
-        if self.refresh_token_store.lookup(user_id, self.provider_name) is not None:
+        if self.refresh_token_store.lookup(sam_user_id, self.provider_name) is not None:
             # clear out any existing information if user has previously linked this account before relinking
-            self.unlink_account(user_info)
-        self.refresh_token_store.save(user_id, token_response.get(FenceKeys.REFRESH_TOKEN), jwt_token.issued_at,
+            self.unlink_account(sam_user_id)
+        self.refresh_token_store.save(sam_user_id, token_response.get(FenceKeys.REFRESH_TOKEN), jwt_token.issued_at,
                                       jwt_token.username, self.provider_name)
         return jwt_token.issued_at, jwt_token.username
 
-    def generate_access_token(self, user_info):
+    def generate_access_token(self, sam_user_id):
         """
         Given a user, lookup their refresh token and use it to generate a new refresh token from their OAuth
-        provider.  If a refresh token cannot be found for the user_id provided, a NotFound will be raised.
-        :param user_info: Information of the user who issued the request to Bond (not necessarily the same as
-        the username for whom the refresh token was issued by the OAuth provider)
+        provider.  If a refresh token cannot be found for the sam_user_id provided, a NotFound will be raised.
+        :param sam_user_id: Id stored in Sam for user who initiated request
         :return: Two values: An Access Token string, datetime when that token expires
         """
-        user_id = self._fetch_user_id(user_info)
-        refresh_token = self.refresh_token_store.lookup(user_id, self.provider_name)
+        refresh_token = self.refresh_token_store.lookup(sam_user_id, self.provider_name)
         if refresh_token is not None:
             token_response = self.oauth_adapter.refresh_access_token(refresh_token.token)
             expires_at = datetime.fromtimestamp(token_response.get(FenceKeys.EXPIRES_AT))
             return token_response.get("access_token"), expires_at
         else:
             raise exceptions.NotFound(
-                "Could not find refresh token for user_id: {} provider_name: {}\nConsider relinking your account to Bond.".format(
-                    user_id, self.provider_name))
+                "Could not find refresh token for sam_user_id: {} provider_name: {}\nConsider relinking your account to Bond.".format(
+                    sam_user_id, self.provider_name))
 
-    def unlink_account(self, user_info):
+    def unlink_account(self, sam_user_id):
         """
         Revokes user's refresh token and deletes the linkage from the system
-        :param user_info:
+        :param sam_user_id: Id stored in Sam for user who initiated request
         :return:
         """
-        user_id = self._fetch_user_id(user_info)
-        refresh_token = self.refresh_token_store.lookup(user_id, self.provider_name)
+        refresh_token = self.refresh_token_store.lookup(sam_user_id, self.provider_name)
         if refresh_token:
-            self.fence_tvm.remove_service_account(user_id)
+            self.fence_tvm.remove_service_account(sam_user_id)
             self.oauth_adapter.revoke_refresh_token(refresh_token.token)
-            self.refresh_token_store.delete(user_id, self.provider_name)
+            self.refresh_token_store.delete(sam_user_id, self.provider_name)
         else:
             logging.warning(
-                "Tried to remove user refresh token, but none was found: user_id: {}, provider_name: {}".format(user_id,
+                "Tried to remove user refresh token, but none was found: sam_user_id: {}, provider_name: {}".format(sam_user_id,
                                                                                                                 self.provider_name))
 
-    def get_link_info(self, user_info):
+    def get_link_info(self, sam_user_id):
         """
         Get information about a account link
-        :param user_info: Information of the user who issued the request to Bond (not necessarily the same as
-        the username for whom the refresh token was issued by the OAuth provider)
+        :param sam_user_id: Id stored in Sam for user who initiated request
         :return: RefreshTokenInfo or None if not found.
         """
-        user_id = self._fetch_user_id(user_info)
-        return self.refresh_token_store.lookup(user_id, self.provider_name)
-
-    def _fetch_user_id(self, user_info):
-        sam_result = self.sam_api.user_info(user_info.token)
-        if sam_result is None:
-            raise exceptions.Unauthorized("user not found in sam")
-        return sam_result[SamKeys.USER_ID_KEY]
+        return self.refresh_token_store.lookup(sam_user_id, self.provider_name)
 
 
 class FenceKeys:

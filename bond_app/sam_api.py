@@ -6,23 +6,32 @@ from werkzeug import exceptions
 
 
 class SamApi:
-    def __init__(self, base_url):
+    def __init__(self, base_url, cache_api):
         self.base_url = base_url
+        self.cache_api = cache_api
 
-    def user_info(self, access_token):
+    def user_info(self, user_info):
         """
         Calls sam GET /register/user/v1 api
-        :param access_token: oauth access token
+        :param user_info: user info from Google
         :return: dict with userSubjectId and userEmail keys or else None if user does not exist in sam
         """
-        headers = {'Authorization': 'Bearer ' + access_token}
-        result = requests.get(url=self.base_url + '/register/user/v1?userDetailsOnly=true', headers=headers)
-        if result.status_code == 200:
-            return json.loads(result.content)["userInfo"]
-        logging.info("sam status code {}, error body {}".format(result.status_code, result.content))
-        if result.status_code == 404:
-            return None
-        raise exceptions.InternalServerError("sam status code {}, error body {}".format(result.status_code, result.content))
+        sam_user_info = self.cache_api.get(namespace='SamApi', key=user_info.id)
+        if sam_user_info is None:
+            headers = {'Authorization': 'Bearer ' + user_info.token}
+            result = requests.get(url=self.base_url + '/register/user/v2/self/info', headers=headers)
+            if result.status_code == 200:
+                sam_user_info = json.loads(result.content)
+                self.cache_api.add(namespace='SamApi', key=user_info.id, value=sam_user_info, expires_in=60*60)
+            else:
+                logging.info("sam status code {}, error body {}".format(result.status_code, result.content))
+                if result.status_code == 404:
+                    return None
+                raise exceptions.InternalServerError("sam status code {}, error body {}".format(result.status_code, result.content))
+        else:
+            logging.debug("sam user id cache hit for id %s", user_info.id)
+
+        return sam_user_info
 
     def status(self):
         """
@@ -42,3 +51,4 @@ class SamApi:
 class SamKeys:
     USER_ID_KEY = "userSubjectId"
     USER_EMAIL_KEY = "userEmail"
+    USER_ENABLED_KEY = "enabled"

@@ -11,20 +11,20 @@ class StatusTestCase(unittest.TestCase):
         self.cache_api = FakeCacheApi()
 
     def test_ok_status(self):
-        status = Status(self._mock_sam_api(True), {"fence": self._mock_fence_api(True)}, self.cache_api)
+        status = Status(self._mock_sam_api(True, self.cache_api), {"fence": self._mock_fence_api(True)}, self.cache_api)
         self._mock_datastore(status, True)
         self.assertEqual(len(status.get()), 4)
         self.assertTrue(all(subsystem["ok"] for subsystem in status.get()))
 
     def test_cache_error(self):
-        status = Status(self._mock_sam_api(True), {"fence": self._mock_fence_api(True)}, self.cache_api)
+        status = Status(self._mock_sam_api(True, self.cache_api), {"fence": self._mock_fence_api(True)}, self.cache_api)
         self._mock_datastore(status, True)
         message = "cache down"
         status._get_cached_status = MagicMock(side_effect=Exception(message))
         self.assertEqual(status.get(), [{"ok": False, "message": message, "subsystem": Subsystems.cache}])
 
     def test_datastore_error(self):
-        status = Status(self._mock_sam_api(True), {"fence": self._mock_fence_api(True)}, self.cache_api)
+        status = Status(self._mock_sam_api(True, self.cache_api), {"fence": self._mock_fence_api(True)}, self.cache_api)
         self._mock_datastore(status, False)
         self.assertCountEqual(status.get(), [
             {"ok": True, "message": "", "subsystem": Subsystems.cache},
@@ -34,7 +34,7 @@ class StatusTestCase(unittest.TestCase):
         ])
 
     def test_fence_error(self):
-        status = Status(self._mock_sam_api(True), {"fence": self._mock_fence_api(False)}, self.cache_api)
+        status = Status(self._mock_sam_api(True, self.cache_api), {"fence": self._mock_fence_api(False)}, self.cache_api)
         self._mock_datastore(status, True)
         self.assertCountEqual(status.get(), [
             {"ok": True, "message": "", "subsystem": Subsystems.cache},
@@ -44,7 +44,7 @@ class StatusTestCase(unittest.TestCase):
         ])
 
     def test_sam_error(self):
-        status = Status(self._mock_sam_api(False), {"fence": self._mock_fence_api(True)}, self.cache_api)
+        status = Status(self._mock_sam_api(False, self.cache_api), {"fence": self._mock_fence_api(True)}, self.cache_api)
         self._mock_datastore(status, True)
         self.assertCountEqual(status.get(), [
             {"ok": True, "message": "", "subsystem": Subsystems.cache},
@@ -63,8 +63,8 @@ class StatusTestCase(unittest.TestCase):
         return fence_api
 
     @staticmethod
-    def _mock_sam_api(ok):
-        sam_api = SamApi("")
+    def _mock_sam_api(ok, cache_api):
+        sam_api = SamApi("", cache_api)
         if ok:
             sam_api.status = MagicMock(return_value=(True, ""))
         else:
