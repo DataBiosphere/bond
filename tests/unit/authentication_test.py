@@ -40,7 +40,7 @@ class AuthenticationTestCase(unittest.TestCase):
             }
             return json.dumps(token_data)
 
-        sam_user_id = self.auth.require_user_info(TestRequestState('bearer ' + token), token_fn)
+        sam_user_id = self.auth.authenticate_user(TestRequestState('bearer ' + token), token_fn)
         self.assertEqual(expected_user_info.id, sam_user_id)
 
     def test_good_user_sam_info_cached(self):
@@ -59,7 +59,7 @@ class AuthenticationTestCase(unittest.TestCase):
             }
             return json.dumps(token_data)
 
-        sam_user_id = self.auth.require_user_info(TestRequestState('bearer ' + token), token_fn)
+        sam_user_id = self.auth.authenticate_user(TestRequestState('bearer ' + token), token_fn)
         self.assertEqual(expected_user_info.id, sam_user_id)
 
     def test_good_user_google_info_cached(self):
@@ -78,12 +78,12 @@ class AuthenticationTestCase(unittest.TestCase):
             }
             return json.dumps(token_data)
 
-        self.auth.require_user_info(TestRequestState('bearer ' + token), token_fn)
+        self.auth.authenticate_user(TestRequestState('bearer ' + token), token_fn)
 
         def token_fn2(token):
             raise Exception("shouldn't be called")
 
-        sam_user_id = self.auth.require_user_info(TestRequestState('bearer ' + token), token_fn2)
+        sam_user_id = self.auth.authenticate_user(TestRequestState('bearer ' + token), token_fn2)
         self.assertEqual(expected_user_info.id, sam_user_id)
 
     def test_good_user_cache_expire_token(self):
@@ -102,7 +102,7 @@ class AuthenticationTestCase(unittest.TestCase):
             }
             return json.dumps(token_data)
 
-        self.auth.require_user_info(TestRequestState('bearer ' + token), token_fn)
+        self.auth.authenticate_user(TestRequestState('bearer ' + token), token_fn)
 
         def token_fn2(token):
             raise Exception("should detect this exception")
@@ -111,7 +111,7 @@ class AuthenticationTestCase(unittest.TestCase):
         time.sleep(2)
 
         with self.assertRaises(Exception):
-            self.auth.require_user_info(TestRequestState('bearer ' + token), token_fn2)
+            self.auth.authenticate_user(TestRequestState('bearer ' + token), token_fn2)
 
     def test_good_user_cache_expire_config(self):
         auth = Authentication(AuthenticationConfig(['32555940559'], ['.gserviceaccount.com'], 1),
@@ -131,7 +131,7 @@ class AuthenticationTestCase(unittest.TestCase):
             }
             return json.dumps(token_data)
 
-        auth.require_user_info(TestRequestState('bearer ' + token), token_fn)
+        auth.authenticate_user(TestRequestState('bearer ' + token), token_fn)
 
         def token_fn2(token):
             raise Exception("should detect this exception")
@@ -140,7 +140,7 @@ class AuthenticationTestCase(unittest.TestCase):
         time.sleep(2)
 
         with self.assertRaises(Exception):
-            auth.require_user_info(TestRequestState('bearer ' + token), token_fn2)
+            auth.authenticate_user(TestRequestState('bearer ' + token), token_fn2)
 
     def test_good_service_account(self):
         pet_token = "testtoken"
@@ -160,7 +160,7 @@ class AuthenticationTestCase(unittest.TestCase):
             }
             return json.dumps(token_data)
 
-        sam_user_id = self.auth.require_user_info(TestRequestState('bearer ' + pet_token), token_fn)
+        sam_user_id = self.auth.authenticate_user(TestRequestState('bearer ' + pet_token), token_fn)
         self.assertEqual(user_info.id, sam_user_id)
 
     def test_user_disabled_in_sam(self):
@@ -180,7 +180,7 @@ class AuthenticationTestCase(unittest.TestCase):
             return json.dumps(token_data)
 
         with self.assertRaises(Exception):
-            self.auth.require_user_info(TestRequestState('bearer ' + token), token_fn)
+            self.auth.authenticate_user(TestRequestState('bearer ' + token), token_fn)
 
     def test_pets_user_disabled_in_sam(self):
         pet_token = "testtoken"
@@ -201,21 +201,21 @@ class AuthenticationTestCase(unittest.TestCase):
             return json.dumps(token_data)
 
         with self.assertRaises(Exception):
-            self.auth.require_user_info(TestRequestState('bearer ' + pet_token), token_fn)
+            self.auth.authenticate_user(TestRequestState('bearer ' + pet_token), token_fn)
 
     def test_missing_auth_header(self):
         def token_fn(token):
             raise Exception("shouldn't be called")
 
         with self.assertRaises(exceptions.Unauthorized):
-            self.auth.require_user_info(TestRequestState(None), token_fn)
+            self.auth.authenticate_user(TestRequestState(None), token_fn)
 
     def _unauthorized_test(self, token_data):
         def token_fn(token):
             return json.dumps(token_data)
 
         with self.assertRaises(exceptions.Unauthorized):
-            self.auth.require_user_info(TestRequestState('bearer testtoken'), token_fn)
+            self.auth.authenticate_user(TestRequestState('bearer testtoken'), token_fn)
 
     def test_missing_email(self):
         token_data = {

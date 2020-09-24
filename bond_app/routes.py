@@ -167,7 +167,7 @@ def list_providers():
            "redirect_uri": fields.Str(required=True)},
           locations=("querystring",))
 def oauthcode(args, provider):
-    sam_user_id = auth.require_user_info(request)
+    sam_user_id = auth.authenticate_user(request)
     issued_at, username = _get_provider(provider).bond.exchange_authz_code(args['oauthcode'], args['redirect_uri'],
                                                                            sam_user_id)
     return json_response(LinkInfoResponse(issued_at=issued_at, username=username))
@@ -175,7 +175,7 @@ def oauthcode(args, provider):
 
 @routes.route(v1_link_route_base + '/<provider>', methods=["GET"], strict_slashes=False)
 def link_info(provider):
-    sam_user_id = auth.require_user_info(request)
+    sam_user_id = auth.authenticate_user(request)
     refresh_token = _get_provider(provider).bond.get_link_info(sam_user_id)
     if refresh_token:
         return json_response(LinkInfoResponse(issued_at=refresh_token.issued_at, username=refresh_token.username))
@@ -185,21 +185,21 @@ def link_info(provider):
 
 @routes.route(v1_link_route_base + '/<provider>', methods=["DELETE"], strict_slashes=False)
 def delete_link(provider):
-    sam_user_id = auth.require_user_info(request)
+    sam_user_id = auth.authenticate_user(request)
     _get_provider(provider).bond.unlink_account(sam_user_id)
     return '', 204
 
 
 @routes.route(v1_link_route_base + '/<provider>/accesstoken', methods=["GET"])
 def accesstoken(provider):
-    sam_user_id = auth.require_user_info(request)
+    sam_user_id = auth.authenticate_user(request)
     access_token, expires_at = _get_provider(provider).bond.generate_access_token(sam_user_id)
     return json_response(AccessTokenResponse(token=access_token, expires_at=expires_at))
 
 
 @routes.route(v1_link_route_base + '/<provider>/serviceaccount/key', methods=["GET"], strict_slashes=False)
 def service_account_key(provider):
-    sam_user_id = auth.require_user_info(request)
+    sam_user_id = auth.authenticate_user(request)
     return json_response(ServiceAccountKeyResponse(data=json.loads(
         _get_provider(provider).fence_tvm.get_service_account_key_json(sam_user_id))))
 
@@ -208,7 +208,7 @@ def service_account_key(provider):
 @use_args({"scopes": fields.List(fields.Str(), missing=None)},
           locations=("querystring",))
 def service_account_accesstoken(args, provider):
-    sam_user_id = auth.require_user_info(request)
+    sam_user_id = auth.authenticate_user(request)
     return json_response(ServiceAccountAccessTokenResponse(
         token=_get_provider(provider).fence_tvm.get_service_account_access_token(sam_user_id, args['scopes'])))
 

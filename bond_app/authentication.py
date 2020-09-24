@@ -58,7 +58,7 @@ class Authentication:
         self.cache_api = cache_api
         self.sam_api = sam_api
 
-    def require_user_info(self, request_state, token_info_fn=_token_info):
+    def authenticate_user(self, request_state, token_info_fn=_token_info):
         """Get the user's info from cache or from google if not in cache, throwing unauthorized errors as appropriate
         Verify user is registered in Sam with Google user info and return Sam user id
 
@@ -97,7 +97,10 @@ class Authentication:
             logging.debug("sam user info cache hit for id %s", google_user_info.id)
 
         if sam_user_info is None or not sam_user_info[SamKeys.USER_ENABLED_KEY]:
-            raise exceptions.Unauthorized("user not found in sam")
+            logging.info(
+                "Could not authenticate Google user {email} with subject id {id} in Sam. User info in Sam: {user_info}"
+                .format(email=google_user_info.email, id=google_user_info.id, user_info=sam_user_info))
+            raise exceptions.Unauthorized("could not authenticate with Sam")
 
         return sam_user_info[SamKeys.USER_ID_KEY]
 
