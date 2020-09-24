@@ -1,7 +1,6 @@
 from datetime import datetime
 import logging
 from .jwt_token import JwtToken
-from .sam_api import SamKeys
 
 from werkzeug import exceptions
 

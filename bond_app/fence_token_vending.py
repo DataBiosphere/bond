@@ -1,5 +1,4 @@
 import json
-import datetime
 import logging
 
 from werkzeug import exceptions
@@ -7,7 +6,6 @@ from .bond import FenceKeys
 from .fence_token_storage import ProviderUser
 from google.oauth2 import service_account
 import google.auth.transport.requests
-from .sam_api import SamKeys
 
 
 class FenceTokenVendingMachine:

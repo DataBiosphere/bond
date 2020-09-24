@@ -58,7 +58,7 @@ class Authentication:
         self.cache_api = cache_api
         self.sam_api = sam_api
 
-    def authenticate_user(self, request_state, token_info_fn=_token_info):
+    def auth_user(self, request_state, token_info_fn=_token_info):
         """Get the user's info from cache or from google if not in cache, throwing unauthorized errors as appropriate
         Verify user is registered in Sam with Google user info and return Sam user id
 
