@@ -20,7 +20,7 @@ class AuthenticationTestCase(unittest.TestCase):
 
     def setUp(self):
         self.cache_api = FakeCacheApi()
-        self.sam_api = SamApi("", self.cache_api)
+        self.sam_api = SamApi("")
         self.auth = Authentication(AuthenticationConfig(['32555940559'], ['.gserviceaccount.com'], 600),
                                    self.cache_api, self.sam_api)
 
@@ -46,7 +46,7 @@ class AuthenticationTestCase(unittest.TestCase):
     def test_good_user_sam_info_cached(self):
         token = "testtoken"
         expected_user_info = UserInfo("193481341723041", "foo@bar.com", token, 100)
-        self.cache_api.add(namespace="SamApi", key=expected_user_info.id, expires_in=0,
+        self.cache_api.add(namespace="SamUserInfo", key=expected_user_info.id, expires_in=0,
                            value=self._generate_sam_user_info(expected_user_info.id, expected_user_info.email, True))
 
         def token_fn(token):
@@ -65,7 +65,7 @@ class AuthenticationTestCase(unittest.TestCase):
     def test_good_user_google_info_cached(self):
         token = "testtoken"
         expected_user_info = UserInfo("193481341723041", "foo@bar.com", token, 100)
-        self.cache_api.add(namespace="SamApi", key=expected_user_info.id, expires_in=0,
+        self.cache_api.add(namespace="SamUserInfo", key=expected_user_info.id, expires_in=0,
                            value=self._generate_sam_user_info(expected_user_info.id, expected_user_info.email, True))
 
         def token_fn(token):
@@ -89,7 +89,7 @@ class AuthenticationTestCase(unittest.TestCase):
     def test_good_user_cache_expire_token(self):
         token = "testtoken"
         expected_user_info = UserInfo("193481341723041", "foo@bar.com", token, 1)
-        self.cache_api.add(namespace="SamApi", key=expected_user_info.id, expires_in=0,
+        self.cache_api.add(namespace="SamUserInfo", key=expected_user_info.id, expires_in=0,
                            value=self._generate_sam_user_info(expected_user_info.id, expected_user_info.email, True))
 
         def token_fn(token):
@@ -118,7 +118,7 @@ class AuthenticationTestCase(unittest.TestCase):
                               self.cache_api, self.sam_api)
         token = "testtoken"
         expected_user_info = UserInfo("193481341723041", "foo@bar.com", token, 100)
-        self.cache_api.add(namespace="SamApi", key=expected_user_info.id, expires_in=0,
+        self.cache_api.add(namespace="SamUserInfo", key=expected_user_info.id, expires_in=0,
                            value=self._generate_sam_user_info(expected_user_info.id, expected_user_info.email, True))
 
         def token_fn(token):
@@ -147,7 +147,7 @@ class AuthenticationTestCase(unittest.TestCase):
         user_token = "differenttoken"
         pet_info = UserInfo("193481341723041", "foo@bar.gserviceaccount.com", pet_token, 100)
         user_info = UserInfo("234567890123456", "foos_owner@bar.com", user_token, 100)
-        self.cache_api.add(namespace="SamApi", key=pet_info.id, expires_in=0,
+        self.cache_api.add(namespace="SamUserInfo", key=pet_info.id, expires_in=0,
                            value=self._generate_sam_user_info(user_info.id, user_info.email, True))
 
         def token_fn(token):
@@ -187,7 +187,7 @@ class AuthenticationTestCase(unittest.TestCase):
         user_token = "differenttoken"
         pet_info = UserInfo("193481341723041", "foo@bar.gserviceaccount.com", pet_token, 100)
         user_info = UserInfo("234567890123456", "foos_owner@bar.com", user_token, 100)
-        self.cache_api.add(namespace="SamApi", key=pet_info.id, expires_in=0,
+        self.cache_api.add(namespace="SamUserInfo", key=pet_info.id, expires_in=0,
                            value=self._generate_sam_user_info(user_info.id, user_info.email, False))
 
         def token_fn(token):

@@ -87,7 +87,15 @@ class Authentication:
         else:
             logging.debug("auth token cache hit for token %s", token)
 
-        sam_user_info = self.sam_api.user_info(google_user_info)
+        sam_user_info = self.cache_api.get(namespace="SamUserInfo", key=google_user_info.id)
+        if sam_user_info is None:
+            sam_user_info = self.sam_api.user_info(google_user_info.token)
+            # cache sam response for 10 minutes
+            self.cache_api.add(namespace="SamUserInfo", key=google_user_info.id,
+                               value=sam_user_info, expires_in=self.config.max_token_life)
+        else:
+            logging.debug("sam user info cache hit for id %s", google_user_info.id)
+
         if sam_user_info is None or not sam_user_info[SamKeys.USER_ENABLED_KEY]:
             raise exceptions.Unauthorized("user not found in sam")
 
