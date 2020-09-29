@@ -297,10 +297,10 @@ json_schema_test_get_access_token_for_unlinked_user = {
         "message": {
           "type": "string",
           "examples": [
-            "Could not find refresh token for user_id: 110530393451290928813 provider_name: fence\nConsider relinking your account to Bond."
+            "Could not find refresh token for sam_user_id: 110530393451290928813 provider_name: fence\nConsider relinking your account to Bond."
           ],
           "pattern":
-            "Could not find refresh token for user_id: (.*) provider_name: (.*)\nConsider relinking your account to Bond."
+            "Could not find refresh token for sam_user_id: (.*) provider_name: (.*)\nConsider relinking your account to Bond."
         },
         "code": {
           "type": "integer",
@@ -334,10 +334,10 @@ json_schema_test_get_access_token_for_unlinked_user = {
               "message": {
                 "type": "string",
                 "examples": [
-                  "Could not find refresh token for user_id: 110530393451290928813 provider_name: fence\nConsider relinking your account to Bond."
+                  "Could not find refresh token for sam_user_id: 110530393451290928813 provider_name: fence\nConsider relinking your account to Bond."
                 ],
                 "pattern":
-                  "Could not find refresh token for user_id: (.*) provider_name: (.*)\nConsider relinking your account to Bond."
+                  "Could not find refresh token for sam_user_id: (.*) provider_name: (.*)\nConsider relinking your account to Bond."
               }
             }
           }

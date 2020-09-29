@@ -95,8 +95,6 @@ def create_provider(provider_name):
     fence_base_url = config.get(provider_name, 'FENCE_BASE_URL')
     user_name_path_expr = config.get(provider_name, 'USER_NAME_PATH_EXPR')
 
-    sam_base_url = config.get('sam', 'BASE_URL')
-
     extra_authz_url_params = {}
     extra_params_key = 'EXTRA_AUTHZ_URL_PARAMS'
     if config.has_option(provider_name, extra_params_key):
@@ -106,13 +104,11 @@ def create_provider(provider_name):
     open_id_config = OpenIdConfig(provider_name, open_id_config_url, cache_api)
     oauth_adapter = OauthAdapter(client_id, client_secret, open_id_config, provider_name)
     fence_api = FenceApi(fence_base_url)
-    sam_api = SamApi(sam_base_url)
 
-    fence_tvm = FenceTokenVendingMachine(fence_api, sam_api, cache_api, refresh_token_store, oauth_adapter,
+    fence_tvm = FenceTokenVendingMachine(fence_api, cache_api, refresh_token_store, oauth_adapter,
                                          provider_name, fence_token_storage.FenceTokenStorage())
     return BondProvider(fence_tvm, Bond(oauth_adapter,
                                         fence_api,
-                                        sam_api,
                                         refresh_token_store,
                                         fence_tvm,
                                         provider_name,
@@ -141,10 +137,12 @@ refresh_token_store = TokenStore()
 bond_providers = {section_name: create_provider(section_name)
                   for section_name in config.sections() if is_provider(section_name)}
 
+sam_base_url = config.get('sam', 'BASE_URL')
+sam_api = SamApi(sam_base_url)
 authentication_config = authentication.AuthenticationConfig(config.get('bond_accepted', 'AUDIENCE_PREFIXES').split(),
                                                             config.get('bond_accepted', 'EMAIL_SUFFIXES').split(),
                                                             os.environ.get('BOND_MAX_TOKEN_LIFE', 600))
-auth = authentication.Authentication(authentication_config, cache_api)
+auth = authentication.Authentication(authentication_config, cache_api, sam_api)
 
 api_version = 'v1'
 link_api_routes_base = '/api/link/'
@@ -166,16 +164,16 @@ def list_providers():
            "redirect_uri": fields.Str(required=True)},
           locations=("querystring",))
 def oauthcode(args, provider):
-    user_info = auth.require_user_info(request)
+    sam_user_id = auth.auth_user(request)
     issued_at, username = _get_provider(provider).bond.exchange_authz_code(args['oauthcode'], args['redirect_uri'],
-                                                                           user_info)
+                                                                           sam_user_id)
     return json_response(LinkInfoResponse(issued_at=issued_at, username=username))
 
 
 @routes.route(v1_link_route_base + '/<provider>', methods=["GET"], strict_slashes=False)
 def link_info(provider):
-    user_info = auth.require_user_info(request)
-    refresh_token = _get_provider(provider).bond.get_link_info(user_info)
+    sam_user_id = auth.auth_user(request)
+    refresh_token = _get_provider(provider).bond.get_link_info(sam_user_id)
     if refresh_token:
         return json_response(LinkInfoResponse(issued_at=refresh_token.issued_at, username=refresh_token.username))
     else:
@@ -184,32 +182,32 @@ def link_info(provider):
 
 @routes.route(v1_link_route_base + '/<provider>', methods=["DELETE"], strict_slashes=False)
 def delete_link(provider):
-    user_info = auth.require_user_info(request)
-    _get_provider(provider).bond.unlink_account(user_info)
+    sam_user_id = auth.auth_user(request)
+    _get_provider(provider).bond.unlink_account(sam_user_id)
     return '', 204
 
 
 @routes.route(v1_link_route_base + '/<provider>/accesstoken', methods=["GET"])
 def accesstoken(provider):
-    user_info = auth.require_user_info(request)
-    access_token, expires_at = _get_provider(provider).bond.generate_access_token(user_info)
+    sam_user_id = auth.auth_user(request)
+    access_token, expires_at = _get_provider(provider).bond.generate_access_token(sam_user_id)
     return json_response(AccessTokenResponse(token=access_token, expires_at=expires_at))
 
 
 @routes.route(v1_link_route_base + '/<provider>/serviceaccount/key', methods=["GET"], strict_slashes=False)
 def service_account_key(provider):
-    user_info = auth.require_user_info(request)
+    sam_user_id = auth.auth_user(request)
     return json_response(ServiceAccountKeyResponse(data=json.loads(
-        _get_provider(provider).fence_tvm.get_service_account_key_json(user_info))))
+        _get_provider(provider).fence_tvm.get_service_account_key_json(sam_user_id))))
 
 
 @routes.route(v1_link_route_base + '/<provider>/serviceaccount/accesstoken', methods=["GET"], strict_slashes=False)
 @use_args({"scopes": fields.List(fields.Str(), missing=None)},
           locations=("querystring",))
 def service_account_accesstoken(args, provider):
-    user_info = auth.require_user_info(request)
+    sam_user_id = auth.auth_user(request)
     return json_response(ServiceAccountAccessTokenResponse(
-        token=_get_provider(provider).fence_tvm.get_service_account_access_token(user_info, args['scopes'])))
+        token=_get_provider(provider).fence_tvm.get_service_account_access_token(sam_user_id, args['scopes'])))
 
 
 @routes.route(v1_link_route_base + '/<provider>/authorization-url', methods=["GET"], strict_slashes=False)
