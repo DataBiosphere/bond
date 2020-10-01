@@ -33,6 +33,9 @@ class FenceApi:
         headers = {'Authorization': 'Bearer ' + access_token}
         result = requests.delete(url=self.delete_service_account_url + key_id, headers=headers)
         logging.info("request: DELETE {} - status code: {}".format(self.delete_service_account_url, result.status_code))
+        # Sometimes Fence returns a 4xx error like when it cannot find the key_id that we are trying to delete. From
+        # our perspective, that's fine, we wanted to delete that key anyways, so if Fence has already deleted it and no
+        # longer knows about it, then our work is done. Rather than disrupt the unlinking process, we tolerate the 4xx
         if result.status_code // 100 != 2 and result.status_code // 100 != 4:
             raise exceptions.InternalServerError("fence status code {}, error body {}".format(result.status_code, result.content))
 
