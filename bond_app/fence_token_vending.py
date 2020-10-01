@@ -22,11 +22,14 @@ class FenceTokenVendingMachine:
         provider_user = ProviderUser(provider_name=self.provider_name, user_id=user_id)
         key_json = self.fence_token_storage.delete(provider_user)
         if key_json:
-            access_token = self._get_oauth_access_token(provider_user)
-            key_id = json.loads(key_json)["private_key_id"]
-            # keys in cache will be invalid after we delete them with Google, but clear out the cache for good measure
-            self.cache_api.delete(namespace=self.provider_name, key=user_id)
-            self.fence_api.delete_credentials_google(access_token, key_id)
+            try:
+                access_token = self._get_oauth_access_token(provider_user)
+                key_id = json.loads(key_json)["private_key_id"]
+                self.fence_api.delete_credentials_google(access_token, key_id)
+            except Exception as e:
+                logging.warning(
+                    "Error removing service account for {}. Key will not be deleted with provider {}:\n{}"
+                    .format(user_id, self.provider_name, e))
 
     def get_service_account_access_token(self, sam_user_id, scopes=None):
         """

@@ -1,5 +1,6 @@
 from werkzeug import exceptions
 import requests
+import logging
 
 
 class FenceApi:
@@ -31,7 +32,8 @@ class FenceApi:
         """
         headers = {'Authorization': 'Bearer ' + access_token}
         result = requests.delete(url=self.delete_service_account_url + key_id, headers=headers)
-        if result.status_code // 100 != 2:
+        logging.info("request: DELETE {} - status code: {}".format(self.delete_service_account_url, result.status_code))
+        if result.status_code // 100 != 2 or result.status_code // 100 != 4:
             raise exceptions.InternalServerError("fence status code {}, error body {}".format(result.status_code, result.content))
 
     def revoke_refresh_token(self, refresh_token):
