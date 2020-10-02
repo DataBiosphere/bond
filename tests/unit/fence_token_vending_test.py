@@ -45,6 +45,19 @@ class FenceTokenVendingMachineTestCase(unittest.TestCase):
         with self.assertRaises(exceptions.NotFound):
             ftvm.get_service_account_key_json(real_user_id)
 
+    def test_expired_refresh_token(self):
+        real_user_id = self._random_subject_id()
+        mock_oauth_adapter = OauthAdapter("", "", "", "")
+        mock_oauth_adapter.refresh_access_token = MagicMock(side_effect=Exception("bad token"))
+        self.fence_token_storage.delete = MagicMock(return_value="fake-key-json")
+
+        ftvm = FenceTokenVendingMachine(self._mock_fence_api(None), self.cache_api, self.refresh_token_store,
+                                        mock_oauth_adapter, provider_name, self.fence_token_storage)
+        self.refresh_token_store.save(real_user_id, "fake_refresh_token",
+                                      datetime.datetime.now() - datetime.timedelta(days=1),
+                                      "foo@bar.com", provider_name)
+        ftvm.remove_service_account(real_user_id)
+
     @staticmethod
     def _mock_fence_api(service_account_json):
         fence_api = FenceApi("")
