@@ -50,3 +50,9 @@ app = create_app()
 app.wsgi_app = ndb_wsgi_middleware(app.wsgi_app)  # Wrap the app in middleware.
 setup_stackdriver_logging()
 handler = JsonExceptionHandler(app)
+
+
+@app.after_request
+def add_nosniff_content_type_header(response):
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    return response

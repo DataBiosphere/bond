@@ -251,8 +251,3 @@ def get_status():
     else:
         logging.warning("Bond status NOT OK:\n%s" % response[0])
         raise exceptions.InternalServerError(response[0])
-
-@routes.after_request
-def add_nosniff_content_type_header(response):
-    response.headers["X-Content-Type-Options"] = "nosniff"
-    return response
