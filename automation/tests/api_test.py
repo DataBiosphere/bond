@@ -12,8 +12,9 @@ class BaseApiTestCase(unittest.TestCase):
     provider = "fence"
     email_domain = "quality.firecloud.org" if (env == "qa") else "test.firecloud.org"
 
-    def assertContentTypeIsJson(self, response):
+    def assertCorrectResponseHeaders(self, response):
         self.assertEqual(response.headers["Content-Type"], "application/json")
+        self.assertEqual(response.headers["X-Content-Type-Options"], "nosniff")
 
 
 class PublicApiTestCase(BaseApiTestCase):
@@ -25,7 +26,7 @@ class PublicApiTestCase(BaseApiTestCase):
         self.assertEqual(200, r.status_code)
         response_json_dict = json.loads(r.text)
         validate(instance=response_json_dict, schema=json_schema_test_status)
-        self.assertContentTypeIsJson(r)
+        self.assertCorrectResponseHeaders(r)
 
     def test_list_providers(self):
         url = self.bond_base_url + "/api/link/v1/providers"
@@ -33,7 +34,7 @@ class PublicApiTestCase(BaseApiTestCase):
         self.assertEqual(200, r.status_code)
         response_json_dict = json.loads(r.text)
         validate(instance=response_json_dict, schema=json_schema_test_list_providers)
-        self.assertContentTypeIsJson(r)
+        self.assertCorrectResponseHeaders(r)
 
     def test_get_auth_url(self):
         url = self.bond_base_url + "/api/link/v1/" + self.provider + "/authorization-url" + "?scopes=openid&scopes=google_credentials&redirect_uri=http%3A%2F%2Flocal.broadinstitute.org%2F%23fence-callback&state=eyJmb28iPSJiYXIifQ=="
@@ -41,7 +42,7 @@ class PublicApiTestCase(BaseApiTestCase):
         self.assertEqual(200, r.status_code)
         response_json_dict = json.loads(r.text)
         validate(instance=response_json_dict, schema=json_schema_test_get_auth_url)
-        self.assertContentTypeIsJson(r)
+        self.assertCorrectResponseHeaders(r)
 
     def test_get_auth_url_without_params(self):
         url = self.bond_base_url + "/api/link/v1/" + self.provider + "/authorization-url"
@@ -49,7 +50,7 @@ class PublicApiTestCase(BaseApiTestCase):
         self.assertEqual(400, r.status_code)
         response_json_dict = json.loads(r.text)
         validate(instance=response_json_dict, schema=json_schema_test_get_auth_url_without_params)
-        self.assertContentTypeIsJson(r)
+        self.assertCorrectResponseHeaders(r)
 
     def test_get_auth_url_with_only_redirect_param(self):
         url = self.bond_base_url + "/api/link/v1/" + self.provider + "/authorization-url" + "?redirect_uri=http%3A%2F%2Flocal.broadinstitute.org%2F%23fence-callback"
@@ -57,7 +58,7 @@ class PublicApiTestCase(BaseApiTestCase):
         self.assertEqual(200, r.status_code)
         response_json_dict = json.loads(r.text)
         validate(instance=response_json_dict, schema=json_schema_test_get_auth_url_with_only_redirect_param)
-        self.assertContentTypeIsJson(r)
+        self.assertCorrectResponseHeaders(r)
 
     def test_get_swagger_ui(self):
         url = self.bond_base_url + "/api/docs"
@@ -68,7 +69,7 @@ class PublicApiTestCase(BaseApiTestCase):
         url = self.bond_base_url + "/not/a/url/that/exists"
         r = requests.get(url)
         self.assertEqual(404, r.status_code)
-        self.assertContentTypeIsJson(r)
+        self.assertCorrectResponseHeaders(r)
 
 
 class CronApiTestCase(BaseApiTestCase):
@@ -143,7 +144,7 @@ class UnlinkedUserTestCase(AuthorizedUnlinkedUser):
         self.assertEqual(404, r.status_code)
         response_json_dict = json.loads(r.text)
         validate(instance=response_json_dict, schema=json_schema_test_get_link_status_for_unlinked_user)
-        self.assertContentTypeIsJson(r)
+        self.assertCorrectResponseHeaders(r)
 
     def test_get_link_status_for_invalid_provider(self):
         url = self.bond_base_url + "/api/link/v1/" + "does_not_exist"
@@ -151,7 +152,7 @@ class UnlinkedUserTestCase(AuthorizedUnlinkedUser):
         self.assertEqual(404, r.status_code)
         response_json_dict = json.loads(r.text)
         validate(instance=response_json_dict, schema=json_schema_test_get_link_status_for_invalid_provider)
-        self.assertContentTypeIsJson(r)
+        self.assertCorrectResponseHeaders(r)
 
     def test_get_access_token_for_unlinked_user(self):
         url = self.bond_base_url + "/api/link/v1/" + self.provider + "/accesstoken"
@@ -159,7 +160,7 @@ class UnlinkedUserTestCase(AuthorizedUnlinkedUser):
         self.assertEqual(404, r.status_code)
         response_json_dict = json.loads(r.text)
         validate(instance=response_json_dict, schema=json_schema_test_get_access_token_for_unlinked_user)
-        self.assertContentTypeIsJson(r)
+        self.assertCorrectResponseHeaders(r)
 
 
 class ExchangeAuthCodeTestCase(AuthorizedUnlinkedUser):
@@ -171,7 +172,7 @@ class ExchangeAuthCodeTestCase(AuthorizedUnlinkedUser):
         self.assertEqual(200, r.status_code, "Response code was not 200.  Response Body: %s" % r.text)
         response_json_dict = json.loads(r.text)
         validate(instance=response_json_dict, schema=json_schema_test_exchange_auth_code)
-        self.assertContentTypeIsJson(r)
+        self.assertCorrectResponseHeaders(r)
 
 
 class ExchangeAuthCodeNegativeTestCase(AuthorizedUnlinkedUser):
@@ -188,7 +189,7 @@ class ExchangeAuthCodeNegativeTestCase(AuthorizedUnlinkedUser):
         self.assertEqual(401, r.status_code)
         response_json_dict = json.loads(r.text)
         validate(instance=response_json_dict, schema=json_schema_test_exchange_auth_code_without_authz_header)
-        self.assertContentTypeIsJson(r)
+        self.assertCorrectResponseHeaders(r)
 
     def test_exchange_auth_code_without_redirect_uri_param(self):
         url = self.bond_base_url + "/api/link/v1/" + self.provider + "/oauthcode?oauthcode=IgnoredByMockProvider"
@@ -196,7 +197,7 @@ class ExchangeAuthCodeNegativeTestCase(AuthorizedUnlinkedUser):
         self.assertEqual(400, r.status_code)
         response_json_dict = json.loads(r.text)
         validate(instance=response_json_dict, schema=json_schema_test_exchange_auth_code_without_redirect_uri_param)
-        self.assertContentTypeIsJson(r)
+        self.assertCorrectResponseHeaders(r)
 
     def test_exchange_auth_code_without_oauthcode_param(self):
         url = self.bond_base_url + "/api/link/v1/" + self.provider + "/oauthcode?redirect_uri=http%3A%2F%2Flocal.broadinstitute.org%2F%23fence-callback"
@@ -204,7 +205,7 @@ class ExchangeAuthCodeNegativeTestCase(AuthorizedUnlinkedUser):
         self.assertEqual(400, r.status_code)
         response_json_dict = json.loads(r.text)
         validate(instance=response_json_dict, schema=json_schema_test_exchange_auth_code_without_oauthcode_param)
-        self.assertContentTypeIsJson(r)
+        self.assertCorrectResponseHeaders(r)
 
 
 class LinkedUserTestCase(AuthorizedBaseCase):
@@ -228,7 +229,7 @@ class LinkedUserTestCase(AuthorizedBaseCase):
         self.assertEqual(200, r.status_code, "Response code was not 200.  Response Body: %s" % r.text)
         response_json_dict = json.loads(r.text)
         validate(instance=response_json_dict, schema=json_schema_test_get_link_status)
-        self.assertContentTypeIsJson(r)
+        self.assertCorrectResponseHeaders(r)
 
 
     def test_get_access_token(self):
@@ -237,7 +238,7 @@ class LinkedUserTestCase(AuthorizedBaseCase):
         self.assertEqual(200, r.status_code, "Response code was not 200.  Response Body: %s" % r.text)
         response_json_dict = json.loads(r.text)
         validate(instance=response_json_dict, schema=json_schema_test_get_access_token)
-        self.assertContentTypeIsJson(r)
+        self.assertCorrectResponseHeaders(r)
 
     def test_get_serviceaccount_key(self):
         url = self.bond_base_url + "/api/link/v1/" + self.provider + "/serviceaccount/key"
@@ -245,7 +246,7 @@ class LinkedUserTestCase(AuthorizedBaseCase):
         self.assertEqual(200, r.status_code, "Response code was not 200.  Response Body: %s" % r.text)
         response_json_dict = json.loads(r.text)
         validate(instance=response_json_dict, schema=json_schema_test_get_serviceaccount_key)
-        self.assertContentTypeIsJson(r)
+        self.assertCorrectResponseHeaders(r)
 
     def test_get_serviceaccount_accesstoken(self):
         url = self.bond_base_url + "/api/link/v1/" + self.provider + "/serviceaccount/accesstoken"
@@ -253,7 +254,7 @@ class LinkedUserTestCase(AuthorizedBaseCase):
         self.assertEqual(200, r.status_code, "Response code was not 200.  Response Body: %s" % r.text)
         response_json_dict = json.loads(r.text)
         validate(instance=response_json_dict, schema=json_schema_test_get_serviceaccount_accesstoken)
-        self.assertContentTypeIsJson(r)
+        self.assertCorrectResponseHeaders(r)
 
 
 class UnlinkLinkedUserTestCase(AuthorizedBaseCase):
@@ -274,7 +275,7 @@ class UnlinkLinkedUserTestCase(AuthorizedBaseCase):
         self.assertEqual(404, r.status_code)
         response_json_dict = json.loads(r.text)
         validate(instance=response_json_dict, schema=json_schema_test_delete_link_for_invalid_provider)
-        self.assertContentTypeIsJson(r)
+        self.assertCorrectResponseHeaders(r)
 
 
 class UserCredentialsTestCase(AuthorizedBaseCase):
