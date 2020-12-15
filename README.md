@@ -112,6 +112,24 @@ You can check [http://127.0.0.1:8080/api/status/v1/status](http://127.0.0.1:8080
 
 You can also check [http://0.0.0.0:8432](http://0.0.0.0:8432) which should show 'Ok' if the datastore emulator is working properly.
 
+### Run locally from IntelliJ
+
+These instructions are for running the app in IntelliJ specifically, not PyCharm.
+
+- Go to `Run` -> `Edit Configurations` -> `Add New Configuration` -> `Flask Server`
+- For `Target Type` choose: `Module Name`
+- In the `Target` field enter: `main.py`
+- Leave the `Application`, `Additional Options`, and `FLASK_ENV` fields blank
+- If you want to debug the application, check the `FLASK_DEBUG` checkbox
+- In the `Environment variables` field enter: `DATASTORE_EMULATOR_HOST=0.0.0.0:8432;FLASK_HOST=127.0.0.1`
+- Click `OK`
+- Try running the app by clicking `Run` -> `Run 'Flask (main.py)'` (or by clicking the `Run` button in the Toolbar)
+
+*NOTE* - If you see an error like: `module 'enum' has no attribute 'IntFlag'` when trying to run the Flask Server,  try 
+the following:
+
+- Go to `File` -> `Project Structure` -> `Libraries`
+- Remove the `Google App Engine` library
 
 ## Run in a Docker container
 
