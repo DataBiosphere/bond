@@ -7,10 +7,13 @@ Oauth2. Bond is a Flask application written in Python 3.7 deployed on Google App
 
 In order to run tests or run the local development app server, you need to install Python 3.7, Pip, and [Google Cloud SDK](https://cloud.google.com/sdk/install).
 
+If you need to have multiple Python versions installed, we recommend using [pyenv](https://github.com/pyenv/pyenv).
+
 ## Virtualenv
 
 [Virtualenv](https://virtualenv.pypa.io/en/stable/) is a tool that helps you manage multiple Python versions and your 
-project dependencies.  We recommend you setup Virtualenv for development and testing of Bond.
+project dependencies.  We recommend you setup Virtualenv for development and testing of Bond.  If you are using 
+[pyenv](https://github.com/pyenv/pyenv), be sure to specify to set that up prior to configuring virtualenv for Bond.  
 
 1. Verify that you have Python 3.7 installed: `python --version`
 (**Note**: The name of your Python 3.7 command may be something different like `python3` if you have multiple versions 
@@ -26,6 +29,9 @@ You may now run tests or run the application server normally.
 
 When you are ready to exit or deactivate your Bond virtualenv, just type the command `deactivate` on your command line.
 
+### In IntelliJ
+
+Follow the [instructions](https://www.jetbrains.com/help/idea/creating-virtual-environment.html) on the JetBrains site.
 
 # Running Tests
 
@@ -112,6 +118,24 @@ You can check [http://127.0.0.1:8080/api/status/v1/status](http://127.0.0.1:8080
 
 You can also check [http://0.0.0.0:8432](http://0.0.0.0:8432) which should show 'Ok' if the datastore emulator is working properly.
 
+### Run locally from IntelliJ
+
+These instructions are for running the app in IntelliJ specifically, not PyCharm.
+
+- Go to `Run` -> `Edit Configurations` -> `Add New Configuration` -> `Flask Server`
+- For `Target Type` choose: `Module Name`
+- In the `Target` field enter: `main.py`
+- Leave the `Application`, `Additional Options`, and `FLASK_ENV` fields blank
+- If you want to debug the application, check the `FLASK_DEBUG` checkbox
+- In the `Environment variables` field enter: `DATASTORE_EMULATOR_HOST=0.0.0.0:8432;FLASK_HOST=127.0.0.1`
+- Click `OK`
+- Try running the app by clicking `Run` -> `Run 'Flask (main.py)'` (or by clicking the `Run` button in the Toolbar)
+
+*NOTE* - If you see an error like: `module 'enum' has no attribute 'IntFlag'` when trying to run the Flask Server,  try 
+the following:
+
+- Go to `File` -> `Project Structure` -> `Libraries`
+- Remove the `Google App Engine` library
 
 ## Run in a Docker container
 
