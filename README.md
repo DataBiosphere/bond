@@ -7,10 +7,13 @@ Oauth2. Bond is a Flask application written in Python 3.7 deployed on Google App
 
 In order to run tests or run the local development app server, you need to install Python 3.7, Pip, and [Google Cloud SDK](https://cloud.google.com/sdk/install).
 
+If you need to have multiple Python versions installed, we recommend using [pyenv](https://github.com/pyenv/pyenv).
+
 ## Virtualenv
 
 [Virtualenv](https://virtualenv.pypa.io/en/stable/) is a tool that helps you manage multiple Python versions and your 
-project dependencies.  We recommend you setup Virtualenv for development and testing of Bond.
+project dependencies.  We recommend you setup Virtualenv for development and testing of Bond.  If you are using 
+[pyenv](https://github.com/pyenv/pyenv), be sure to specify to set that up prior to configuring virtualenv for Bond.  
 
 1. Verify that you have Python 3.7 installed: `python --version`
 (**Note**: The name of your Python 3.7 command may be something different like `python3` if you have multiple versions 
@@ -26,6 +29,9 @@ You may now run tests or run the application server normally.
 
 When you are ready to exit or deactivate your Bond virtualenv, just type the command `deactivate` on your command line.
 
+### In IntelliJ
+
+Follow the [instructions](https://www.jetbrains.com/help/idea/creating-virtual-environment.html) on the JetBrains site.
 
 # Running Tests
 
