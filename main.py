@@ -7,6 +7,7 @@ from google.cloud import ndb
 import google.cloud.logging
 from google.auth.credentials import AnonymousCredentials
 from flask_cors import CORS
+import logging
 
 client = None
 if os.environ.get('DATASTORE_EMULATOR_HOST'):
@@ -27,15 +28,25 @@ def ndb_wsgi_middleware(wsgi_app):
 
     return middleware
 
-def setup_stackdriver_logging():
-    if not os.environ.get('GAE_APPLICATION'):
-        # If we're not running as a GAE application, we do not need to set up Stackdriver logging.
-        # Stackdriver logging will encounter errors if it doesn't have access to the right project credentials.
-        return
-    logging_client = google.cloud.logging.Client()
-    # Connects the logger to the root logging handler; by default this captures
-    # all logs at INFO level and higher
-    logging_client.setup_logging()
+
+def setup_logging():
+    """
+    If we are running as a GAE application, we need to set up Stackdriver logging.
+    Stackdriver logging will encounter errors if it doesn't have access to the right project credentials.
+
+    Configures the logger whether we are running as GAE or as a standalone Flask app.
+    :return:
+    """
+    bond_log_level = logging.INFO
+    if os.environ.get('GAE_APPLICATION'):
+        # Connects the logger to the root logging handler; by default this captures
+        # all logs at INFO level and higher
+        logging_client = google.cloud.logging.Client()
+        logging_client.setup_logging(log_level=bond_log_level)
+    else:
+        logger = logging.getLogger()
+        logger.setLevel(bond_log_level)
+
 
 def create_app():
     """Initializes app."""
@@ -48,7 +59,7 @@ def create_app():
 
 app = create_app()
 app.wsgi_app = ndb_wsgi_middleware(app.wsgi_app)  # Wrap the app in middleware.
-setup_stackdriver_logging()
+setup_logging()
 handler = JsonExceptionHandler(app)
 
 

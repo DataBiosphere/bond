@@ -6,6 +6,7 @@ from .bond import FenceKeys
 from .fence_token_storage import ProviderUser
 from google.oauth2 import service_account
 import google.auth.transport.requests
+import logging
 
 
 class FenceTokenVendingMachine:
@@ -68,5 +69,6 @@ class FenceTokenVendingMachine:
         refresh_token = self.refresh_token_store.lookup(provider_user.user_id, self.provider_name)
         if refresh_token is None:
             raise exceptions.NotFound("Fence account not linked. {}".format(str(provider_user)))
+        logging.info("Using Refresh Token to generate Access Token for User: {}".format(provider_user))
         access_token = self.fence_oauth_adapter.refresh_access_token(refresh_token.token).get(FenceKeys.ACCESS_TOKEN)
         return access_token

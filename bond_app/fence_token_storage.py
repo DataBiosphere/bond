@@ -93,6 +93,7 @@ class FenceTokenStorage:
 
         else:
             fence_service_account = self._wait_for_update(fsa_key)
+            logging.info("Lock expired on FenceServiceAccount: {}".format(fence_service_account))
             if not fence_service_account.expires_at or fence_service_account.expires_at < datetime.datetime.now():
                 # We waited for a fence service account update since someone else was holding the lock, but the
                 # lock expired without a valid update.
@@ -105,6 +106,15 @@ class FenceTokenStorage:
 
     def _acquire_lock(self, fsa_key):
         """
+        This thing can return FALSE for 2 different reasons!  And those "FALSE" responses might mean two very different
+        things.  We are currently investigating: https://broadworkbench.atlassian.net/browse/CA-1109
+
+        Either we were unable to successfully lock the FenceServiceAccount record because it is already locked, OR
+        something else happened.  In the latter case, the transaction was successful, but the call to grab the lock
+        still threw an Exception for some reason.  When this happens, do we need to do something different to handle
+        that scenario?  Do we do something different based on the type of the exception that was thrown?  Do we do
+        nothing and just let the exception bubble up?  I think it all depends on the type of Exception that gets thrown,
+        but at the moment, we don't know what those exceptions might be nor what they mean.
         :param fsa_key:
         :return: True if the lock was acquired, False otherwise
         """
@@ -116,6 +126,7 @@ class FenceTokenStorage:
         # will not update it. The lock will eventually time out.
         # https://cloud.google.com/appengine/docs/standard/python/datastore/transactions#using_transactions
         except:
+            logging.info("An exception was thrown while trying to lock the FenceServiceAccount entry", exc_info=True)
             return False
 
     def _wait_for_update(self, fsa_key):
@@ -161,8 +172,10 @@ class FenceTokenStorage:
         if fence_service_account is None:
             fence_service_account = FenceServiceAccount(key=fsa_key, update_lock_timeout=update_lock_timeout)
         elif fence_service_account.update_lock_timeout and fence_service_account.update_lock_timeout > datetime.datetime.now():
+            logging.info("Could not obtain lock on {} because it is already locked".format(fence_service_account))
             return False
         else:
             fence_service_account.update_lock_timeout = update_lock_timeout
         fence_service_account.put()
+        logging.info("Successfully locked FenceServiceAccount Record: {}".format(fence_service_account))
         return True

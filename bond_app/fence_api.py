@@ -18,10 +18,16 @@ class FenceApi:
         """
         headers = {'Authorization': 'Bearer ' + access_token}
         result = requests.post(url=self.credentials_google_url, headers=headers)
+        # Logging the `result.content` here as part of debugging/troubleshooting for:
+        # https://broadworkbench.atlassian.net/browse/CA-1109
+        # Logging of the `response.content` can probably be removed after we have resolved this issue
+        logging.info("Getting new Service Account JSON Key from Fence via - request: POST {} - status code: {} - body: {}" \
+                     .format(self.credentials_google_url, result.status_code, result.content))
         if result.status_code // 100 == 2:
             return result.content
         else:
-            raise exceptions.InternalServerError("fence status code {}, error body {}".format(result.status_code, result.content))
+            raise exceptions.InternalServerError("fence status code {}, error body {}".format(result.status_code,
+                                                                                              result.content))
 
     def delete_credentials_google(self, access_token, key_id):
         """
