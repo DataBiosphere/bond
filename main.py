@@ -55,4 +55,5 @@ handler = JsonExceptionHandler(app)
 @app.after_request
 def add_nosniff_content_type_header(response):
     response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "deny"
     return response
