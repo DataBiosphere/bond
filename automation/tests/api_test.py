@@ -15,6 +15,7 @@ class BaseApiTestCase(unittest.TestCase):
     def assertCorrectResponseHeaders(self, response):
         self.assertEqual(response.headers["Content-Type"], "application/json")
         self.assertEqual(response.headers["X-Content-Type-Options"], "nosniff")
+        self.assertEqual(response.headers["X-Frame-Options"], "deny")
 
 
 class PublicApiTestCase(BaseApiTestCase):
