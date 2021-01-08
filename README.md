@@ -199,7 +199,7 @@ When doing a production deployment, each step of the checklist must be performed
 - [ ] For each Jira Issue included in this release, set the `Fix Version` field to the release name you created in the
       previous step.  The status of each of these issues should be: "Merged to Dev".  If the status is something else,
       then either: the issue should not be included in the release, the release is not ready, or the issue has already 
-      been released.
+      been released. Each Jira issue must have a clear description of the change and its security impact.
 
 ### Deploy and Test
 You must deploy to each tier one-by-one and [manually test](https://docs.google.com/document/d/1-SXw-tgt1tb3FEuNCGHWIZJ304POmfz5ragpphlq2Ng/edit?ts=5e964fbe#)
