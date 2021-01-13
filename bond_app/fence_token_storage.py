@@ -4,6 +4,8 @@ import time
 import logging
 from google.cloud import ndb
 
+logger = logging.getLogger(__name__)
+
 # How long to keep a fence service account key before expiring it.
 _FSA_KEY_LIFETIME = datetime.timedelta(days=5)
 
@@ -93,13 +95,13 @@ class FenceTokenStorage:
 
         else:
             fence_service_account = self._wait_for_update(fsa_key)
-            logging.info("Lock expired on FenceServiceAccount: {}".format(fence_service_account))
+            logger.info("Lock expired on FenceServiceAccount: {}".format(fence_service_account))
             if not fence_service_account.expires_at or fence_service_account.expires_at < datetime.datetime.now():
                 # We waited for a fence service account update since someone else was holding the lock, but the
                 # lock expired without a valid update.
                 # we could recursively call _fetch_service_account_json at this point but let's start with failure
                 failure_str = "lock on key {} expired but value was not updated".format(fsa_key)
-                logging.warning(failure_str)
+                logger.warning(failure_str)
                 raise ServiceAccountNotUpdatedException(failure_str)
 
         return fence_service_account
@@ -126,7 +128,7 @@ class FenceTokenStorage:
         # will not update it. The lock will eventually time out.
         # https://cloud.google.com/appengine/docs/standard/python/datastore/transactions#using_transactions
         except:
-            logging.info("An exception was thrown while trying to lock the FenceServiceAccount entry", exc_info=True)
+            logger.info("An exception was thrown while trying to lock the FenceServiceAccount entry", exc_info=True)
             return False
 
     def _wait_for_update(self, fsa_key):
@@ -172,10 +174,10 @@ class FenceTokenStorage:
         if fence_service_account is None:
             fence_service_account = FenceServiceAccount(key=fsa_key, update_lock_timeout=update_lock_timeout)
         elif fence_service_account.update_lock_timeout and fence_service_account.update_lock_timeout > datetime.datetime.now():
-            logging.info("Could not obtain lock on {} because it is already locked".format(fence_service_account))
+            logger.debug("Could not obtain lock on {} because it is already locked".format(fence_service_account))
             return False
         else:
             fence_service_account.update_lock_timeout = update_lock_timeout
         fence_service_account.put()
-        logging.info("Successfully locked FenceServiceAccount Record: {}".format(fence_service_account))
+        logger.debug("Successfully locked FenceServiceAccount Record: {}".format(fence_service_account))
         return True

@@ -160,6 +160,38 @@ B) Run your local code:
 3) Grab the Image ID and run: `IMAGE_ID={your image id} docker-compose -f docker/local-docker-compose.yml up`
 4) Check http://127.0.0.1:8080/api/status/v1/status to make sure you're up and running
 
+# Development
+
+This app is written in Python 3 as a Flask application intended to be run in Google App Engine.  It has runtime
+dependencies on Google Datastore.
+
+## Logging
+
+Follow standard Python [logging instructions](https://docs.python.org/3/howto/logging.html#logging-advanced-tutorial). 
+Logging is configured for our application in `main.py` in the `setup_logging` method.  This method loads a logging
+config defined in `log_config.yaml` and among other settings, allows us to specify the log level for specific modules 
+and for the application in general.  
+
+In order to use the logging config, you will need to load the right logger for your Python module (or class).  Calling
+the logging methods on the `logging` module directly will log messages using the default logger, which is not bad, but 
+it is not preferred either.  Instead, you should get the specific logger for your module so that the right configuration
+from `log_config.yaml` will be applied to your module.  For example:
+
+```python
+import logging
+
+logger = logging.getLogger(__name__)
+
+class MyCoolClass:
+    def __init__(self, base_url):
+        logger.debug("Constructed an instance of MyCoolClass")
+
+    def do_something(self):
+        logger.info("Stuff is happening")
+
+logger.warning("I like turtles")
+```
+
 # Deployment (for Broad only)
 
 Deployments to non-production and production environments are performed in Jenkins.  In order to access Jenkins, you

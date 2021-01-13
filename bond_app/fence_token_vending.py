@@ -1,5 +1,4 @@
 import json
-import logging
 
 from werkzeug import exceptions
 from .bond import FenceKeys

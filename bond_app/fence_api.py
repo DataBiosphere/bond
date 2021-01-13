@@ -1,6 +1,9 @@
 from werkzeug import exceptions
 import requests
 import logging
+import json
+
+logger = logging.getLogger(__name__)
 
 
 class FenceApi:
@@ -18,16 +21,34 @@ class FenceApi:
         """
         headers = {'Authorization': 'Bearer ' + access_token}
         result = requests.post(url=self.credentials_google_url, headers=headers)
-        # Logging the `result.content` here as part of debugging/troubleshooting for:
-        # https://broadworkbench.atlassian.net/browse/CA-1109
-        # Logging of the `response.content` can probably be removed after we have resolved this issue
-        logging.info("Getting new Service Account JSON Key from Fence via - request: POST {} - status code: {}"
+        logger.debug("Getting new Service Account JSON Key from Fence via - request: POST {} - status code: {} - "
                      .format(self.credentials_google_url, result.status_code))
         if result.status_code // 100 == 2:
+            self._maybe_log_json(result.content, "Service Account Key JSON", ["private_key"])
             return result.content
         else:
             raise exceptions.InternalServerError("fence status code {}, error body {}".format(result.status_code,
                                                                                               result.content))
+
+    def _maybe_log_json(self, json_string, name, redact_keys=[]):
+        """
+        Tries to parse the `json_string` as JSON and will log resulting dict with the values for keys in `redact_keys`
+        redacted
+        :param json_string:
+        :param name:
+        :param redact_keys:
+        :return:
+        """
+        try:
+            scrubbed_json_result = json.loads(json_string)
+            for redact_key in redact_keys:
+                scrubbed_json_result[redact_key] = "[REDACTED]"
+            logger.debug("Scrubbed {}: {}".format(name, scrubbed_json_result))
+        except ValueError:
+            # Not printing `json_string` here because we have no way of knowing whether it contains data that should be
+            # redacted.
+            logger.exception("Error trying to parse {}".format(name))
+
 
     def delete_credentials_google(self, access_token, key_id):
         """
@@ -38,7 +59,7 @@ class FenceApi:
         """
         headers = {'Authorization': 'Bearer ' + access_token}
         result = requests.delete(url=self.delete_service_account_url + key_id, headers=headers)
-        logging.info("request: DELETE {} - status code: {}".format(self.delete_service_account_url, result.status_code))
+        logger.info("request: DELETE {} - status code: {}".format(self.delete_service_account_url, result.status_code))
         # Sometimes Fence returns a 4xx error like when it cannot find the key_id that we are trying to delete. From
         # our perspective, that's fine, we wanted to delete that key anyways, so if Fence has already deleted it and no
         # longer knows about it, then our work is done. Rather than disrupt the unlinking process, we tolerate the 4xx
