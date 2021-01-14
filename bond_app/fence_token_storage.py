@@ -109,23 +109,18 @@ class FenceTokenStorage:
     def _acquire_lock(self, fsa_key):
         """
         This thing can return FALSE for 2 different reasons!  And those "FALSE" responses might mean two very different
-        things.  We are currently investigating: https://broadworkbench.atlassian.net/browse/CA-1109
-
-        Either we were unable to successfully lock the FenceServiceAccount record because it is already locked, OR
-        something else happened.  In the latter case, the transaction was successful, but the call to grab the lock
-        still threw an Exception for some reason.  When this happens, do we need to do something different to handle
-        that scenario?  Do we do something different based on the type of the exception that was thrown?  Do we do
-        nothing and just let the exception bubble up?  I think it all depends on the type of Exception that gets thrown,
-        but at the moment, we don't know what those exceptions might be nor what they mean.
+        things.  Either we were unable to successfully lock the FenceServiceAccount record because it is already locked,
+        OR something else happened.  In the latter case, the transaction may have been successful, but the call to grab
+        the lock still threw an Exception for some reason.
         :param fsa_key:
         :return: True if the lock was acquired, False otherwise
         """
         try:
             return self._lock_fence_service_account(fsa_key)
         # We expect a transaction failure or timeout when someone else acquires the lock instead of us. That's fine,
-        # it's just a different way we could fail to acquire the lock. Unfortunately, docs imply it's possible to
+        # it's just a different way we could fail to acquire the lock. Unfortunately, docs indicate it is possible to
         # receive an exception even when a transaction completes. In that case, we'll have acquired the lock but
-        # will not update it. The lock will eventually time out.
+        # will not update it and the lock will eventually time out.
         # https://cloud.google.com/appengine/docs/standard/python/datastore/transactions#using_transactions
         except:
             logger.info("An exception was thrown while trying to lock the FenceServiceAccount entry", exc_info=True)
