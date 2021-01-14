@@ -149,11 +149,6 @@ link_api_routes_base = '/api/link/'
 v1_link_route_base = link_api_routes_base + api_version
 
 
-@routes.route('/')
-def root():
-    return "Bond - Account Linking Service"
-
-
 @routes.route(v1_link_route_base + '/providers', methods=["GET"], strict_slashes=False)
 def list_providers():
     return json_response(ListProvidersResponse(providers=list(bond_providers.keys())))
