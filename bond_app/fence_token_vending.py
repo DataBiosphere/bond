@@ -1,11 +1,13 @@
 import json
-import logging
 
 from werkzeug import exceptions
 from .bond import FenceKeys
 from .fence_token_storage import ProviderUser
 from google.oauth2 import service_account
 import google.auth.transport.requests
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class FenceTokenVendingMachine:
@@ -27,7 +29,7 @@ class FenceTokenVendingMachine:
                 key_id = json.loads(key_json)["private_key_id"]
                 self.fence_api.delete_credentials_google(access_token, key_id)
             except Exception as e:
-                logging.warning(
+                logger.warning(
                     "Error removing service account for {}. Key will not be deleted with provider {}:\n{}"
                     .format(user_id, self.provider_name, e))
 
@@ -46,7 +48,7 @@ class FenceTokenVendingMachine:
         try:
             credentials.refresh(google.auth.transport.requests.Request())
         except Exception as e:
-            logging.warning("Error refreshing service account credentials:\n%s".format(str(e)))
+            logger.warning("Error refreshing service account credentials:\n%s".format(str(e)))
             raise exceptions.InternalServerError(
                 description="Unable to refresh service account credentials. Consider relinking your account.\n%s".format(str(e)),
                 original_exception=e)
@@ -68,5 +70,6 @@ class FenceTokenVendingMachine:
         refresh_token = self.refresh_token_store.lookup(provider_user.user_id, self.provider_name)
         if refresh_token is None:
             raise exceptions.NotFound("Fence account not linked. {}".format(str(provider_user)))
+        logger.info("Using Refresh Token to generate Access Token for User: {}".format(provider_user))
         access_token = self.fence_oauth_adapter.refresh_access_token(refresh_token.token).get(FenceKeys.ACCESS_TOKEN)
         return access_token

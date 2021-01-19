@@ -1,0 +1,28 @@
+version: 1
+
+# https://docs.python.org/3/howto/logging.html#logging-advanced-tutorial
+disable_existing_loggers: False
+
+formatters:
+  default:
+    format: '%(levelname)s:%(name)s:%(message)s'
+  simple:
+    format: '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+
+# Not entirely sure why a level needs to get set for the logger AND the handler.  Anyway, setting the handler's level
+# to NOTSET will ensure that the handler's level setting doesn't unexpectedly swallow log statements.
+# Logging to stderr because that's what the default handler does, we may choose to change this in the future.
+handlers:
+  console:
+    class: logging.StreamHandler
+    level: NOTSET
+    formatter: simple
+    stream: ext://sys.stderr
+
+loggers:
+  bond_app.fence_api:
+    level: DEBUG
+
+root:
+  level: INFO
+  handlers: [console]
