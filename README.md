@@ -3,6 +3,28 @@
 Service for linking [Sam](https://github.com/broadinstitute/sam) User accounts with registered 3rd party services via
 Oauth2. Bond is a Flask application written in Python 3.7 deployed on Google App Engine.
 
+# Swagger/OpenAPI Interface
+
+The only user interface that Bond makes available is a Swagger UI for directly interacting with its endpoints.  The UI 
+can be reached at the path:
+
+`http://{your_host}/api/docs/`
+
+## Authorization 
+For endpoints that require authorization, you will need a Google Access Token that you can generate using the 
+[gcloud](https://cloud.google.com/sdk/gcloud) command:
+
+`gcloud auth print-access-token`
+
+When you "authorize" in the Bond Swagger UI:
+
+1. Click the `Authorize` button at the top right of the Swagger UI
+1. Copy/paste the generated Access Token from the gcloud CLI into `Value` field
+1. Click the `Authorize` button
+
+Your token will authorize you to make requests for about 30 minutes, at which point you will need to repeat the 
+authorization process.
+
 # Setup
 
 In order to run tests or run the local development app server, you need to install Python 3.7, Pip, and [Google Cloud SDK](https://cloud.google.com/sdk/install).
@@ -152,6 +174,7 @@ A) To run an existing image:
 2) Browse the available tags [here](https://quay.io/repository/databiosphere/bond?tag=latest&tab=tags)
 3) With your tag of choice (such as `develop`), run `IMAGE_ID=quay.io/databiosphere/bond:{TAG} docker-compose -f docker/local-docker-compose.yml up`
 4) Check http://127.0.0.1:8080/api/status/v1/status to make sure you're up and running
+5) Navigate to http://127.0.0.1:8080/api/docs/ to interact with endpoints via Swagger
 
 B) Run your local code:
 
@@ -159,6 +182,7 @@ B) Run your local code:
 2) Build your image: `docker build -f docker/Dockerfile .`
 3) Grab the Image ID and run: `IMAGE_ID={your image id} docker-compose -f docker/local-docker-compose.yml up`
 4) Check http://127.0.0.1:8080/api/status/v1/status to make sure you're up and running
+5) Navigate to http://127.0.0.1:8080/api/docs/ to interact with endpoints via Swagger
 
 # Development
 
