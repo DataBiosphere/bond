@@ -45,6 +45,13 @@ OPEN_ID_CONFIG_URL=https://gen3.theanvil.io/user/.well-known/openid-configuratio
 USER_NAME_PATH_EXPR=/context/user/name
 FENCE_BASE_URL=https://gen3.theanvil.io/
 
+[kids-first]
+CLIENT_ID={{ $secrets.Data.kids_first_client_id }}
+CLIENT_SECRET={{ $secrets.Data.kids_first_client_id }}
+OPEN_ID_CONFIG_URL=https://data.kidsfirstdrc.org/user/.well-known/openid-configuration
+USER_NAME_PATH_EXPR=/context/user/name
+FENCE_BASE_URL=https://data.kidsfirstdrc.org
+
 {{else}}
 # Non-production environments
 [fence]
@@ -68,6 +75,13 @@ CLIENT_SECRET={{ $secrets.Data.anvil_secret }}
 OPEN_ID_CONFIG_URL=https://staging.theanvil.io/user/.well-known/openid-configuration
 USER_NAME_PATH_EXPR=/context/user/name
 FENCE_BASE_URL=https://staging.theanvil.io/
+
+[kids-first]
+CLIENT_ID={{ $secrets.Data.kids_first_client_id }}
+CLIENT_SECRET={{ $secrets.Data.kids_first_client_id }}
+OPEN_ID_CONFIG_URL=https://gen3staging.kidsfirstdrc.org/user/.well-known/openid-configuration
+USER_NAME_PATH_EXPR=/context/user/name
+FENCE_BASE_URL=https://gen3staging.kidsfirstdrc.org/
 
 {{end}}
 
