@@ -275,8 +275,8 @@ the `TIER` to which you want to deploy:
       job. However, deploying again is an important step because someone else may have triggered a `dev` deployment and 
       we want to ensure that you understand the deployment process, the deployment tools are working properly, and that 
       everything is working as intended.)
-- [ ] Check the [Release Protection Window Calendar](TODO) to make sure that it is safe for you to proceed with the 
-        release to production. 
+- [ ] Check the [Release Protection Window Calendar](https://calendar.google.com/calendar/u/0?cid=YnJvYWRpbnN0aXR1dGUub3JnX2ZrMGMxb2E0Ym5rY21rOXEyajY5ZWdtMjljQGdyb3VwLmNhbGVuZGFyLmdvb2dsZS5jb20) 
+      to make sure that it is safe for you to proceed with the release to production.   
 - [ ] Notify the [#workbench-release](https://broadinstitute.slack.com/archives/C6DTFUCDD) Slack channel that you will
       be releasing a new version of Bond to `alpha`, `staging`, and `prod` along with the link to the release version in
       Jira.
