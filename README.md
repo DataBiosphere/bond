@@ -132,9 +132,9 @@ Note that the following script must be run from a python2 virtualenv environment
 
 ```tests/datastore_emulator/run_emulator.sh```
 
-Then, start a local flask server.
+Then back in the Python 3 environment, start a local flask server:
 
-```run_local.sh```
+```./run_local.sh```
 
 You can check [http://127.0.0.1:8080/api/status/v1/status](http://127.0.0.1:8080/api/status/v1/status) to make sure you're up and running.
 

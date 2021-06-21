@@ -36,4 +36,5 @@ In another terminal, run the test script. Note that this sets (and attempts to u
 
 `./tests/datastore_emulator/test.sh`
 
-Stop the emulator. (ctrl+C)
+To kill the Datastore emulator, use `jps -v` to get its process id and then `kill` it. Control-C will not kill
+a running Datastore emulator.
