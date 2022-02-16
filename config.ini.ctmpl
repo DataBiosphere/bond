@@ -3,6 +3,7 @@
 {{with $dnsDomain := env "DNS_DOMAIN"}}
 {{with $secrets := secret (printf "secret/dsde/bond/%s/config.ini" $environment)}}
 {{with $commonSecrets := secret (printf "secret/dsde/firecloud/common/oauth_client_id")}}
+{{- $samUrl := env "SAM_URL" -}}
 
 {{if (or (eq $runContext "fiab") (eq $runContext "local")) }}
 # fiab settings are mock providers
@@ -86,7 +87,11 @@ FENCE_BASE_URL=https://gen3staging.kidsfirstdrc.org/
 {{end}}
 
 [sam]
+{{- if $samUrl -}}
+BASE_URL={{ $samUrl }}
+{{- else -}
 BASE_URL={{if eq $runContext "fiab"}}https://sam-fiab.{{$dnsDomain}}{{else}}https://sam.dsde-{{$environment}}.broadinstitute.org{{end}}
+{{- end -}}
 
 
 [bond_accepted]
