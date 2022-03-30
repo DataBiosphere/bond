@@ -4,6 +4,11 @@ import time
 import logging
 from google.cloud import ndb
 
+# This used to be set to 30 seconds, but GAE uses gunicorn as its http server, and the default request timeout for
+# gunicorn is 30 seconds: https://docs.gunicorn.org/en/latest/settings.html#timeout
+# Therefore, our timeout needs to be less than that.  See https://broadworkbench.atlassian.net/browse/CA-1529
+LOCK_DURATION = 15
+
 logger = logging.getLogger(__name__)
 
 # How long to keep a fence service account key before expiring it.
@@ -76,7 +81,7 @@ class FenceTokenStorage:
 
         return (fence_service_account.key_json, fence_service_account.expires_at)
 
-    def _fetch_and_cache_service_account(self, provider_user, prep_key_fn, fence_fetch_fn):
+    def _fetch_and_cache_service_account(self, provider_user, prep_key_fn, fence_fetch_fn, retries=1):
         """
         Fetch a new service account from fence. We must be careful that concurrent requests result in only one
         key request to fence so the service account does not run out of keys (google limits to 10).
@@ -92,19 +97,30 @@ class FenceTokenStorage:
                                                         update_lock_timeout=None,
                                                         key=fsa_key)
             fence_service_account.put()
-
+            return fence_service_account
         else:
             fence_service_account = self._wait_for_update(fsa_key)
-            logger.info("Lock expired on FenceServiceAccount: {}".format(fence_service_account))
+            # if the record's expiry is in the future, we know it has been updated by another process and we can return
+            # this fence_service_account.  If the record is _still_ expired, then it is deadlocked and we should clean
+            # up the lock and try again.
             if not fence_service_account.expires_at or fence_service_account.expires_at < datetime.datetime.now():
                 # We waited for a fence service account update since someone else was holding the lock, but the
-                # lock expired without a valid update.
-                # we could recursively call _fetch_service_account_json at this point but let's start with failure
-                failure_str = "lock on key {} expired but value was not updated".format(fsa_key)
-                logger.warning(failure_str)
-                raise ServiceAccountNotUpdatedException(failure_str)
+                # lock expired without a valid update.  We are deadlocked, so cleanup the lock.
+                logger.warning("Cleaning up deadlock. Current datetime is: {}. FenceServiceAccount {} expired at {} and was locked until {}."
+                               .format(datetime.datetime.now(),
+                                       fsa_key,
+                                       fence_service_account.expires_at,
+                                       fence_service_account.update_lock_timeout))
 
-        return fence_service_account
+                fence_service_account.update_lock_timeout = None
+                fence_service_account.put()
+
+                if retries > 0:
+                    return self._fetch_and_cache_service_account(provider_user, prep_key_fn, fence_fetch_fn, retries-1)
+                else:
+                    raise ServiceAccountNotUpdatedException(
+                        "FenceServiceAccount: {} has expired and a lock prevented us from updating this record"
+                        .format(fence_service_account))
 
     def _acquire_lock(self, fsa_key):
         """
@@ -134,9 +150,12 @@ class FenceTokenStorage:
         """
         # need to be sure to get the fence_service_account in a new transaction every time so that we get a fresh copy
         fence_service_account = self._get_fence_service_account_in_new_txn(fsa_key)
+        # TODO: if the lock is far enough in the future, this will attempt to spin until that date.  I think the request
+        # is timing out prior to that and GAE is killing the app
         while fence_service_account.update_lock_timeout and fence_service_account.update_lock_timeout > datetime.datetime.now():
             time.sleep(1)
             fence_service_account = self._get_fence_service_account_in_new_txn(fsa_key)
+        logger.info("Lock expired on FenceServiceAccount: {}".format(fence_service_account))
         return fence_service_account
 
     @staticmethod
@@ -164,12 +183,15 @@ class FenceTokenStorage:
         :param fsa_key:
         :return True if lock was successful, false otherwise.
         """
-        update_lock_timeout = datetime.datetime.now() + datetime.timedelta(seconds=30)
+        update_lock_timeout = datetime.datetime.now() + datetime.timedelta(seconds=LOCK_DURATION)
         fence_service_account = fsa_key.get()
         if fence_service_account is None:
+            # TODO: This creates a record with NULL values for key_json and expires_at
+            # This is a thing we DO see in prod.  Which means the put() call below succeeds, but subsequent calls for
+            # this same request are failing, leaving around these "partial" records.  Need to investigate
             fence_service_account = FenceServiceAccount(key=fsa_key, update_lock_timeout=update_lock_timeout)
         elif fence_service_account.update_lock_timeout and fence_service_account.update_lock_timeout > datetime.datetime.now():
-            logger.debug("Could not obtain lock on {} because it is already locked".format(fence_service_account))
+            logger.debug("Could not obtain lock on {} because it is already locked".format(fsa_key))
             return False
         else:
             fence_service_account.update_lock_timeout = update_lock_timeout
