@@ -6,7 +6,7 @@ version: 2
 jobs:
   test:
     docker:
-      - image: google/cloud-sdk:276.0.0
+      - image: google/cloud-sdk:381.0.0
 
     steps:
       - run:
