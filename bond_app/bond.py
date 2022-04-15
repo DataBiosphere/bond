@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 import logging
 from .jwt_token import JwtToken
 
@@ -60,23 +60,61 @@ class Bond:
                                       jwt_token.username, self.provider_name)
         return jwt_token.issued_at, jwt_token.username
 
-    def generate_access_token(self, sam_user_id):
+
+    def generate_access_token(self, sam_user_id, refresh_token=None):
         """
-        Given a user, lookup their refresh token and use it to generate a new refresh token from their OAuth
+        Given a user, lookup their refresh token (if not provided) and use it to generate a new refresh token (<-should this be "access token"?) from their OAuth
         provider.  If a refresh token cannot be found for the sam_user_id provided, a NotFound will be raised.
         :param sam_user_id: Id stored in Sam for user who initiated request
         :return: Two values: An Access Token string, datetime when that token expires
         """
-        refresh_token = self.refresh_token_store.lookup(sam_user_id, self.provider_name)
+        refresh_token = refresh_token or self.refresh_token_store.lookup(sam_user_id, self.provider_name)
         if refresh_token is not None:
             token_response = self.oauth_adapter.refresh_access_token(refresh_token.token)
             expires_at = datetime.fromtimestamp(token_response.get(FenceKeys.EXPIRES_AT))
+
             return token_response.get("access_token"), expires_at
         else:
             raise exceptions.NotFound(
                 "Could not find refresh token for sam_user_id: {} provider_name: {}\nConsider relinking your account to Bond.".format(
                     sam_user_id, self.provider_name))
 
+
+    def get_access_token(self, sam_user_id, refresh_token=None, refresh_threshold: int = 600):
+        refresh_token = refresh_token or self.refresh_token_store.lookup(sam_user_id, self.provider_name)
+        if refresh_token is not None:
+            cached_access_entry = self.fence_tvm.cache_api.get_entry(namespace="AccessTokens", key=sam_user_id)
+            if (
+                cached_access_entry and 
+                cached_access_entry.expires_at - datetime.now() > timedelta(seconds=refresh_threshold)
+            ):
+                expires_at = cached_access_entry.expires_at
+                access_token = cached_access_entry.value
+                expires_in = (expires_at - datetime.now()).total_seconds()
+                logging.info(
+                    f"Retrieved access token from cache. "
+                    f"Cache will be refreshed in {expires_in - refresh_threshold:.2f} seconds."
+                )
+            else:
+                access_token, expires_at = self.generate_access_token(sam_user_id, refresh_token=refresh_token)
+                expires_in = (expires_at - datetime.now()).total_seconds()
+                logging.info(
+                    f"Generated new access token. "
+                    f"Cache will be refreshed in {expires_in - refresh_threshold:.2f} seconds."
+                )
+                
+                self.fence_tvm.cache_api.add(
+                    namespace="AccessTokens", 
+                    key=sam_user_id, 
+                    value=access_token,
+                    expires_in=expires_in,
+                )
+            return access_token, expires_at
+        else:
+            raise exceptions.NotFound(
+                "Could not find refresh token for sam_user_id: {} provider_name: {}\nConsider relinking your account to Bond.".format(
+                    sam_user_id, self.provider_name))
+            
     def unlink_account(self, sam_user_id):
         """
         Revokes user's refresh token and deletes the linkage from the system

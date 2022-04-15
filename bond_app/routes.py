@@ -185,7 +185,7 @@ def delete_link(provider):
 @routes.route(v1_link_route_base + '/<provider>/accesstoken', methods=["GET"])
 def accesstoken(provider):
     sam_user_id = auth.auth_user(request)
-    access_token, expires_at = _get_provider(provider).bond.generate_access_token(sam_user_id)
+    access_token, expires_at = _get_provider(provider).bond.get_access_token(sam_user_id)
     return json_response(AccessTokenResponse(token=access_token, expires_at=expires_at))
 
 
