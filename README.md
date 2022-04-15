@@ -31,6 +31,9 @@ In order to run tests or run the local development app server, you need to insta
 
 If you need to have multiple Python versions installed, we recommend using [pyenv](https://github.com/pyenv/pyenv).
 
+### A note to M1 Mac users
+At the time of this writing, it is recommended that M1 Mac users perform all of the setup steps in a terminal running Rosetta 2 x86 emulation. See the following Apple support article: [If you need to install Rosetta on your Mac](https://support.apple.com/en-us/HT211861)
+
 ## Virtualenv
 
 [Virtualenv](https://virtualenv.pypa.io/en/stable/) is a tool that helps you manage multiple Python versions and your 
