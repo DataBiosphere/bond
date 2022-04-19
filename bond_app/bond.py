@@ -63,9 +63,11 @@ class Bond:
 
     def generate_access_token(self, sam_user_id, refresh_token=None):
         """
-        Given a user, lookup their refresh token (if not provided) and use it to generate a new refresh token (<-should this be "access token"?) from their OAuth
+        Given a user, lookup their refresh token (if not provided) and use it to generate a new access token from their OAuth
         provider.  If a refresh token cannot be found for the sam_user_id provided, a NotFound will be raised.
         :param sam_user_id: Id stored in Sam for user who initiated request
+        :param refresh_token: a refresh token (optional). 
+        If not present, the refresh token will be found using the "sam_user_id" parameter.
         :return: Two values: An Access Token string, datetime when that token expires
         """
         refresh_token = refresh_token or self.refresh_token_store.lookup(sam_user_id, self.provider_name)
@@ -81,6 +83,19 @@ class Bond:
 
 
     def get_access_token(self, sam_user_id, refresh_token=None, refresh_threshold: int = 600):
+        """
+        Given a user, lookup their refresh token (if not provided) and use it to retrieve an access token from their OAuth
+        provider.
+        If an access token was already generated for the user, 
+        and that token has greater than `refresh_threshold` seconds before expiration, return that token. 
+        Otherwise, generate a new token.
+        
+        If a refresh token cannot be found for the sam_user_id provided, a NotFound will be raised.
+        :param sam_user_id: Id stored in Sam for user who initiated request
+        :param refresh_token: a refresh token (optional). 
+        If not present, the refresh token will be found using the "sam_user_id" parameter.
+        :return: Two values: An Access Token string, datetime when that token expires
+        """
         refresh_token = refresh_token or self.refresh_token_store.lookup(sam_user_id, self.provider_name)
         if refresh_token is not None:
             cached_access_entry = self.fence_tvm.cache_api.get_entry(namespace="AccessTokens", key=sam_user_id)
