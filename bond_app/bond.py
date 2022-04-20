@@ -82,7 +82,7 @@ class Bond:
                     sam_user_id, self.provider_name))
 
 
-    def get_access_token(self, sam_user_id, refresh_token=None, refresh_threshold: int = 600):
+    def get_access_token(self, sam_user_id, refresh_threshold: int = 600):
         """
         Given a user, lookup their refresh token (if not provided) and use it to retrieve an access token from their OAuth
         provider.
@@ -92,11 +92,9 @@ class Bond:
         
         If a refresh token cannot be found for the sam_user_id provided, a NotFound will be raised.
         :param sam_user_id: Id stored in Sam for user who initiated request
-        :param refresh_token: a refresh token (optional). 
-        If not present, the refresh token will be found using the "sam_user_id" parameter.
         :return: Two values: An Access Token string, datetime when that token expires
         """
-        refresh_token = refresh_token or self.refresh_token_store.lookup(sam_user_id, self.provider_name)
+        refresh_token = self.refresh_token_store.lookup(sam_user_id, self.provider_name)
         if refresh_token is not None:
             cached_access_entry = self.fence_tvm.cache_api.get_entry(namespace="AccessTokens", key=sam_user_id)
             if (
