@@ -102,18 +102,16 @@ class Bond:
             if cached_access_data and cached_access_data.get(FenceKeys.ACCESS_TOKEN):
                 expires_at = cached_access_data.get(FenceKeys.EXPIRES_AT)
                 access_token = cached_access_data.get(FenceKeys.ACCESS_TOKEN)
-                expires_in_cache = (expires_at - datetime.now()).total_seconds() - refresh_threshold
                 logging.debug(
                     "Retrieved access token from cache. " +
-                    f"Access token will expire in {expires_in_cache:.2f} seconds. " +
+                    f"Access token will expire at {expires_at:.2f}. " +
                     f"SAM user ID: {sam_user_id}. Provider: {self.provider_name}"
                 )
             else:
                 access_token, expires_at = self.generate_access_token(sam_user_id, refresh_token=refresh_token)
-                expires_in_cache = (expires_at - datetime.now()).total_seconds() - refresh_threshold
                 logging.debug(
                     "Generated new access token. " +
-                    f"Access token will expire in {expires_in_cache:.2f} seconds. " +
+                    f"Access token will expire at {expires_at:.2f} seconds. " +
                     f"SAM user ID: {sam_user_id}. Provider: {self.provider_name}"
                 )
                 
@@ -124,7 +122,7 @@ class Bond:
                         FenceKeys.EXPIRES_AT: expires_at,
                         FenceKeys.ACCESS_TOKEN: access_token,
                     },
-                    expires_in=expires_in_cache,
+                    expires_in=(expires_at - datetime.now()).total_seconds() - refresh_threshold,
                 )
             return access_token, expires_at
         else:
