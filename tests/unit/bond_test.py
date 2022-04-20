@@ -116,6 +116,117 @@ class BondTestCase(unittest.TestCase):
         self.assertEqual(self.fake_access_token, access_token)
         self.assertEqual(datetime.fromtimestamp(self.expires_at_epoch), expires_at)
 
+    def test_get_access_token_from_cache(self):
+        data = {"context": {"user": {"name": self.name}}, 'iat': self.issued_at_epoch}
+        encoded_jwt = jwt.encode(data, 'secret', 'HS256')
+        expires_at_initial = datetime.now().timestamp() + 1
+        
+        fake_token_defaults = {
+            FenceKeys.ACCESS_TOKEN: self.fake_access_token,
+            FenceKeys.ID_TOKEN: encoded_jwt,
+            }
+
+        mock_oauth_adapter = OauthAdapter("foo", "bar", "baz", "qux")
+        mock_oauth_adapter.refresh_access_token = MagicMock(
+            return_value={**fake_token_defaults, **{FenceKeys.EXPIRES_AT: expires_at_initial}}
+        )
+
+        fence_api = self._mock_fence_api(json.dumps({"private_key_id": "asfasdfasdf"}))
+        cache_api = FakeCacheApi()
+        bond = Bond(mock_oauth_adapter,
+                    fence_api,
+                    cache_api,
+                    self.refresh_token_store,
+                    FenceTokenVendingMachine(fence_api, cache_api, self.refresh_token_store,
+                                             mock_oauth_adapter, provider_name,
+                                             FakeFenceTokenStorage()),
+                    provider_name,
+                    "/context/user/name",
+                    {})
+        
+        token = str(uuid.uuid4())
+        self.refresh_token_store.save(user_id=self.user_id,
+                                      refresh_token_str=token,
+                                      issued_at=datetime.fromtimestamp(self.issued_at_epoch),
+                                      username=self.name,
+                                      provider_name=provider_name)
+
+        # verify that the new `expired_at` value is returned with `get_access_token`,
+        # when nothing has been cached yet.
+        access_token, expires_at = bond.get_access_token(self.user_id, refresh_threshold=0)
+        self.assertEqual(self.fake_access_token, access_token)
+        self.assertEqual(datetime.fromtimestamp(expires_at_initial), expires_at)
+
+        expires_at_new = expires_at_initial + 100
+
+        mock_oauth_adapter.refresh_access_token = MagicMock(
+            return_value={**fake_token_defaults, **{FenceKeys.EXPIRES_AT: expires_at_new}}
+        )
+
+        # verify that the new `expires_at` value is returned with `generate_access_token`.
+        access_token, expires_at = bond.generate_access_token(self.user_id)
+        self.assertEqual(self.fake_access_token, access_token)
+        self.assertEqual(datetime.fromtimestamp(expires_at_new), expires_at)
+
+        # verify that the cached `expires_at` value is returned with `get_access_token`
+        access_token, expires_at = bond.get_access_token(self.user_id)
+        self.assertEqual(self.fake_access_token, access_token)
+        self.assertEqual(datetime.fromtimestamp(expires_at_initial), expires_at)
+
+    def test_get_access_token_from_generate(self):
+        data = {"context": {"user": {"name": self.name}}, 'iat': self.issued_at_epoch}
+        encoded_jwt = jwt.encode(data, 'secret', 'HS256')
+        refresh_threshold = 1  # refresh threshold intentionally set to expire
+        expires_at_initial = datetime.now().timestamp() + refresh_threshold
+
+        fake_token_defaults = {
+            FenceKeys.ACCESS_TOKEN: self.fake_access_token,
+            FenceKeys.ID_TOKEN: encoded_jwt,
+            }
+
+        mock_oauth_adapter = OauthAdapter("foo", "bar", "baz", "qux")
+        mock_oauth_adapter.refresh_access_token = MagicMock(
+            return_value={**fake_token_defaults, **{FenceKeys.EXPIRES_AT: expires_at_initial}}
+        )
+
+        fence_api = self._mock_fence_api(json.dumps({"private_key_id": "asfasdfasdf"}))
+        cache_api = FakeCacheApi()
+        bond = Bond(mock_oauth_adapter,
+                    fence_api,
+                    cache_api,
+                    self.refresh_token_store,
+                    FenceTokenVendingMachine(fence_api, cache_api, self.refresh_token_store,
+                                             mock_oauth_adapter, provider_name,
+                                             FakeFenceTokenStorage()),
+                    provider_name,
+                    "/context/user/name",
+                    {})
+        
+        token = str(uuid.uuid4())
+        self.refresh_token_store.save(user_id=self.user_id,
+                                      refresh_token_str=token,
+                                      issued_at=datetime.fromtimestamp(self.issued_at_epoch),
+                                      username=self.name,
+                                      provider_name=provider_name)
+
+        # verify that the new `expired_at` value is returned with `get_access_token`,
+        # when nothing has been cached yet.
+        access_token, expires_at = bond.get_access_token(self.user_id, refresh_threshold=refresh_threshold)
+        self.assertEqual(self.fake_access_token, access_token)
+        self.assertEqual(datetime.fromtimestamp(expires_at_initial), expires_at)
+        
+        expires_at_new = expires_at_initial + 100
+        mock_oauth_adapter.refresh_access_token = MagicMock(
+            return_value={**fake_token_defaults, **{FenceKeys.EXPIRES_AT: expires_at_new}}
+        )
+
+        # verify that the new (uncached) `expired_at` value is returned with `get_access_token`,
+        # because the refresh_threshold was set to expire the token immediately
+        access_token, expires_at = bond.get_access_token(self.user_id)
+        self.assertEqual(self.fake_access_token, access_token)
+        self.assertEqual(datetime.fromtimestamp(expires_at_new), expires_at)
+
+
     def test_generate_access_token_errors_when_missing_token(self):
         self.assertRaises(exceptions.NotFound, self.bond.generate_access_token, self.user_id)
 
