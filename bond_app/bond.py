@@ -98,33 +98,33 @@ class Bond:
         """
         refresh_token = self.refresh_token_store.lookup(sam_user_id, self.provider_name)
         if refresh_token is not None:
-            cached_access_entry = self.cache_api.get_entry(namespace="AccessTokens", key=sam_user_id)
-            if (
-                cached_access_entry and 
-                cached_access_entry.expires_at - datetime.now() > timedelta(seconds=refresh_threshold)
-            ):
-                expires_at = cached_access_entry.expires_at
-                access_token = cached_access_entry.value
-                expires_in = (expires_at - datetime.now()).total_seconds()
+            cached_access_data = self.cache_api.get(namespace="AccessTokens", key=sam_user_id)
+            if cached_access_data and cached_access_data.get(FenceKeys.ACCESS_TOKEN):
+                expires_at = cached_access_data.get(FenceKeys.EXPIRES_AT)
+                access_token = cached_access_data.get(FenceKeys.ACCESS_TOKEN)
+                expires_in_cache = (expires_at - datetime.now()).total_seconds() - refresh_threshold
                 logging.debug(
                     "Retrieved access token from cache. " +
-                    f"Access token will expire in {expires_in - refresh_threshold:.2f} seconds. " +
+                    f"Access token will expire in {expires_in_cache:.2f} seconds. " +
                     f"SAM user ID: {sam_user_id}. Provider: {self.provider_name}"
                 )
             else:
                 access_token, expires_at = self.generate_access_token(sam_user_id, refresh_token=refresh_token)
-                expires_in = (expires_at - datetime.now()).total_seconds()
+                expires_in_cache = (expires_at - datetime.now()).total_seconds() - refresh_threshold
                 logging.debug(
                     "Generated new access token. " +
-                    f"Access token will expire in {expires_in - refresh_threshold:.2f} seconds. " +
+                    f"Access token will expire in {expires_in_cache:.2f} seconds. " +
                     f"SAM user ID: {sam_user_id}. Provider: {self.provider_name}"
                 )
                 
                 self.cache_api.add(
                     namespace="AccessTokens", 
                     key=sam_user_id, 
-                    value=access_token,
-                    expires_in=expires_in,
+                    value={
+                        FenceKeys.EXPIRES_AT: expires_at,
+                        FenceKeys.ACCESS_TOKEN: access_token,
+                    },
+                    expires_in=expires_in_cache,
                 )
             return access_token, expires_at
         else:
