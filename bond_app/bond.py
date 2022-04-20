@@ -72,11 +72,11 @@ class Bond:
         If not present, the refresh token will be found using the "sam_user_id" parameter.
         :return: Two values: An Access Token string, datetime when that token expires
         """
+
         refresh_token = refresh_token or self.refresh_token_store.lookup(sam_user_id, self.provider_name)
         if refresh_token is not None:
             token_response = self.oauth_adapter.refresh_access_token(refresh_token.token)
             expires_at = datetime.fromtimestamp(token_response.get(FenceKeys.EXPIRES_AT))
-
             return token_response.get("access_token"), expires_at
         else:
             raise exceptions.NotFound(
@@ -107,17 +107,16 @@ class Bond:
                 access_token_value = access_token.value
                 logging.debug(
                     "Retrieved access token from cache. " +
-                    f"Access token will expire at {expires_at:.2f}. " +
+                    f"Access token will expire at {expires_at}. " +
                     f"SAM user ID: {sam_user_id}. Provider: {self.provider_name}"
                 )
             else:
                 access_token_value, expires_at = self.generate_access_token(sam_user_id, refresh_token=refresh_token)
                 logging.debug(
                     "Generated new access token. " +
-                    f"Access token will expire at {expires_at:.2f} seconds. " +
+                    f"Access token will expire at {expires_at} seconds. " +
                     f"SAM user ID: {sam_user_id}. Provider: {self.provider_name}"
                 )
-                
                 self.cache_api.add(
                     namespace=f"{self.provider_name}:AccessTokens", 
                     key=sam_user_id, 
