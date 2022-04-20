@@ -106,16 +106,18 @@ class Bond:
                 expires_at = cached_access_entry.expires_at
                 access_token = cached_access_entry.value
                 expires_in = (expires_at - datetime.now()).total_seconds()
-                logging.info(
-                    f"Retrieved access token from cache. "
-                    f"Cache will be refreshed in {expires_in - refresh_threshold:.2f} seconds."
+                logging.debug(
+                    "Retrieved access token from cache. " +
+                    f"Access token will expire in {expires_in - refresh_threshold:.2f} seconds. " +
+                    f"SAM user ID: {sam_user_id}. Provider: {self.provider_name}"
                 )
             else:
                 access_token, expires_at = self.generate_access_token(sam_user_id, refresh_token=refresh_token)
                 expires_in = (expires_at - datetime.now()).total_seconds()
-                logging.info(
-                    f"Generated new access token. "
-                    f"Cache will be refreshed in {expires_in - refresh_threshold:.2f} seconds."
+                logging.debug(
+                    "Generated new access token. " +
+                    f"Access token will expire in {expires_in - refresh_threshold:.2f} seconds. " +
+                    f"SAM user ID: {sam_user_id}. Provider: {self.provider_name}"
                 )
                 
                 self.cache_api.add(
