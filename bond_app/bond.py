@@ -3,7 +3,7 @@ import logging
 from .jwt_token import JwtToken
 
 from werkzeug import exceptions
-
+from dataclasses import dataclass
 
 class Bond:
     def __init__(self,
@@ -98,17 +98,20 @@ class Bond:
         """
         refresh_token = self.refresh_token_store.lookup(sam_user_id, self.provider_name)
         if refresh_token is not None:
-            cached_access_data = self.cache_api.get(namespace=f"{self.provider_name}:AccessTokens", key=sam_user_id)
-            if cached_access_data and cached_access_data.get(FenceKeys.ACCESS_TOKEN):
-                expires_at = cached_access_data.get(FenceKeys.EXPIRES_AT)
-                access_token = cached_access_data.get(FenceKeys.ACCESS_TOKEN)
+            access_token: FenceAccessToken = self.cache_api.get(
+                namespace=f"{self.provider_name}:AccessTokens", 
+                key=sam_user_id,
+            )
+            if access_token:
+                expires_at = access_token.expires_at
+                access_token_value = access_token.value
                 logging.debug(
                     "Retrieved access token from cache. " +
                     f"Access token will expire at {expires_at:.2f}. " +
                     f"SAM user ID: {sam_user_id}. Provider: {self.provider_name}"
                 )
             else:
-                access_token, expires_at = self.generate_access_token(sam_user_id, refresh_token=refresh_token)
+                access_token_value, expires_at = self.generate_access_token(sam_user_id, refresh_token=refresh_token)
                 logging.debug(
                     "Generated new access token. " +
                     f"Access token will expire at {expires_at:.2f} seconds. " +
@@ -118,13 +121,10 @@ class Bond:
                 self.cache_api.add(
                     namespace=f"{self.provider_name}:AccessTokens", 
                     key=sam_user_id, 
-                    value={
-                        FenceKeys.EXPIRES_AT: expires_at,
-                        FenceKeys.ACCESS_TOKEN: access_token,
-                    },
+                    value=FenceAccessToken(value=access_token_value, expires_at=expires_at),
                     expires_in=(expires_at - datetime.now()).total_seconds() - refresh_threshold,
                 )
-            return access_token, expires_at
+            return access_token_value, expires_at
         else:
             raise exceptions.NotFound(
                 "Could not find refresh token for sam_user_id: {} provider_name: {}\nConsider relinking your account to Bond.".format(
@@ -165,3 +165,13 @@ class FenceKeys:
     ACCESS_TOKEN = 'access_token'
     ID_TOKEN = 'id_token'
     TOKEN_TYPE = 'token_type'
+
+
+@dataclass
+class FenceAccessToken:
+    """
+    Simple data class for representing a Fence access token.
+    """
+    value: str
+    expires_at: datetime
+
