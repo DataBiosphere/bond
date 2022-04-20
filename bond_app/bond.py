@@ -98,7 +98,7 @@ class Bond:
         """
         refresh_token = self.refresh_token_store.lookup(sam_user_id, self.provider_name)
         if refresh_token is not None:
-            cached_access_data = self.cache_api.get(namespace="AccessTokens", key=sam_user_id)
+            cached_access_data = self.cache_api.get(namespace=f"{self.provider_name}:AccessTokens", key=sam_user_id)
             if cached_access_data and cached_access_data.get(FenceKeys.ACCESS_TOKEN):
                 expires_at = cached_access_data.get(FenceKeys.EXPIRES_AT)
                 access_token = cached_access_data.get(FenceKeys.ACCESS_TOKEN)
@@ -118,7 +118,7 @@ class Bond:
                 )
                 
                 self.cache_api.add(
-                    namespace="AccessTokens", 
+                    namespace=f"{self.provider_name}:AccessTokens", 
                     key=sam_user_id, 
                     value={
                         FenceKeys.EXPIRES_AT: expires_at,
