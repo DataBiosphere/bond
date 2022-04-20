@@ -109,6 +109,7 @@ def create_provider(provider_name):
                                          provider_name, fence_token_storage.FenceTokenStorage())
     return BondProvider(fence_tvm, Bond(oauth_adapter,
                                         fence_api,
+                                        cache_api,
                                         refresh_token_store,
                                         fence_tvm,
                                         provider_name,

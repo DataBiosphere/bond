@@ -9,6 +9,7 @@ class Bond:
     def __init__(self,
                  oauth_adapter,
                  fence_api,
+                 cache_api,
                  refresh_token_store,
                  fence_tvm,
                  provider_name,
@@ -17,6 +18,7 @@ class Bond:
 
         self.oauth_adapter = oauth_adapter
         self.fence_api = fence_api
+        self.cache_api = cache_api
         self.refresh_token_store = refresh_token_store
         self.fence_tvm = fence_tvm
         self.provider_name = provider_name
@@ -96,7 +98,7 @@ class Bond:
         """
         refresh_token = self.refresh_token_store.lookup(sam_user_id, self.provider_name)
         if refresh_token is not None:
-            cached_access_entry = self.fence_tvm.cache_api.get_entry(namespace="AccessTokens", key=sam_user_id)
+            cached_access_entry = self.cache_api.get_entry(namespace="AccessTokens", key=sam_user_id)
             if (
                 cached_access_entry and 
                 cached_access_entry.expires_at - datetime.now() > timedelta(seconds=refresh_threshold)
@@ -116,7 +118,7 @@ class Bond:
                     f"Cache will be refreshed in {expires_in - refresh_threshold:.2f} seconds."
                 )
                 
-                self.fence_tvm.cache_api.add(
+                self.cache_api.add(
                     namespace="AccessTokens", 
                     key=sam_user_id, 
                     value=access_token,

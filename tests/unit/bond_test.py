@@ -46,6 +46,7 @@ class BondTestCase(unittest.TestCase):
         self.refresh_token_store = FakeTokenStore()
         self.bond = Bond(mock_oauth_adapter,
                          fence_api,
+                         FakeCacheApi(),
                          self.refresh_token_store,
                          FenceTokenVendingMachine(fence_api, FakeCacheApi(), self.refresh_token_store,
                                                   mock_oauth_adapter,
@@ -74,6 +75,7 @@ class BondTestCase(unittest.TestCase):
         fence_api = self._mock_fence_api(json.dumps({"private_key_id": "asfasdfasdf"}))
         bond = Bond(mock_oauth_adapter,
                     fence_api,
+                    FakeCacheApi(),
                     self.refresh_token_store,
                     FenceTokenVendingMachine(fence_api, FakeCacheApi(), self.refresh_token_store,
                                              mock_oauth_adapter, provider_name,
