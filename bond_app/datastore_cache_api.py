@@ -29,15 +29,11 @@ class DatastoreCacheApi(CacheApi):
                    expires_at=DatastoreCacheApi._calculate_expiration(expires_in)).put()
         return True
 
-    def get_entry(self, key, namespace=None):
+    def get(self, key, namespace=None):
         entry = DatastoreCacheApi._build_cache_key(key, namespace).get()
         if not entry or entry.expires_at < datetime.datetime.now():
             return None
-        return entry
-
-    def get(self, key, namespace=None):
-        entry = self.get_entry(key, namespace=namespace)
-        return entry.value if hasattr(entry, "value") else None
+        return entry.value
 
     def delete(self, key, namespace=None):
         DatastoreCacheApi._build_cache_key(key, namespace).delete()
