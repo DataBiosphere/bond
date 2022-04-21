@@ -151,7 +151,7 @@ class BondTestCase(unittest.TestCase):
                                       username=self.name,
                                       provider_name=provider_name)
 
-        # verify that the new `expired_at` value is returned with `get_access_token`,
+        # verify that the new `expires_at` value is returned with `get_access_token`,
         # when nothing has been cached yet.
         access_token, expires_at = bond.get_access_token(self.user_id, refresh_threshold=0)
         self.assertEqual(self.fake_access_token, access_token)
