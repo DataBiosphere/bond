@@ -86,7 +86,7 @@ class Bond:
 
     def get_access_token(self, sam_user_id, refresh_threshold: int = 600):
         """
-        Given a user, lookup their refresh token (if not provided) and use it to retrieve an access token from their OAuth
+        Given a user, lookup their refresh token and use it to retrieve an access token from their OAuth
         provider.
         If an access token was already generated for the user, 
         and that token has greater than `refresh_threshold` seconds before expiration, return that token. 
