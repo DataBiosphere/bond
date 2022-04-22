@@ -3,12 +3,13 @@ import logging
 from .jwt_token import JwtToken
 
 from werkzeug import exceptions
-
+from dataclasses import dataclass
 
 class Bond:
     def __init__(self,
                  oauth_adapter,
                  fence_api,
+                 cache_api,
                  refresh_token_store,
                  fence_tvm,
                  provider_name,
@@ -17,6 +18,7 @@ class Bond:
 
         self.oauth_adapter = oauth_adapter
         self.fence_api = fence_api
+        self.cache_api = cache_api
         self.refresh_token_store = refresh_token_store
         self.fence_tvm = fence_tvm
         self.provider_name = provider_name
@@ -60,14 +62,18 @@ class Bond:
                                       jwt_token.username, self.provider_name)
         return jwt_token.issued_at, jwt_token.username
 
-    def generate_access_token(self, sam_user_id):
+
+    def generate_access_token(self, sam_user_id, refresh_token=None):
         """
-        Given a user, lookup their refresh token and use it to generate a new refresh token from their OAuth
+        Given a user, lookup their refresh token (if not provided) and use it to generate a new access token from their OAuth
         provider.  If a refresh token cannot be found for the sam_user_id provided, a NotFound will be raised.
         :param sam_user_id: Id stored in Sam for user who initiated request
+        :param refresh_token: a refresh token (optional). 
+        If not present, the refresh token will be found using the "sam_user_id" parameter.
         :return: Two values: An Access Token string, datetime when that token expires
         """
-        refresh_token = self.refresh_token_store.lookup(sam_user_id, self.provider_name)
+
+        refresh_token = refresh_token or self.refresh_token_store.lookup(sam_user_id, self.provider_name)
         if refresh_token is not None:
             token_response = self.oauth_adapter.refresh_access_token(refresh_token.token)
             expires_at = datetime.fromtimestamp(token_response.get(FenceKeys.EXPIRES_AT))
@@ -77,6 +83,52 @@ class Bond:
                 "Could not find refresh token for sam_user_id: {} provider_name: {}\nConsider relinking your account to Bond.".format(
                     sam_user_id, self.provider_name))
 
+
+    def get_access_token(self, sam_user_id, refresh_threshold: int = 600):
+        """
+        Given a user, lookup their refresh token and use it to retrieve an access token from their OAuth
+        provider.
+        If an access token was already generated for the user, 
+        and that token has greater than `refresh_threshold` seconds before expiration, return that token. 
+        Otherwise, generate a new token.
+        
+        If a refresh token cannot be found for the sam_user_id provided, a NotFound will be raised.
+        :param sam_user_id: Id stored in Sam for user who initiated request
+        :return: Two values: An Access Token string, datetime when that token expires
+        """
+        refresh_token = self.refresh_token_store.lookup(sam_user_id, self.provider_name)
+        if refresh_token is not None:
+            access_token: FenceAccessToken = self.cache_api.get(
+                namespace=f"{self.provider_name}:AccessTokens", 
+                key=sam_user_id,
+            )
+            if access_token:
+                expires_at = access_token.expires_at
+                access_token_value = access_token.value
+                logging.debug(
+                    "Retrieved access token from cache. " +
+                    f"Access token will expire at {expires_at}. " +
+                    f"SAM user ID: {sam_user_id}. Provider: {self.provider_name}"
+                )
+            else:
+                access_token_value, expires_at = self.generate_access_token(sam_user_id, refresh_token=refresh_token)
+                logging.debug(
+                    "Generated new access token. " +
+                    f"Access token will expire at {expires_at} seconds. " +
+                    f"SAM user ID: {sam_user_id}. Provider: {self.provider_name}"
+                )
+                self.cache_api.add(
+                    namespace=f"{self.provider_name}:AccessTokens", 
+                    key=sam_user_id, 
+                    value=FenceAccessToken(value=access_token_value, expires_at=expires_at),
+                    expires_in=(expires_at - datetime.now()).total_seconds() - refresh_threshold,
+                )
+            return access_token_value, expires_at
+        else:
+            raise exceptions.NotFound(
+                "Could not find refresh token for sam_user_id: {} provider_name: {}\nConsider relinking your account to Bond.".format(
+                    sam_user_id, self.provider_name))
+            
     def unlink_account(self, sam_user_id):
         """
         Revokes user's refresh token and deletes the linkage from the system
@@ -112,3 +164,13 @@ class FenceKeys:
     ACCESS_TOKEN = 'access_token'
     ID_TOKEN = 'id_token'
     TOKEN_TYPE = 'token_type'
+
+
+@dataclass
+class FenceAccessToken:
+    """
+    Simple data class for representing a Fence access token.
+    """
+    value: str
+    expires_at: datetime
+
