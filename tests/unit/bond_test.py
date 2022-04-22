@@ -124,7 +124,7 @@ class BondTestCase(unittest.TestCase):
         fake_token_defaults = {
             FenceKeys.ACCESS_TOKEN: self.fake_access_token,
             FenceKeys.ID_TOKEN: encoded_jwt,
-            }
+        }
 
         mock_oauth_adapter = OauthAdapter("foo", "bar", "baz", "qux")
         mock_oauth_adapter.refresh_access_token = MagicMock(
@@ -157,18 +157,16 @@ class BondTestCase(unittest.TestCase):
         self.assertEqual(self.fake_access_token, access_token)
         self.assertEqual(datetime.fromtimestamp(expires_at_initial), expires_at)
 
+        # Update the expiration date of the token that is returned by the mock oauth adapter,
+        # simulating the behavior of the real oauth adapter when a new access token is created.
+        # (in reality, the token would be updated too, but it's not necessary for this test)
         expires_at_new = expires_at_initial + 100
-
         mock_oauth_adapter.refresh_access_token = MagicMock(
             return_value={**fake_token_defaults, **{FenceKeys.EXPIRES_AT: expires_at_new}}
         )
 
-        # verify that the new `expires_at` value is returned with `generate_access_token`.
-        access_token, expires_at = bond.generate_access_token(self.user_id)
-        self.assertEqual(self.fake_access_token, access_token)
-        self.assertEqual(datetime.fromtimestamp(expires_at_new), expires_at)
-
-        # verify that the cached `expires_at` value is returned with `get_access_token`
+        # verify that the cached `expires_at_initial` value is returned with `get_access_token`,
+        # *not* the new `expires_at_new` value.
         access_token, expires_at = bond.get_access_token(self.user_id)
         self.assertEqual(self.fake_access_token, access_token)
         self.assertEqual(datetime.fromtimestamp(expires_at_initial), expires_at)
@@ -182,7 +180,7 @@ class BondTestCase(unittest.TestCase):
         fake_token_defaults = {
             FenceKeys.ACCESS_TOKEN: self.fake_access_token,
             FenceKeys.ID_TOKEN: encoded_jwt,
-            }
+        }
 
         mock_oauth_adapter = OauthAdapter("foo", "bar", "baz", "qux")
         mock_oauth_adapter.refresh_access_token = MagicMock(
@@ -209,19 +207,22 @@ class BondTestCase(unittest.TestCase):
                                       username=self.name,
                                       provider_name=provider_name)
 
-        # verify that the new `expired_at` value is returned with `get_access_token`,
-        # when nothing has been cached yet.
+        # verify that the old `expired_at_initial` value is returned with `get_access_token`,
+        # because nothing has been cached yet.
         access_token, expires_at = bond.get_access_token(self.user_id, refresh_threshold=refresh_threshold)
         self.assertEqual(self.fake_access_token, access_token)
         self.assertEqual(datetime.fromtimestamp(expires_at_initial), expires_at)
         
+        # Update the expiration date of the token that is returned by the mock oauth adapter,
+        # simulating the behavior of the real oauth adapter when a new access token is created.
+        # (in reality, the token would be updated too, but it's not necessary for this test)
         expires_at_new = expires_at_initial + 100
         mock_oauth_adapter.refresh_access_token = MagicMock(
             return_value={**fake_token_defaults, **{FenceKeys.EXPIRES_AT: expires_at_new}}
         )
 
-        # verify that the new (uncached) `expired_at` value is returned with `get_access_token`,
-        # because the refresh_threshold was set to expire the token immediately
+        # verify that the new (uncached) `expired_at_new` value is returned with `get_access_token`,
+        # because the refresh_threshold was set to expire the token immediately.
         access_token, expires_at = bond.get_access_token(self.user_id)
         self.assertEqual(self.fake_access_token, access_token)
         self.assertEqual(datetime.fromtimestamp(expires_at_new), expires_at)
