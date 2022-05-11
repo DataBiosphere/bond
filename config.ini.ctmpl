@@ -87,11 +87,7 @@ FENCE_BASE_URL=https://gen3staging.kidsfirstdrc.org/
 {{end}}
 
 [sam]
-{{ if $samUrl -}}
-BASE_URL={{ $samUrl }}
-{{- else -}}
-BASE_URL={{if eq $runContext "fiab"}}https://sam-fiab.{{$dnsDomain}}{{else}}https://sam.dsde-{{$environment}}.broadinstitute.org{{end}}
-{{- end }}
+BASE_URL={{ if $samUrl }}{{ $samUrl }}{{else if eq $runContext "fiab"}}https://sam-fiab.{{$dnsDomain}}{{else}}https://sam.dsde-{{$environment}}.broadinstitute.org{{end}}
 
 
 [bond_accepted]
