@@ -109,21 +109,28 @@ class Authentication:
             raise exceptions.Unauthorized('Malformed Authorization header, must be in the form of "bearer [token]".')
 
         token = auth_header_parts[1]
+        # Note: Datastore cache keys have a limit of 1500 bytes. JWTs can exceed that.
+        should_cache_token = 1 <= len(token.encode("utf-8")) <= 1500
+        user_info = None
 
-        user_info = self.cache_api.get(key='access_token:' + token)
+        # First look up the user info from cache.
+        if should_cache_token:
+            user_info = self.cache_api.get(key='access_token:' + token)
+
         if user_info is None:
-            # First try to validate the token as a JWT.
+            # If cache miss, first try to validate the token as a JWT.
             if self.config.oidc_authority_endpoint:
                 try:
                     user_info = self._fetch_user_info_from_jwt(token)
                 except Exception as e:
                     logging.warning('Failed to parse token as a JWT: {}. Falling back to google tokeninfo...'.format(e))
-            
-            # Fall back to Google tokeninfo if that fails.
-            if user_info is None:
-                user_info = self._fetch_user_info_from_google(token, token_info_fn)
 
-            # cache for 10 minutes or until token expires
+        # Fall back to Google tokeninfo if JWT validation fails.
+        if user_info is None:
+            user_info = self._fetch_user_info_from_google(token, token_info_fn)
+
+        # Cache for 10 minutes or until token expires.
+        if should_cache_token:
             expires_in = min([user_info.expires_in, self.config.max_token_life])
             logging.debug("caching token %s for %s seconds", token, expires_in)
             self.cache_api.add(key='access_token:' + token, value=user_info, expires_in=expires_in)
