@@ -109,7 +109,8 @@ class Authentication:
             raise exceptions.Unauthorized('Malformed Authorization header, must be in the form of "bearer [token]".')
 
         token = auth_header_parts[1]
-        # Note: Datastore cache keys have a limit of 1500 bytes. JWTs can exceed that.
+        # Note: Datastore cache keys have a hardcoded limit of 1500 bytes. JWTs can exceed that, which
+        # unfortunately means we can't cache them.
         should_cache_token = 1 <= len(token.encode("utf-8")) <= 1500
         user_info = None
 
@@ -117,13 +118,13 @@ class Authentication:
         if should_cache_token:
             user_info = self.cache_api.get(key='access_token:' + token)
 
+        # If cache miss, try to validate the token as a JWT.
         if user_info is None:
-            # If cache miss, first try to validate the token as a JWT.
             if self.config.oidc_authority_endpoint:
                 try:
                     user_info = self._fetch_user_info_from_jwt(token)
                 except Exception as e:
-                    logging.warning('Failed to parse token as a JWT: {}. Falling back to google tokeninfo...'.format(e))
+                    logging.debug('Failed to parse token as a JWT: {}. Falling back to google tokeninfo...'.format(e))
 
         # Fall back to Google tokeninfo if JWT validation fails.
         if user_info is None:

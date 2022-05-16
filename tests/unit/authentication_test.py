@@ -24,9 +24,7 @@ class TestRequestState:
 
 class MockOidcServer:
     def __init__(self, public_key):
-        super().__init__()
         self.app = HttpServerMock(__name__)
-        self.public_key = public_key
         public_numbers = public_key.public_numbers()
 
         @self.app.route("/.well-known/openid-configuration", methods=["GET"])
@@ -54,11 +52,18 @@ class AuthenticationTestCase(unittest.TestCase):
     def setUp(self):
         self.cache_api = FakeCacheApi()
         self.sam_api = SamApi("")
-        self.auth = Authentication(AuthenticationConfig( ['32555940559'], ['.gserviceaccount.com'], 600), 
-                                   self.cache_api, self.sam_api)
+        self.audience = 'test-audience'
         self.private_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
         self.public_key = self.private_key.public_key()
-        self.mock_server = MockOidcServer(self.public_key)
+        mock_server = MockOidcServer(self.public_key)
+        self.v = mock_server.app.run("localhost", 5000)
+        print(self.v)
+        print(self.v.__dict__)
+        self.auth = Authentication(AuthenticationConfig(['32555940559'], ['.gserviceaccount.com'], 600, "http://localhost:5000", self.audience), 
+                                   self.cache_api, self.sam_api)
+
+    def tearDown(self):
+        self.v.__exit__(None, None, None)
 
     def test_good_user_no_cached_info(self):
         token = "testtoken"
@@ -330,10 +335,9 @@ class AuthenticationTestCase(unittest.TestCase):
         self._unauthorized_test(token_data)
 
     def test_valid_jwt(self):
-        audience = 'my-test-audience'
         epoch_time = int(time.time())
         token_data = {
-            "aud": audience,
+            "aud": self.audience,
             "sub": "my-sub",
             "exp": epoch_time + 300,
             "iat": epoch_time,
@@ -343,14 +347,8 @@ class AuthenticationTestCase(unittest.TestCase):
         expected_user_info = UserInfo("193481341723041", "foo@bar.com", token, 100)
         self.sam_api.user_info = MagicMock(
             return_value=self._generate_sam_user_info(expected_user_info.id, expected_user_info.email, True))
-        with self.mock_server.app.run("localhost", 5000):
-            auth = Authentication(
-                AuthenticationConfig([], [], 600,
-                    'http://localhost:5000',
-                    audience
-                ), self.cache_api, self.sam_api)
-            sam_user_id = auth.auth_user(TestRequestState('bearer ' + token))
-            self.assertEqual(expected_user_info.id, sam_user_id)
+        sam_user_id = self.auth.auth_user(TestRequestState('bearer ' + token))
+        self.assertEqual(expected_user_info.id, sam_user_id)
 
     def test_jwt_invalid_audience(self):
         epoch_time = int(time.time())
@@ -362,34 +360,8 @@ class AuthenticationTestCase(unittest.TestCase):
             "email": "fake@email.com"
         }
         token = self._encode_token(token_data)
-        with self.mock_server.app.run("localhost", 5000):
-            auth = Authentication(
-                AuthenticationConfig([], [], 600,
-                    'http://localhost:5000',
-                    'good-audience'
-                ), self.cache_api, self.sam_api)
-            with self.assertRaises(exceptions.Unauthorized):
-                auth.auth_user(TestRequestState('bearer ' + token))
-
-    def test_jwt_fallback_to_google(self):
-        with self.mock_server.app.run("localhost", 5000):
-            token = "testtoken"
-            expected_user_info = UserInfo("193481341723041", "foo@bar.com", token, 100)
-            self.sam_api.user_info = MagicMock(
-                return_value=self._generate_sam_user_info(expected_user_info.id, expected_user_info.email, True))
-
-            def token_fn(token):
-                token_data = {
-                    "audience": "32555940559.apps.googleusercontent.com",
-                    "user_id": expected_user_info.id,
-                    "expires_in": expected_user_info.expires_in,
-                    "email": expected_user_info.email,
-                    "verified_email": True
-                }
-                return json.dumps(token_data)
-
-            sam_user_id = self.auth.auth_user(TestRequestState('bearer ' + token), token_fn)
-            self.assertEqual(expected_user_info.id, sam_user_id)
+        with self.assertRaises(exceptions.Unauthorized):
+                self.auth.auth_user(TestRequestState('bearer ' + token))
 
     def _generate_sam_user_info(self, user_id, email, enabled):
         return {SamKeys.USER_ID_KEY: user_id, SamKeys.USER_EMAIL_KEY: email, SamKeys.USER_ENABLED_KEY: enabled}
