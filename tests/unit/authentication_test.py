@@ -21,8 +21,7 @@ class AuthenticationTestCase(unittest.TestCase):
     def setUp(self):
         self.cache_api = FakeCacheApi()
         self.sam_api = SamApi("")
-        self.auth = Authentication(AuthenticationConfig(['32555940559'], ['.gserviceaccount.com'], 600),
-                                   self.cache_api, self.sam_api)
+        self.auth = Authentication(AuthenticationConfig( ['32555940559'], ['.gserviceaccount.com'], 600), self.cache_api, self.sam_api)
 
     def test_good_user_no_cached_info(self):
         token = "testtoken"
@@ -292,6 +291,19 @@ class AuthenticationTestCase(unittest.TestCase):
             "verified_email": True
         }
         self._unauthorized_test(token_data)
+
+    def test_retrieve_b2c_metadata(self):
+        auth = Authentication(
+            AuthenticationConfig(
+                ['32555940559'], 
+                ['.gserviceaccount.com'], 
+                600,
+                'https://terradevb2c.b2clogin.com/terradevb2c.onmicrosoft.com/B2C_1A_SIGNUP_SIGNIN/v2.0',
+                'bbd07d43-01cb-4b69-8fd0-5746d9a5c9fe'
+            ), self.cache_api, self.sam_api)
+        self.assertEqual(
+            "https://terradevb2c.b2clogin.com/terradevb2c.onmicrosoft.com/b2c_1a_signup_signin/discovery/v2.0/keys", 
+            auth.config.jwks_uri)
 
     def _generate_sam_user_info(self, user_id, email, enabled):
         return {SamKeys.USER_ID_KEY: user_id, SamKeys.USER_EMAIL_KEY: email, SamKeys.USER_ENABLED_KEY: enabled}

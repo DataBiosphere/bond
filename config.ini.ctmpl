@@ -3,6 +3,7 @@
 {{with $dnsDomain := env "DNS_DOMAIN"}}
 {{with $secrets := secret (printf "secret/dsde/bond/%s/config.ini" $environment)}}
 {{with $commonSecrets := secret (printf "secret/dsde/firecloud/common/oauth_client_id")}}
+{{with $b2cApplicationId := secret (printf "secret/dsde/terra/azure/%s/b2c/application_id" $environment)}}
 {{- $samUrl := env "SAM_URL" -}}
 
 {{if (or (eq $runContext "fiab") (eq $runContext "local")) }}
@@ -93,5 +94,9 @@ BASE_URL={{ if $samUrl }}{{ $samUrl }}{{else if eq $runContext "fiab"}}https://s
 [bond_accepted]
 AUDIENCE_PREFIXES={{range $index, $element := $commonSecrets.Data.client_ids}} {{ $element }}{{end}}
 EMAIL_SUFFIXES=.gserviceaccount.com
+{{ if ne $environment "prod" }}
+B2C_AUTHORITY_ENDPOINT=https://terradevb2c.b2clogin.com/terradevb2c.onmicrosoft.com/B2C_1A_SIGNUP_SIGNIN/v2.0
+B2C_AUDIENCE={{ $b2cApplicationId.Data.value }}
+{{ end }}
 
-{{end}}{{end}}{{end}}{{end}}{{end}}
+{{end}}{{end}}{{end}}{{end}}{{end}}{{end}}
