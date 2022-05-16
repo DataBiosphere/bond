@@ -6,7 +6,7 @@ from .sam_api import SamKeys
 from werkzeug import exceptions
 import requests
 import jwt
-from jwt import PyJWKClient
+from jwt import PyJWKClient, InvalidTokenError
 
 
 _TOKENINFO_URL = 'https://www.googleapis.com/oauth2/v1/tokeninfo'
@@ -52,28 +52,33 @@ def _decode_jwt(token, jwks_uri, audience):
         audience=audience,
         options={
             'verify_signature': True, 
+            'verify_exp': True,
+            'verify_iat': True,
             'require': ["email", "sub", "exp", "iat"]
         }
     )
     return data
 
 class AuthenticationConfig:
-    def __init__(self, accepted_audience_prefixes, accepted_email_suffixes, max_token_life, b2c_authority_endpoint=None, b2c_audience=None):
+    def __init__(self, accepted_audience_prefixes, accepted_email_suffixes, max_token_life, oidc_authority_endpoint=None, oidc_audience=None):
         self.accepted_audience_prefixes = accepted_audience_prefixes
         self.accepted_email_suffixes = accepted_email_suffixes
         self.max_token_life = max_token_life
-        self.b2c_authority_endpoint = b2c_authority_endpoint
-        self.b2c_audience = b2c_audience
-        self._process_b2c_metadata()
+        self.oidc_authority_endpoint = oidc_authority_endpoint
+        self.oidc_audience = oidc_audience
+        self._process_oidc_metadata()
 
-    def _process_b2c_metadata(self):
-        if self.b2c_authority_endpoint:
-            metadata_result = requests.get(self.b2c_authority_endpoint + '/.well-known/openid-configuration')
+    def _process_oidc_metadata(self):
+        """
+        Retrieves JSON metadata from the oidc authority endpoint to get the jwks uri.
+        """
+        if self.oidc_authority_endpoint:
+            metadata_result = requests.get(self.oidc_authority_endpoint + '/.well-known/openid-configuration')
             if metadata_result.status_code != 200:
-                raise exceptions.InternalServerError('Could not retrieve metadata from authority: {}'.format(self.b2c_authority_endpoint))
+                raise exceptions.InternalServerError('Could not retrieve metadata from authority: {}'.format(self.oidc_authority_endpoint))
             metadata = json.loads(metadata_result.content)
             if 'jwks_uri' not in metadata:
-                raise exceptions.InternalServerError('Could not determine jwks_uri from authority: {}'.format(self.b2c_authority_endpoint))
+                raise exceptions.InternalServerError('Could not determine jwks_uri from authority: {}'.format(self.oidc_authority_endpoint))
             self.jwks_uri = metadata.get('jwks_uri')
 
 class Authentication:
@@ -108,7 +113,7 @@ class Authentication:
         user_info = self.cache_api.get(key='access_token:' + token)
         if user_info is None:
             # First try to validate the token as a JWT.
-            if self.config.b2c_authority_endpoint:
+            if self.config.oidc_authority_endpoint:
                 try:
                     user_info = self._fetch_user_info_from_jwt(token)
                 except Exception as e:
@@ -180,7 +185,8 @@ class Authentication:
     def _fetch_user_info_from_jwt(self, token):
         """Validate and decode the JWT and build the user info"""
         try:
-            token_info = _decode_jwt(token, self.config.jwks_uri, self.config.b2c_audience)
+            # Note the claims are verified as part of the _decode_jwt call.
+            token_info = _decode_jwt(token, self.config.jwks_uri, self.config.oidc_audience)
         except InvalidTokenError as e:
             raise exceptions.Unauthorized('Invalid JWT: {}'.format(e))
 

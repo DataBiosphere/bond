@@ -54,7 +54,8 @@ class AuthenticationTestCase(unittest.TestCase):
     def setUp(self):
         self.cache_api = FakeCacheApi()
         self.sam_api = SamApi("")
-        self.auth = Authentication(AuthenticationConfig( ['32555940559'], ['.gserviceaccount.com'], 600), self.cache_api, self.sam_api)
+        self.auth = Authentication(AuthenticationConfig( ['32555940559'], ['.gserviceaccount.com'], 600), 
+                                   self.cache_api, self.sam_api)
         self.private_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
         self.public_key = self.private_key.public_key()
         self.mock_server = MockOidcServer(self.public_key)
