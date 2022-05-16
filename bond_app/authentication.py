@@ -111,8 +111,8 @@ class Authentication:
             if self.config.b2c_authority_endpoint:
                 try:
                     user_info = self._fetch_user_info_from_jwt(token)
-                except:
-                    logging.info("Failed to parse token as a JWT. Falling back to google tokeninfo...")
+                except Exception as e:
+                    logging.warning('Failed to parse token as a JWT: {}. Falling back to google tokeninfo...'.format(e))
             
             # Fall back to Google tokeninfo if that fails.
             if user_info is None:
@@ -179,25 +179,11 @@ class Authentication:
 
     def _fetch_user_info_from_jwt(self, token):
         """Validate and decode the JWT and build the user info"""
-        result = _decode_jwt(token, self.config.jwks_uri, self.config.audience)
+        try:
+            token_info = _decode_jwt(token, self.config.jwks_uri, self.config.b2c_audience)
+        except InvalidTokenError as e:
+            raise exceptions.Unauthorized('Invalid JWT: {}'.format(e))
 
-        token_info = json.loads(result)
         logging.debug("token info for %s: %s", token, json.dumps(token_info))
 
-        # Validate token info
-        if 'email' not in token_info:
-            raise exceptions.Unauthorized('Oauth token doesn\'t include an email address.')
-        if 'sub' not in token_info:
-            raise exceptions.Unauthorized('Oauth token doesn\'t include user id.')
-        if 'aud' not in token_info:
-            raise exceptions.Unauthorized('Oauth token doesn\'t include audience.')
-        if 'exp' not in token_info:
-            raise exceptions.Unauthorized('Oauth token doesn\'t include exp.')
-        try:
-            expires_in = int(token_info.get('exp'))
-        except ValueError:
-            raise exceptions.Unauthorized('exp must be a number')
-        if expires_in <= 0:
-            raise exceptions.Unauthorized('exp must be > 0')
-
-        return UserInfo(token_info.get('sub'), token_info.get('email'), token, expires_in)
+        return UserInfo(token_info.get('sub'), token_info.get('email'), token, int(token_info.get('exp')))
