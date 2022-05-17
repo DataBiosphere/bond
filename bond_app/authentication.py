@@ -54,24 +54,25 @@ class Authentication:
 
         token = auth_header_parts[1]
         sam_user_info = None
-        
+
         # Note: Datastore cache keys have a hardcoded limit of 1500 bytes. JWTs can exceed that, which
         # unfortunately means we can't cache them.
         should_cache_token = 1 <= len(token.encode("utf-8")) <= 1500
         cache_key = 'access_token:' + token
     
+        # First check cache for Sam user info.
         if should_cache_token:
             sam_user_info = self.cache_api.get(namespace="SamUserInfo", key=cache_key)
         
+        # If cache lookup failed, call Sam.
+        # Note this will raise Unauthorized errors as appropriate.
         if sam_user_info is None:
             sam_user_info = self.sam_api.user_info(token)
-            # cache sam response for 10 minutes
+            # cache successful Sam responses for 10 minutes.
             if should_cache_token:
                 self.cache_api.add(namespace="SamUserInfo", key=cache_key,
-                                value=sam_user_info, expires_in=self.config.max_token_life)
+                                   value=sam_user_info, expires_in=self.config.max_token_life)
 
-        if sam_user_info is None or not sam_user_info[SamKeys.USER_ENABLED_KEY]:
-            logging.info('Could not authenticate with Sam. User info in Sam: {}'.format(sam_user_info))
-            raise exceptions.Unauthorized("could not authenticate with Sam")
+        #
 
         return sam_user_info[SamKeys.USER_ID_KEY]

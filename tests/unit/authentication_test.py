@@ -68,7 +68,7 @@ class AuthenticationTestCase(unittest.TestCase):
 
         # set up mock Sam to throw an exception
         mock = MagicMock()
-        mock.side_effect=Exception("shouldn't be called")
+        mock.side_effect=exceptions.Unauthorized("Sam error!")
         self.sam_api.user_info = mock
 
         # make request and validate returned user id
@@ -78,20 +78,21 @@ class AuthenticationTestCase(unittest.TestCase):
         # wait 2 seconds
         time.sleep(2)
 
-        # make request again, cache should have expired and throw Sam error
-        with self.assertRaises(Exception):
-            self.auth.auth_user(TestRequestState('bearer ' + token))
-
-    def test_user_disabled_in_sam(self):
-        # set up mock Sam
-        token = "testtoken"
-        expected_user_info = UserInfo("193481341723041", "foo@bar.com", token, 100)
-        sam_user_info = self._generate_sam_user_info(expected_user_info.id, expected_user_info.email, False)
-        self.sam_api.user_info = MagicMock(return_value=sam_user_info)
-
-        # request should return 401 for disabled user
+        # make request again, cache should have expired and throw 401
         with self.assertRaises(exceptions.Unauthorized):
             self.auth.auth_user(TestRequestState('bearer ' + token))
+
+    def test_sam_error(self):
+        # set up mock Sam to throw an error
+        token = "testtoken"
+        mock = MagicMock()
+        mock.side_effect=exceptions.Unauthorized("Sam error!")
+        self.sam_api.user_info = mock
+
+        # request should return 401
+        with self.assertRaises(exceptions.Unauthorized):
+            self.auth.auth_user(TestRequestState('bearer ' + token))
+
 
     def test_missing_auth_header(self):
         # request should return 401 for no auth token

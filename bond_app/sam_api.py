@@ -17,12 +17,20 @@ class SamApi:
         """
         headers = {'Authorization': 'Bearer ' + access_token}
         result = requests.get(url=self.base_url + '/register/user/v2/self/info', headers=headers)
+        logging.info("Sam userInfo: status code {}, body {}".format(result.status_code, result.content))
+
         if result.status_code == 200:
+            sam_user_info = json.loads(result.content)
+            # Check user enablement
+            if not sam_user_info[SamKeys.USER_ENABLED_KEY]:
+                raise exceptions.Unauthorized('User is disabled. User info from Sam: {}'.format(sam_user_info))
             return json.loads(result.content)
-        logging.info("sam status code {}, error body {}".format(result.status_code, result.content))
-        if result.status_code == 404:
+        elif result.status_code == 404:
             return None
-        raise exceptions.InternalServerError("sam status code {}, error body {}".format(result.status_code, result.content))
+        elif result.status_code == 401:
+            raise exceptions.Unauthorized("Could not authenticate with Sam")
+        else:
+            raise exceptions.InternalServerError("Sam status code {}, error body {}".format(result.status_code, result.content))
 
     def status(self):
         """
