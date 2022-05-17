@@ -91,7 +91,5 @@ BASE_URL={{ if $samUrl }}{{ $samUrl }}{{else if eq $runContext "fiab"}}https://s
 
 
 [bond_accepted]
-AUDIENCE_PREFIXES={{range $index, $element := $commonSecrets.Data.client_ids}} {{ $element }}{{end}}
-EMAIL_SUFFIXES=.gserviceaccount.com
 
 {{end}}{{end}}{{end}}{{end}}{{end}}

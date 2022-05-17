@@ -85,3 +85,4 @@ crashlytics-build.properties
 automation/report.xml
 
 /env3/
+.vscode
