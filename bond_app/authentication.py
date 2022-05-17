@@ -73,6 +73,4 @@ class Authentication:
                 self.cache_api.add(namespace="SamUserInfo", key=cache_key,
                                    value=sam_user_info, expires_in=self.config.max_token_life)
 
-        #
-
         return sam_user_info[SamKeys.USER_ID_KEY]
