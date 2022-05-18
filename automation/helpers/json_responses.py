@@ -44,6 +44,8 @@ json_schema_test_status = {
             "enum": [
               "fence",
               "dcf-fence",
+              "anvil",
+              "kids-first",
               "cache",
               "datastore",
               "sam"
@@ -66,7 +68,7 @@ json_schema_test_list_providers = {
             "items": {
                 "type": "string",
                 "minItems": 2,
-                "enum": ["fence", "dcf-fence"]
+                "enum": ["fence", "dcf-fence", "anvil", "kids-first"]
             }
         }
     },

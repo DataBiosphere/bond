@@ -1,5 +1,6 @@
 import datetime
 from google.cloud import ndb
+from google.api_core.exceptions import InvalidArgument
 from .cache_api import CacheApi
 import logging
 
@@ -25,18 +26,27 @@ class DatastoreCacheApi(CacheApi):
     """
 
     def add(self, key, value, expires_in=0, namespace=None):
-        CacheEntry(key=DatastoreCacheApi._build_cache_key(key, namespace), value=value,
-                   expires_at=DatastoreCacheApi._calculate_expiration(expires_in)).put()
-        return True
+        try:
+            CacheEntry(key=DatastoreCacheApi._build_cache_key(key, namespace), value=value,
+                       expires_at=DatastoreCacheApi._calculate_expiration(expires_in)).put()
+            return True
+        except InvalidArgument:
+            return False
 
     def get(self, key, namespace=None):
-        entry = DatastoreCacheApi._build_cache_key(key, namespace).get()
-        if not entry or entry.expires_at < datetime.datetime.now():
+        try:
+            entry = DatastoreCacheApi._build_cache_key(key, namespace).get()
+            if entry and entry.expires_at >= datetime.datetime.now():
+                return entry.value
             return None
-        return entry.value
+        except InvalidArgument:
+            return None
 
     def delete(self, key, namespace=None):
-        DatastoreCacheApi._build_cache_key(key, namespace).delete()
+        try:
+            DatastoreCacheApi._build_cache_key(key, namespace).delete()
+        except InvalidArgument:
+            pass
 
     @staticmethod
     def delete_expired_entries():
@@ -47,7 +57,11 @@ class DatastoreCacheApi(CacheApi):
 
     @staticmethod
     def _build_cache_key(key, namespace):
-        """Create an ndb Key for the key and namespace."""
+        """
+        Create an ndb Key for the key and namespace.
+        Raises InvalidArgument if the cache key is invalid. Note Datastore string cache keys
+        must be at most 1500 bytes.
+        """
         if namespace is not None:
             return ndb.Key("cache namespace", namespace, CacheEntry, key)
         else:

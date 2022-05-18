@@ -1,3 +1,5 @@
+from base64 import b64encode
+import os
 import time
 import unittest
 
@@ -34,3 +36,13 @@ class DatstoreCacheApiTestCase(unittest.TestCase, cache_api_test.CacheApiTest):
         self.assertIsNone(DatastoreCacheApi._build_cache_key("foo_namespace", "baz").get())
         self.assertIsNotNone(DatastoreCacheApi._build_cache_key("not_expired", None).get())
         self.assertIsNotNone(DatastoreCacheApi._build_cache_key("no_expiration", None).get())
+
+    def test_large_keys(self):
+        cache = DatastoreCacheApi()
+
+        large_key = b64encode(os.urandom(1600)).decode('utf-8')
+
+        # Keys over 1500 bytes should not be added to cache but handled gracefully.
+        self.assertFalse(cache.add(large_key, "value"))
+        self.assertIsNone(cache.get(large_key))
+        cache.delete(large_key)

@@ -140,9 +140,7 @@ bond_providers = {section_name: create_provider(section_name)
 
 sam_base_url = config.get('sam', 'BASE_URL')
 sam_api = SamApi(sam_base_url)
-authentication_config = authentication.AuthenticationConfig(config.get('bond_accepted', 'AUDIENCE_PREFIXES').split(),
-                                                            config.get('bond_accepted', 'EMAIL_SUFFIXES').split(),
-                                                            os.environ.get('BOND_MAX_TOKEN_LIFE', 600))
+authentication_config = authentication.AuthenticationConfig(os.environ.get('BOND_MAX_TOKEN_LIFE', 600))
 auth = authentication.Authentication(authentication_config, cache_api, sam_api)
 
 api_version = 'v1'
