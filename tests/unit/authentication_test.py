@@ -36,7 +36,7 @@ class AuthenticationTestCase(unittest.TestCase):
         self.assertEqual(expected_user_info.id, sam_user_id)
 
         # sam user info should now be cached
-        cached_sam_user_info = self.cache_api.get(namespace="SamUserInfo", key='access_token:'+token)
+        cached_sam_user_info = self.cache_api.get(namespace="SamUserInfo", key=token)
         self.assertEqual(sam_user_info, cached_sam_user_info)
 
     def test_good_user_sam_info_cached(self):
@@ -44,7 +44,7 @@ class AuthenticationTestCase(unittest.TestCase):
         token = "testtoken"
         expected_user_info = UserInfo("193481341723041", "foo@bar.com", token, 100)
         sam_user_info = self._generate_sam_user_info(expected_user_info.id, expected_user_info.email, True)
-        self.cache_api.add(namespace="SamUserInfo", key='access_token:'+token, expires_in=0, value=sam_user_info)
+        self.cache_api.add(namespace="SamUserInfo", key=token, expires_in=0, value=sam_user_info)
 
         # set up mock Sam to throw an exception
         mock = MagicMock()
@@ -56,7 +56,7 @@ class AuthenticationTestCase(unittest.TestCase):
         self.assertEqual(expected_user_info.id, sam_user_id)
 
         # sam user info should still be cached
-        cached_sam_user_info = self.cache_api.get(namespace="SamUserInfo", key='access_token:'+token)
+        cached_sam_user_info = self.cache_api.get(namespace="SamUserInfo", key=token)
         self.assertEqual(sam_user_info, cached_sam_user_info)
 
     def test_good_user_cache_expire_config(self):
@@ -64,7 +64,7 @@ class AuthenticationTestCase(unittest.TestCase):
         token = "testtoken"
         expected_user_info = UserInfo("193481341723041", "foo@bar.com", token, 100)
         sam_user_info = self._generate_sam_user_info(expected_user_info.id, expected_user_info.email, True)
-        self.cache_api.add(namespace="SamUserInfo", key='access_token:'+token, expires_in=1, value=sam_user_info)
+        self.cache_api.add(namespace="SamUserInfo", key=token, expires_in=1, value=sam_user_info)
 
         # set up mock Sam to throw an exception
         mock = MagicMock()
