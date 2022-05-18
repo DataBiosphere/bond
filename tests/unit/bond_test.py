@@ -319,8 +319,11 @@ class BondTestCase(unittest.TestCase):
         access_token, expires_at = bond.get_access_token(self.user_id)
         self.assertEqual(access_token_initial, access_token)
 
-        # unlink and relink account
+        # unlink account and verify that the access token has been cleared
         bond.unlink_account(self.user_id)
+        self.assertIsNone(cache_api.get(self.user_id, namespace=f"{provider_name}:AccessTokens"))
+
+        # relink account
         self.refresh_token_store.save(
             user_id=self.user_id,
             refresh_token_str=refresh_token_renewed,
