@@ -17,7 +17,7 @@ class SamApi:
         """
         headers = {'Authorization': 'Bearer ' + access_token}
         result = requests.get(url=self.base_url + '/register/user/v2/self/info', headers=headers)
-        logging.info("Sam userInfo: status code {}, body {}".format(result.status_code, result.content))
+        logging.info('Sam userInfo: status code {}, body {}'.format(result.status_code, result.content))
 
         if result.status_code == 200:
             sam_user_info = json.loads(result.content)

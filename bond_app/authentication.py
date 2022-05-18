@@ -39,7 +39,7 @@ class Authentication:
 
     def auth_user(self, request_state):
         """
-        Get the user's info from cache or from Sam if not in cache and return the Sam user id.
+        Authenticate the user with Sam and return the Sam user id. Cache Sam user info by token.
         Verifies the user is enabled in Sam and throws unauthorized errors as appropriate.
         :param request_state: self.request_state from a class extending protorpc.remote.Service
         :return: UserId from Sam
