@@ -1,5 +1,6 @@
 import datetime
 from google.cloud import ndb
+from google.api_core.exceptions import InvalidArgument
 from .cache_api import CacheApi
 import logging
 
@@ -25,25 +26,27 @@ class DatastoreCacheApi(CacheApi):
     """
 
     def add(self, key, value, expires_in=0, namespace=None):
-        datastore_key = DatastoreCacheApi._build_cache_key(key, namespace)
-        if datastore_key is not None:
-            CacheEntry(key=datastore_key, value=value, 
+        try:
+            CacheEntry(key=DatastoreCacheApi._build_cache_key(key, namespace), value=value,
                        expires_at=DatastoreCacheApi._calculate_expiration(expires_in)).put()
             return True
-        return False
+        except InvalidArgument:
+            return False
 
     def get(self, key, namespace=None):
-        datastore_key = DatastoreCacheApi._build_cache_key(key, namespace)
-        if datastore_key is not None:
-            entry = datastore_key.get()
+        try:
+            entry = DatastoreCacheApi._build_cache_key(key, namespace).get()
             if entry and entry.expires_at >= datetime.datetime.now():
                 return entry.value
-        return None
+            return None
+        except InvalidArgument:
+            return None
 
     def delete(self, key, namespace=None):
-        datastore_key = DatastoreCacheApi._build_cache_key(key, namespace)
-        if datastore_key is not None:
-            datastore_key.delete()
+        try:
+            DatastoreCacheApi._build_cache_key(key, namespace).delete()
+        except InvalidArgument:
+            pass
 
     @staticmethod
     def delete_expired_entries():
@@ -54,12 +57,15 @@ class DatastoreCacheApi(CacheApi):
 
     @staticmethod
     def _build_cache_key(key, namespace):
-        """Create an ndb Key for the key and namespace."""
-        if DatastoreCacheApi._is_cache_key_valid(key):
-            if namespace is not None:
-                return ndb.Key("cache namespace", namespace, CacheEntry, key)
+        """
+        Create an ndb Key for the key and namespace.
+        Raises InvalidArgument if the cache key is invalid. Note Datastore string cache keys
+        must be at most 1500 bytes.
+        """
+        if namespace is not None:
+            return ndb.Key("cache namespace", namespace, CacheEntry, key)
+        else:
             return ndb.Key(CacheEntry, key)
-        return None
 
     @staticmethod
     def _calculate_expiration(expires_in):
@@ -71,8 +77,3 @@ class DatastoreCacheApi(CacheApi):
         if expires_in == 0:
             return _NO_EXPIRATION_DATETIME
         return datetime.datetime.now() + datetime.timedelta(seconds=expires_in)
-
-    @staticmethod
-    def _is_cache_key_valid(key):
-        """Checks if a cache key is valid. Datastore cache keys have a hardcoded limit of 1500 bytes."""
-        return 1 <= len(key.encode("utf-8")) <= 1500

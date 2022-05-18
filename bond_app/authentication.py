@@ -62,7 +62,9 @@ class Authentication:
         if sam_user_info is None:
             sam_user_info = self.sam_api.user_info(token)
             # cache successful Sam responses for 10 minutes.
-            self.cache_api.add(namespace="SamUserInfo", key=token,
-                               value=sam_user_info, expires_in=self.config.max_token_life)
+            cache_result = self.cache_api.add(namespace="SamUserInfo", key=token,
+                                              value=sam_user_info, expires_in=self.config.max_token_life)
+            if not cache_result:
+                logging.warning('Unable to cache Sam lookup for user info: {}'.format(sam_user_info))
 
         return sam_user_info[SamKeys.USER_ID_KEY]
