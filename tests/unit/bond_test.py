@@ -248,6 +248,96 @@ class BondTestCase(unittest.TestCase):
         with self.assertRaises(exceptions.NotFound):
             self.bond.fence_tvm.get_service_account_key_json(self.user_id)
 
+    def test_revoke_link_access_token(self):
+        '''
+        Ensures that cached access tokens are dumped when a user unlinks their account.
+        '''
+
+        data = {"context": {"user": {"name": self.name}}, 'iat': self.issued_at_epoch}
+        refresh_token_initial = str(uuid.uuid4())
+        refresh_token_renewed = str(uuid.uuid4())
+        encoded_jwt = jwt.encode(data, 'secret', 'HS256')
+        expires_at = datetime.now().timestamp() + 100000
+        access_token_initial = "access_token_initial"
+        access_token_renewed = "access_token_renewed"
+        
+        fake_token_defaults = {
+            FenceKeys.ACCESS_TOKEN: access_token_initial,
+            FenceKeys.REFRESH_TOKEN: refresh_token_initial,
+            FenceKeys.ID_TOKEN: encoded_jwt,
+            FenceKeys.EXPIRES_AT: expires_at,
+        }
+
+        mock_oauth_adapter = OauthAdapter("foo", "bar", "baz", "qux")
+        mock_oauth_adapter.exchange_authz_code = MagicMock(return_value=fake_token_defaults, name="exchange_authz_code")
+        mock_oauth_adapter.refresh_access_token = MagicMock(return_value=fake_token_defaults, name="refresh_access_token")
+        mock_oauth_adapter.revoke_refresh_token = MagicMock(name="revoke_refresh_token")
+        mock_oauth_adapter.build_authz_url = MagicMock(name="build_authz_url")
+
+        fence_api = self._mock_fence_api(json.dumps({"private_key_id": "asfasdfasdf"}))
+        cache_api = FakeCacheApi()
+        
+        bond = Bond(
+            mock_oauth_adapter,
+            fence_api,
+            cache_api,
+            self.refresh_token_store,
+            FenceTokenVendingMachine(
+                fence_api, 
+                cache_api, 
+                self.refresh_token_store, 
+                mock_oauth_adapter, 
+                provider_name, 
+                FakeFenceTokenStorage(),
+            ),
+            provider_name,
+            "/context/user/name",
+            {},
+        )
+        
+        # link
+        self.refresh_token_store.save(
+            user_id=self.user_id,
+            refresh_token_str=refresh_token_initial,
+            issued_at=datetime.fromtimestamp(self.issued_at_epoch),
+            username=self.name,
+            provider_name=provider_name,
+        )
+        bond.fence_tvm.get_service_account_key_json(self.user_id)
+
+        # generate and cache a token `access_token_initial` by calling `get_access_token`
+        access_token, expires_at = bond.get_access_token(self.user_id)
+        self.assertEqual(access_token_initial, access_token)
+
+        # re-mock refresh_access_token return values to simulate a new access token to be issued
+        mock_oauth_adapter.refresh_access_token = MagicMock(
+            return_value={**fake_token_defaults, **{FenceKeys.ACCESS_TOKEN: access_token_renewed}}, 
+            name="refresh_access_token"
+        )
+
+        # demonstrate that `access_token_initial` has been cached
+        access_token, expires_at = bond.get_access_token(self.user_id)
+        self.assertEqual(access_token_initial, access_token)
+
+        # unlink account and verify that the access token has been cleared
+        bond.unlink_account(self.user_id)
+        self.assertIsNone(cache_api.get(self.user_id, namespace=f"{provider_name}:AccessTokens"))
+
+        # relink account
+        self.refresh_token_store.save(
+            user_id=self.user_id,
+            refresh_token_str=refresh_token_renewed,
+            issued_at=datetime.fromtimestamp(self.issued_at_epoch),
+            username=self.name,
+            provider_name=provider_name,
+        )
+        bond.fence_tvm.get_service_account_key_json(self.user_id)
+        
+        # check cache to ensure that it was dumped
+        access_token, expires_at = bond.get_access_token(self.user_id)
+        self.assertEqual(access_token_renewed, access_token)
+
+
     def test_revoke_link_does_not_exists(self):
         self.bond.unlink_account(self.user_id)
 

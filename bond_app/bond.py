@@ -140,6 +140,7 @@ class Bond:
             self.fence_tvm.remove_service_account(sam_user_id)
             self.oauth_adapter.revoke_refresh_token(refresh_token.token)
             self.refresh_token_store.delete(sam_user_id, self.provider_name)
+            self.cache_api.delete(key=sam_user_id, namespace=f"{self.provider_name}:AccessTokens")
         else:
             logging.warning(
                 "Tried to remove user refresh token, but none was found: sam_user_id: {}, provider_name: {}".format(sam_user_id,
