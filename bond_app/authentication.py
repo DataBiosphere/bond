@@ -53,23 +53,16 @@ class Authentication:
             raise exceptions.Unauthorized('Malformed Authorization header, must be in the form of "bearer [token]".')
 
         token = auth_header_parts[1]
-        sam_user_info = None
-
-        # Note: Datastore cache keys have a hardcoded limit of 1500 bytes. JWTs can exceed that, which
-        # unfortunately means we can't cache them.
-        should_cache_token = 1 <= len(token.encode("utf-8")) <= 1500
     
         # First check cache for Sam user info.
-        if should_cache_token:
-            sam_user_info = self.cache_api.get(namespace="SamUserInfo", key=token)
+        sam_user_info = self.cache_api.get(namespace="SamUserInfo", key=token)
         
         # If cache lookup failed, call Sam.
         # Note this will raise Unauthorized errors as appropriate.
         if sam_user_info is None:
             sam_user_info = self.sam_api.user_info(token)
             # cache successful Sam responses for 10 minutes.
-            if should_cache_token:
-                self.cache_api.add(namespace="SamUserInfo", key=token,
-                                   value=sam_user_info, expires_in=self.config.max_token_life)
+            self.cache_api.add(namespace="SamUserInfo", key=token,
+                               value=sam_user_info, expires_in=self.config.max_token_life)
 
         return sam_user_info[SamKeys.USER_ID_KEY]

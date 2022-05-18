@@ -25,18 +25,25 @@ class DatastoreCacheApi(CacheApi):
     """
 
     def add(self, key, value, expires_in=0, namespace=None):
-        CacheEntry(key=DatastoreCacheApi._build_cache_key(key, namespace), value=value,
-                   expires_at=DatastoreCacheApi._calculate_expiration(expires_in)).put()
-        return True
+        datastore_key = DatastoreCacheApi._build_cache_key(key, namespace)
+        if datastore_key is not None:
+            CacheEntry(key=datastore_key, value=value, 
+                       expires_at=DatastoreCacheApi._calculate_expiration(expires_in)).put()
+            return True
+        return False
 
     def get(self, key, namespace=None):
-        entry = DatastoreCacheApi._build_cache_key(key, namespace).get()
-        if not entry or entry.expires_at < datetime.datetime.now():
-            return None
-        return entry.value
+        datastore_key = DatastoreCacheApi._build_cache_key(key, namespace)
+        if datastore_key is not None:
+            entry = datastore_key.get()
+            if entry and entry.expires_at >= datetime.datetime.now():
+                return entry.value
+        return None
 
     def delete(self, key, namespace=None):
-        DatastoreCacheApi._build_cache_key(key, namespace).delete()
+        datastore_key = DatastoreCacheApi._build_cache_key(key, namespace)
+        if datastore_key is not None:
+            datastore_key.delete()
 
     @staticmethod
     def delete_expired_entries():
@@ -48,10 +55,11 @@ class DatastoreCacheApi(CacheApi):
     @staticmethod
     def _build_cache_key(key, namespace):
         """Create an ndb Key for the key and namespace."""
-        if namespace is not None:
-            return ndb.Key("cache namespace", namespace, CacheEntry, key)
-        else:
+        if DatastoreCacheApi._is_cache_key_valid(key):
+            if namespace is not None:
+                return ndb.Key("cache namespace", namespace, CacheEntry, key)
             return ndb.Key(CacheEntry, key)
+        return None
 
     @staticmethod
     def _calculate_expiration(expires_in):
@@ -63,3 +71,8 @@ class DatastoreCacheApi(CacheApi):
         if expires_in == 0:
             return _NO_EXPIRATION_DATETIME
         return datetime.datetime.now() + datetime.timedelta(seconds=expires_in)
+
+    @staticmethod
+    def _is_cache_key_valid(key):
+        """Checks if a cache key is valid. Datastore cache keys have a hardcoded limit of 1500 bytes."""
+        return 1 <= len(key.encode("utf-8")) <= 1500
