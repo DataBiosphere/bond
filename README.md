@@ -10,6 +10,8 @@ can be reached at the path:
 
 `http://{your_host}/api/docs/`
 
+For example: https://broad-bond-dev.appspot.com/api/docs/
+
 ## Authorization 
 For endpoints that require authorization, you will need a Google Access Token that you can generate using the 
 [gcloud](https://cloud.google.com/sdk/gcloud) command:
@@ -233,6 +235,8 @@ deployment of the `develop` branch will be triggered if anyone commits or pushes
 
 ## Deploy to non-production environments
 
+Note: if you are deploying to non-prod envs as part of a prod release, then skip this section since these instructions are already included in the [Production Deployment Checklist](#production-deployment-checklist).
+
 1. Log in to [Jenkins](https://fc-jenkins.dsp-techops.broadinstitute.org/) 
 1. Navigate to the [bond-manual-deploy](https://fc-jenkins.dsp-techops.broadinstitute.org/view/Indie%20Deploys/job/bond-manual-deploy/)
    job
@@ -243,9 +247,9 @@ deployment of the `develop` branch will be triggered if anyone commits or pushes
 
 ## Production Deployment Checklist
 
+### Create a ticket and load the Bond Release Checklist template
 To perform a release, you are _required_ to create a Release Issue in [Jira](https://broadworkbench.atlassian.net/browse/CA).
-You should title the issue something like `Bond Release version x.x.x` where `x.x.x` is the semantic version number for 
-the release.  After creating the issue, scroll down to the "Checklist" field and click on the ellipsis `...` icon for 
+You should title the issue something like `Bond Release version x.x.x` (`x.x.x` is a placeholder that will get replaced).  After creating the issue, search for a way to add a "Checklist" (which may be a ☑ icon near the top of the ticket) and click on the ellipsis `...` icon for 
 that field and choose `Load templates`, select `Bond Release Checklist`, and click the `Load templates` button.  
 
 When doing a production deployment, each step of the checklist **must** be performed.
