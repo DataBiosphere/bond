@@ -1,3 +1,5 @@
+import logging
+
 from flask import jsonify
 from werkzeug import exceptions
 
@@ -28,6 +30,7 @@ class JsonExceptionHandler(object):
         else:
             response = jsonify(error=str(error))
             response.status_code = 500
+        logging.exception(error)
         return response
 
     def init_app(self, app):
