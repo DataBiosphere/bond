@@ -50,7 +50,8 @@ class OAuth2StateStore:
         if not state:
             decoded_state = {}
         else:
-            decoded_state = json.loads(base64.b64decode(state))
+            decoded_raw = base64.b64decode(state)
+            decoded_state = json.loads(decoded_raw)
         nonce = secrets.token_urlsafe()
         decoded_state_with_nonce = {**decoded_state, 'nonce': nonce}
         return base64.b64encode(json.dumps(decoded_state_with_nonce).encode('utf-8')), nonce
