@@ -93,3 +93,16 @@ def add_nosniff_content_type_header(response):
     response.headers["X-Content-Type-Options"] = "nosniff"
     response.headers["X-Frame-Options"] = "deny"
     return response
+
+@app.after_request
+def add_strict_transport_security_header(response):
+    # https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Strict-Transport-Security
+    # recommended settings by mozilla, max-age is 2 years in seconds
+    response.headers["Strict-Transport-Security"] = "max-age=63072000; includeSubDomains; preload"
+    return response
+
+@app.after_request
+def add_cache_control_header(response):
+    # https://grayduck.mn/2021/09/13/cache-control-recommendations/
+    response.headers["Cache-Control"] = "max-age=0, must-revalidate, no-cache, no-store, private"
+    return response
