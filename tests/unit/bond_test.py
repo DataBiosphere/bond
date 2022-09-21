@@ -417,6 +417,41 @@ class BondTestCase(unittest.TestCase):
         valid_oauth2_state = self.bond.oauth2_state_store.validate_and_delete(self.user_id, provider_name, nonce)
         self.assertTrue(valid_oauth2_state)
 
+    def test_nonce_success(self):
+        scopes = ['foo', 'bar']
+        redirect_uri = 'http://anything.url'
+        state = encoded_state()
+
+        self.bond.build_authz_url(scopes, redirect_uri, self.user_id, provider_name, state)
+        state_with_nonce, nonce = self.oauth2_state_store.state_with_nonce(state)
+
+        self.bond.exchange_authz_code("irrelevantString", redirect_uri, self.user_id, state_with_nonce, provider_name)
+        self.bond.oauth_adapter.exchange_authz_code.assert_called_once_with("irrelevantString", redirect_uri)
+
+    def test_nonce_failure(self):
+        scopes = ['foo', 'bar']
+        redirect_uri = 'http://anything.url'
+        state = encoded_state()
+
+        self.bond.build_authz_url(scopes, redirect_uri, self.user_id, provider_name, state)
+        state_with_bad_nonce = base64.b64encode(json.dumps({'nonce': 'unsaved_nonce'}).encode('utf-8'))
+
+        with self.assertRaisesRegex(exceptions.InternalServerError, "Invalid OAuth2 State: Invalid nonce"):
+            self.bond.exchange_authz_code("irrelevantString", "redirect", self.user_id, state_with_bad_nonce,
+                                          provider_name)
+
+    def test_no_nonce(self):
+        scopes = ['foo', 'bar']
+        redirect_uri = 'http://anything.url'
+        state = encoded_state()
+
+        self.bond.build_authz_url(scopes, redirect_uri, self.user_id, provider_name, state)
+
+        with self.assertRaisesRegex(exceptions.InternalServerError, "Invalid OAuth2 State: No nonce provided"):
+            self.bond.exchange_authz_code("irrelevantString", "redirect", self.user_id, state,
+                                          provider_name)
+
+
     @staticmethod
     def _mock_fence_api(service_account_json):
         fence_api = FenceApi("")

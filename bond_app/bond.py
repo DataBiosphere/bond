@@ -65,9 +65,11 @@ class Bond:
         :return: Two values: datetime when token was issued, username for whom the token was issued
         """
         decoded_state = json.loads(base64.b64decode(b64_state))
+        if 'nonce' not in decoded_state:
+            raise exceptions.InternalServerError("Invalid OAuth2 State: No nonce provided")
         state_valid = self.oauth2_state_store.validate_and_delete(sam_user_id, provider, decoded_state['nonce'])
         if not state_valid:
-            raise exceptions.InternalServerError("Invalid OAuth2 State")
+            raise exceptions.InternalServerError("Invalid OAuth2 State: Invalid nonce")
         token_response = self.oauth_adapter.exchange_authz_code(authz_code, redirect_uri)
         jwt_token = JwtToken(token_response.get(FenceKeys.ID_TOKEN), self.user_name_path_expr)
         if FenceKeys.REFRESH_TOKEN not in token_response:
