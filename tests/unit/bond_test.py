@@ -1,9 +1,11 @@
+import base64
 import json
 import unittest
 import uuid
 from datetime import datetime
 
 import jwt
+from urllib.parse import urlparse, parse_qs
 from mock import MagicMock
 from werkzeug import exceptions
 
@@ -12,6 +14,7 @@ from bond_app.bond import Bond, FenceKeys
 from bond_app.fence_api import FenceApi
 from bond_app.fence_token_vending import FenceTokenVendingMachine
 from bond_app.oauth_adapter import OauthAdapter
+from tests.unit.fake_oauth2_state_store import FakeOAuth2StateStore
 from tests.unit.fake_token_store import FakeTokenStore
 from tests.unit.fake_cache_api import FakeCacheApi
 from tests.unit.fake_fence_token_storage import FakeFenceTokenStorage
@@ -19,7 +22,24 @@ from tests.unit.fake_fence_token_storage import FakeFenceTokenStorage
 provider_name = "test"
 
 
+def encoded_state():
+    return base64.b64encode(json.dumps({'foo': 'bar'}).encode('utf-8'))
+
+
+def get_url_state(url):
+    parsed_url = urlparse(url)
+    return parse_qs(parsed_url.query)['state'][0]
+
+
+def parse_nonce_from_url_state(url):
+    return json.loads(base64.b64decode(get_url_state(url)))['nonce']
+
+
 class BondTestCase(unittest.TestCase):
+
+    def encoded_state_with_nonce(self):
+        return self.oauth2_state_store.state_with_nonce(encoded_state())
+
     def setUp(self):
         super(BondTestCase, self).setUp()
 
@@ -44,10 +64,12 @@ class BondTestCase(unittest.TestCase):
 
         fence_api = self._mock_fence_api(json.dumps({"private_key_id": "asfasdfasdf"}))
         self.refresh_token_store = FakeTokenStore()
+        self.oauth2_state_store = FakeOAuth2StateStore()
         self.bond = Bond(mock_oauth_adapter,
                          fence_api,
                          FakeCacheApi(),
                          self.refresh_token_store,
+                         self.oauth2_state_store,
                          FenceTokenVendingMachine(fence_api, FakeCacheApi(), self.refresh_token_store,
                                                   mock_oauth_adapter,
                                                   provider_name, FakeFenceTokenStorage()),
@@ -56,7 +78,10 @@ class BondTestCase(unittest.TestCase):
                          {})
 
     def test_exchange_authz_code(self):
-        issued_at, username = self.bond.exchange_authz_code("irrelevantString", "redirect", self.user_id)
+        state, nonce = self.encoded_state_with_nonce()
+        self.oauth2_state_store.save(self.user_id, provider_name, nonce)
+        issued_at, username = self.bond.exchange_authz_code("irrelevantString", "redirect", self.user_id,
+                                                            state, provider_name)
         self.assertEqual(self.name, username)
         self.assertEqual(datetime.fromtimestamp(self.issued_at_epoch), issued_at)
 
@@ -77,6 +102,7 @@ class BondTestCase(unittest.TestCase):
                     fence_api,
                     FakeCacheApi(),
                     self.refresh_token_store,
+                    self.oauth2_state_store,
                     FenceTokenVendingMachine(fence_api, FakeCacheApi(), self.refresh_token_store,
                                              mock_oauth_adapter, provider_name,
                                              FakeFenceTokenStorage()),
@@ -84,8 +110,11 @@ class BondTestCase(unittest.TestCase):
                     "/context/user/name",
                     {})
 
+        state, nonce = self.encoded_state_with_nonce()
+        self.oauth2_state_store.save(self.user_id, provider_name, nonce)
+
         with self.assertRaises(exceptions.BadRequest):
-            bond.exchange_authz_code("irrelevantString", "redirect", UserInfo(str(uuid.uuid4()), "", "", 30))
+            bond.exchange_authz_code("irrelevantString", "redirect", self.user_id, state, provider_name)
 
     def test_exchange_authz_code_existing_token_clears_cache(self):
         token = str(uuid.uuid4())
@@ -98,7 +127,9 @@ class BondTestCase(unittest.TestCase):
             return_value=json.dumps({"private_key_id": "before_key"})
         )
         before_key = self.bond.fence_tvm.get_service_account_key_json(self.user_id)
-        self.bond.exchange_authz_code("irrelevantString", "redirect", self.user_id)
+        state, nonce = self.encoded_state_with_nonce()
+        self.oauth2_state_store.save(self.user_id, provider_name, nonce)
+        self.bond.exchange_authz_code("irrelevantString", "redirect", self.user_id, state, provider_name)
         self.bond.fence_api.get_credentials_google = MagicMock(
             return_value=json.dumps({"private_key_id": "after_key"})
         )
@@ -137,6 +168,7 @@ class BondTestCase(unittest.TestCase):
                     fence_api,
                     cache_api,
                     self.refresh_token_store,
+                    self.oauth2_state_store,
                     FenceTokenVendingMachine(fence_api, cache_api, self.refresh_token_store,
                                              mock_oauth_adapter, provider_name,
                                              FakeFenceTokenStorage()),
@@ -193,6 +225,7 @@ class BondTestCase(unittest.TestCase):
                     fence_api,
                     cache_api,
                     self.refresh_token_store,
+                    self.oauth2_state_store,
                     FenceTokenVendingMachine(fence_api, cache_api, self.refresh_token_store,
                                              mock_oauth_adapter, provider_name,
                                              FakeFenceTokenStorage()),
@@ -282,6 +315,7 @@ class BondTestCase(unittest.TestCase):
             fence_api,
             cache_api,
             self.refresh_token_store,
+            self.oauth2_state_store,
             FenceTokenVendingMachine(
                 fence_api, 
                 cache_api, 
@@ -337,7 +371,6 @@ class BondTestCase(unittest.TestCase):
         access_token, expires_at = bond.get_access_token(self.user_id)
         self.assertEqual(access_token_renewed, access_token)
 
-
     def test_revoke_link_does_not_exists(self):
         self.bond.unlink_account(self.user_id)
 
@@ -358,18 +391,31 @@ class BondTestCase(unittest.TestCase):
     def test_build_authz_url_without_extra_params(self):
         scopes = ['foo', 'bar']
         redirect_uri = 'http://anything.url'
-        state = "baz"
-        self.bond.build_authz_url(scopes, redirect_uri, state)
-        self.bond.oauth_adapter.build_authz_url.assert_called_once_with(scopes, redirect_uri, state, {})
+        state = encoded_state()
+
+        self.bond.build_authz_url(scopes, redirect_uri, self.user_id, provider_name, state)
+
+        state_with_nonce, nonce = self.oauth2_state_store.state_with_nonce(state)
+        self.bond.oauth_adapter.build_authz_url.assert_called_once_with(scopes, redirect_uri, state_with_nonce, {})
+
+        valid_oauth2_state = self.bond.oauth2_state_store.validate_and_delete(self.user_id, provider_name, nonce)
+        self.assertTrue(valid_oauth2_state)
 
     def test_build_authz_url_with_extra_params(self):
         scopes = ['foo', 'bar']
         redirect_uri = 'http://anything.url'
-        state = "baz"
+        state = encoded_state()
         extra_params = {"bar": "foo"}
+
         self.bond.extra_authz_url_params = extra_params
-        self.bond.build_authz_url(scopes, redirect_uri, state)
-        self.bond.oauth_adapter.build_authz_url.assert_called_once_with(scopes, redirect_uri, state, extra_params)
+        self.bond.build_authz_url(scopes, redirect_uri, self.user_id, provider_name, state)
+
+        state_with_nonce, nonce = self.oauth2_state_store.state_with_nonce(state)
+        self.bond.oauth_adapter.build_authz_url.assert_called_once_with(scopes, redirect_uri, state_with_nonce,
+                                                                        extra_params)
+
+        valid_oauth2_state = self.bond.oauth2_state_store.validate_and_delete(self.user_id, provider_name, nonce)
+        self.assertTrue(valid_oauth2_state)
 
     @staticmethod
     def _mock_fence_api(service_account_json):

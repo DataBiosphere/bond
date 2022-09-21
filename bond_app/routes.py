@@ -1,4 +1,3 @@
-import base64
 import logging
 
 from flask import Blueprint, request
@@ -113,6 +112,7 @@ def create_provider(provider_name):
                                         fence_api,
                                         cache_api,
                                         refresh_token_store,
+                                        oauth2_state_store,
                                         fence_tvm,
                                         provider_name,
                                         user_name_path_expr,
@@ -163,12 +163,8 @@ def list_providers():
           locations=("querystring",))
 def oauthcode(args, provider):
     sam_user_id = auth.auth_user(request)
-    decoded_state = json.loads(base64.b64decode(args['state']))
-    state_valid = oauth2_state_store.validate_and_delete(sam_user_id, provider, decoded_state['nonce'])
-    if not state_valid:
-        raise exceptions.InternalServerError("Invalid OAuth2 State")
     issued_at, username = _get_provider(provider).bond.exchange_authz_code(args['oauthcode'], args['redirect_uri'],
-                                                                           sam_user_id)
+                                                                           sam_user_id, args['state'], provider)
     return json_response(LinkInfoResponse(issued_at=issued_at, username=username))
 
 
@@ -219,12 +215,8 @@ def service_account_accesstoken(args, provider):
           locations=("querystring",))
 def authorization_url(args, provider):
     sam_user_id = auth.auth_user(request)
-    nonce = OAuth2StateStore.random_nonce()
-    decoded_state = json.loads(base64.b64decode(args['state']))
-    oauth2_state = {**decoded_state, 'nonce': nonce}
-    encoded_state_with_nonce = base64.b64encode(json.dumps(oauth2_state).encode('utf-8'))
-    authz_url = _get_provider(provider).bond.build_authz_url(args['scopes'], args['redirect_uri'], encoded_state_with_nonce)
-    oauth2_state_store.save(sam_user_id, provider, nonce)
+    authz_url = _get_provider(provider).bond.build_authz_url(args['scopes'], args['redirect_uri'], sam_user_id,
+                                                             provider, args['state'])
     return json_response((AuthorizationUrlResponse(url=authz_url)))
 
 

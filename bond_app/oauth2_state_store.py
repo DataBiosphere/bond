@@ -1,3 +1,5 @@
+import base64
+import json
 import secrets
 from collections import namedtuple
 from google.cloud import ndb
@@ -25,7 +27,6 @@ class OAuth2StateStore:
     Stores OAuth2 State nonces for csrf protection.
     """
 
-
     def save(self, user_id, provider, nonce):
         """
         Persists a RefreshToken by creating a new entity or updating an existing entity with the same id
@@ -46,12 +47,17 @@ class OAuth2StateStore:
             key.delete()
         return is_valid
 
-    # def build_oauth2_state(self, user_id, provider_name):
+    def state_with_nonce(self, state):
+        if not state:
+            decoded_state = {}
+        else:
+            decoded_state = json.loads(base64.b64decode(state))
+        nonce = secrets.token_urlsafe()
+        decoded_state_with_nonce = {**decoded_state, 'nonce': nonce}
+        return base64.b64encode(json.dumps(decoded_state_with_nonce).encode('utf-8')), nonce
 
     @staticmethod
     def _oauth2_state_store_key(user_id, provider_name):
         return ndb.Key("OAuth2State", user_id, OAuth2State, provider_name)
 
-    @staticmethod
-    def random_nonce():
-        return secrets.token_urlsafe()
+

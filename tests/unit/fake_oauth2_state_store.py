@@ -1,3 +1,5 @@
+import base64
+import json
 from collections import namedtuple
 from bond_app.oauth2_state_store import OAuth2StateInfo
 
@@ -7,6 +9,8 @@ _UserKey = namedtuple("_UserKey", ["user_id", "provider_name"])
 
 class FakeOAuth2StateStore:
     """A fake in memory implementation of TokenStore for unit tests."""
+
+    test_nonce = "iamasecretnonce"
 
     def __init__(self):
         # Map from OAuth2Store keys to OAuth2State.
@@ -32,3 +36,13 @@ class FakeOAuth2StateStore:
             if state.nonce == nonce:
                 is_valid = True
         return is_valid
+
+    def state_with_nonce(self, state):
+        if not state:
+            decoded_state = {}
+        else:
+            decoded_state = json.loads(base64.b64decode(state))
+        nonce = self.test_nonce
+        decoded_state_with_nonce = {**decoded_state, 'nonce': nonce}
+        return base64.b64encode(json.dumps(decoded_state_with_nonce).encode('utf-8')), nonce
+
