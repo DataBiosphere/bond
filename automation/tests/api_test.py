@@ -16,6 +16,8 @@ class BaseApiTestCase(unittest.TestCase):
         self.assertEqual(response.headers["Content-Type"], "application/json")
         self.assertEqual(response.headers["X-Content-Type-Options"], "nosniff")
         self.assertEqual(response.headers["X-Frame-Options"], "deny")
+        self.assertEqual(response.headers["Strict-Transport-Security"], "max-age=63072000; includeSubDomains; preload")
+        self.assertEqual(response.headers["Cache-Control"], "max-age=0, must-revalidate, no-cache, no-store, private")
 
 
 class PublicApiTestCase(BaseApiTestCase):
