@@ -64,10 +64,11 @@ class Bond:
         :param provider: OAuth provider
         :return: Two values: datetime when token was issued, username for whom the token was issued
         """
-        decoded_state = json.loads(base64.b64decode(b64_state))
-        if 'nonce' not in decoded_state:
+        decoded_state = base64.b64decode(b64_state)
+        state = json.loads(decoded_state)
+        if 'nonce' not in state:
             raise exceptions.InternalServerError("Invalid OAuth2 State: No nonce provided")
-        state_valid = self.oauth2_state_store.validate_and_delete(sam_user_id, provider, decoded_state['nonce'])
+        state_valid = self.oauth2_state_store.validate_and_delete(sam_user_id, provider, state['nonce'])
         if not state_valid:
             raise exceptions.InternalServerError("Invalid OAuth2 State: Invalid nonce")
         token_response = self.oauth_adapter.exchange_authz_code(authz_code, redirect_uri)
