@@ -1,9 +1,15 @@
-from collections import namedtuple
 import datetime
+from dataclasses import dataclass
+
 from bond_app.fence_token_storage import _FSA_KEY_LIFETIME
 
+
 # Internal representation of information being stored about a FenceServiceAccount.
-_FenceServiceAccountInfo = namedtuple("_FenceServiceAccountInfo", ["key_json", "expires_at", "update_lock_timeout"])
+@dataclass(unsafe_hash=True)
+class _FenceServiceAccountInfo:
+    key_json: bytes
+    expires_at: datetime
+    update_lock_timeout: datetime
 
 
 class FakeFenceTokenStorage:
@@ -29,8 +35,8 @@ class FakeFenceTokenStorage:
         else:
             key_json = fence_fetch_fn(prep_key_fn(provider_user))
             account_info = _FenceServiceAccountInfo(key_json=key_json,
-                                                   expires_at=datetime.datetime.now() + _FSA_KEY_LIFETIME,
-                                                   update_lock_timeout=None)
+                                                    expires_at=datetime.datetime.now() + _FSA_KEY_LIFETIME,
+                                                    update_lock_timeout=None)
             self.accounts[provider_user] = account_info
 
-        return (account_info.key_json, account_info.expires_at)
+        return account_info.key_json, account_info.expires_at

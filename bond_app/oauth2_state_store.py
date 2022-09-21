@@ -1,11 +1,14 @@
 import base64
 import json
 import secrets
-from collections import namedtuple
 from google.cloud import ndb
+from dataclasses import dataclass
+
 
 # Information associated with a tokens for refreshing service account credentials.
-OAuth2StateInfo = namedtuple('OAuth2StateInfo', ['nonce'])
+@dataclass
+class OAuth2StateInfo:
+    nonce: str
 
 
 class OAuth2State(ndb.Model):

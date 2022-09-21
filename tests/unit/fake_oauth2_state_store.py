@@ -1,10 +1,14 @@
 import base64
 import json
-from collections import namedtuple
+from dataclasses import dataclass
 from bond_app.oauth2_state_store import OAuth2StateInfo
 
+
 # Internal key class for a user_id and provider_name.
-_UserKey = namedtuple("_UserKey", ["user_id", "provider_name"])
+@dataclass(unsafe_hash=True)
+class _UserKey:
+    user_id: str
+    provider_name: str
 
 
 class FakeOAuth2StateStore:

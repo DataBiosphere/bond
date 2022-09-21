@@ -1,8 +1,13 @@
-from collections import namedtuple
+from dataclasses import dataclass
+
 from bond_app.token_store import RefreshTokenInfo
 
+
 # Internal key class for a user_id and provider_name.
-_UserKey = namedtuple("_UserKey", ["user_id", "provider_name"])
+@dataclass(unsafe_hash=True)
+class _UserKey:
+    user_id: str
+    provider_name: str
 
 
 class FakeTokenStore():
