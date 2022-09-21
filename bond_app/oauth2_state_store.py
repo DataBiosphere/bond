@@ -34,8 +34,8 @@ class OAuth2StateStore:
         :param provider:
         :param nonce: random value for csrf protection
         """
-        ouath2_nonce = OAuth2State(key=OAuth2StateStore._oauth2_state_store_key(user_id, provider), nonce=nonce)
-        ouath2_nonce.put()
+        oauth2_nonce = OAuth2State(key=OAuth2StateStore._oauth2_state_store_key(user_id, provider), nonce=nonce)
+        oauth2_nonce.put()
 
     def validate_and_delete(self, user_id, provider_name, nonce) -> bool:
         key = OAuth2StateStore._oauth2_state_store_key(user_id, provider_name)
