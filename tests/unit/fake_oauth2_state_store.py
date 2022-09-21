@@ -43,5 +43,7 @@ class FakeOAuth2StateStore:
             decoded_state = json.loads(decoded_raw)
         nonce = self.test_nonce
         decoded_state_with_nonce = {**decoded_state, 'nonce': nonce}
-        return base64.b64encode(json.dumps(decoded_state_with_nonce).encode('utf-8')), nonce
+        dumped_state = json.dumps(decoded_state_with_nonce)
+        utf8_state = dumped_state.encode('utf-8')
+        return base64.b64encode(utf8_state), nonce
 

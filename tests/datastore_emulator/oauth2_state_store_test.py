@@ -16,7 +16,9 @@ class OAuth2StateStoreTestCase(unittest.TestCase):
         datastore_emulator_utils.setUp(self)
 
         self.user_id = "abc123"
-        self.state = base64.b64encode(json.dumps({}).encode('utf-8'))
+        empty_state = json.dumps({})
+        utf8_state = empty_state.encode('utf-8')
+        self.state = base64.b64encode(utf8_state)
         self.key = OAuth2StateStore._oauth2_state_store_key(self.user_id, provider_name)
 
     def test_save(self):
