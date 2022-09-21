@@ -40,12 +40,11 @@ class OAuth2StateStore:
     def validate_and_delete(self, user_id, provider_name, nonce) -> bool:
         key = OAuth2StateStore._oauth2_state_store_key(user_id, provider_name)
         oauth2_state = key.get()
-        is_valid = False
-        if oauth2_state:
-            if oauth2_state.nonce == nonce:
-                is_valid = True
+        if oauth2_state is None:
+            return False
+        else:
             key.delete()
-        return is_valid
+            return oauth2_state.nonce == nonce
 
     def state_with_nonce(self, state):
         if not state:

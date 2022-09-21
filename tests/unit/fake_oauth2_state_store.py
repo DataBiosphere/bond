@@ -29,13 +29,11 @@ class FakeOAuth2StateStore:
 
     def validate_and_delete(self, user_id, provider_name, nonce) -> bool:
         key = _UserKey(user_id, provider_name)
-        exists = self.oauth2_states.get(key)
-        is_valid = False
-        if exists:
-            state = self.oauth2_states.pop(key, None)
-            if state.nonce == nonce:
-                is_valid = True
-        return is_valid
+        if key not in self.oauth2_states:
+            return False
+        else:
+            oauth2_state = self.oauth2_states.pop(key)
+            return oauth2_state.nonce == nonce
 
     def state_with_nonce(self, state):
         if not state:
