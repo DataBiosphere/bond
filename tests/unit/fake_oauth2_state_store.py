@@ -39,13 +39,13 @@ class FakeOAuth2StateStore:
             oauth2_state = self.oauth2_states.pop(key)
             return oauth2_state.nonce == nonce
 
-    def state_with_nonce(self, state):
+    def state_with_nonce(self, state, override_nonce=None):
         if not state:
             decoded_state = {}
         else:
             decoded_raw = base64.b64decode(state)
             decoded_state = json.loads(decoded_raw)
-        nonce = self.test_nonce
+        nonce = override_nonce if override_nonce else self.test_nonce
         decoded_state_with_nonce = {**decoded_state, 'nonce': nonce}
         dumped_state = json.dumps(decoded_state_with_nonce)
         utf8_state = dumped_state.encode('utf-8')

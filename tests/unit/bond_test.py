@@ -451,6 +451,29 @@ class BondTestCase(unittest.TestCase):
             self.bond.exchange_authz_code("irrelevantString", "redirect", self.user_id, state,
                                           provider_name)
 
+    def test_double_nonce_success(self):
+        scopes = ['foo', 'bar']
+        redirect_uri = 'http://anything.url'
+        state = encoded_state()
+
+        self.bond.build_authz_url(scopes, redirect_uri, self.user_id, provider_name, state)
+        state_with_nonce, _ = self.oauth2_state_store.state_with_nonce(state, override_nonce="second_nonce")
+        self.oauth2_state_store.save(self.user_id, provider_name, "second_nonce")
+
+        self.bond.exchange_authz_code("irrelevantString", redirect_uri, self.user_id, state_with_nonce, provider_name)
+        self.bond.oauth_adapter.exchange_authz_code.assert_called_once_with("irrelevantString", redirect_uri)
+
+    def test_double_nonce_failure(self):
+        scopes = ['foo', 'bar']
+        redirect_uri = 'http://anything.url'
+        state = encoded_state()
+
+        self.bond.build_authz_url(scopes, redirect_uri, self.user_id, provider_name, state)
+        state_with_nonce, _ = self.oauth2_state_store.state_with_nonce(state)
+        self.oauth2_state_store.save(self.user_id, provider_name, "second_nonce")
+
+        with self.assertRaisesRegex(exceptions.InternalServerError, "Invalid OAuth2 State: Invalid nonce"):
+            self.bond.exchange_authz_code("irrelevantString", "redirect", self.user_id, state_with_nonce, provider_name)
 
     @staticmethod
     def _mock_fence_api(service_account_json):
