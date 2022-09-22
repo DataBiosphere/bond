@@ -23,7 +23,9 @@ provider_name = "test"
 
 
 def encoded_state():
-    return base64.b64encode(json.dumps({'foo': 'bar'}).encode('utf-8'))
+    dumped_state = json.dumps({'foo': 'bar'})
+    utf8_state = dumped_state.encode('utf-8')
+    return base64.b64encode(utf8_state)
 
 
 def get_url_state(url):
@@ -32,7 +34,10 @@ def get_url_state(url):
 
 
 def parse_nonce_from_url_state(url):
-    return json.loads(base64.b64decode(get_url_state(url)))['nonce']
+    url_state = get_url_state(url)
+    decoded_state = base64.b64decode(url_state)
+    state_dict = json.loads(decoded_state)
+    return state_dict['nonce']
 
 
 class BondTestCase(unittest.TestCase):
@@ -434,7 +439,9 @@ class BondTestCase(unittest.TestCase):
         state = encoded_state()
 
         self.bond.build_authz_url(scopes, redirect_uri, self.user_id, provider_name, state)
-        state_with_bad_nonce = base64.b64encode(json.dumps({'nonce': 'unsaved_nonce'}).encode('utf-8'))
+        dumped_state = json.dumps({'nonce': 'unsaved_nonce'})
+        utf8_state = dumped_state.encode('utf-8')
+        state_with_bad_nonce = base64.b64encode(utf8_state)
 
         with self.assertRaisesRegex(exceptions.InternalServerError, "Invalid OAuth2 State: Invalid nonce"):
             self.bond.exchange_authz_code("irrelevantString", "redirect", self.user_id, state_with_bad_nonce,
