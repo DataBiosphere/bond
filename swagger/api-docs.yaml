@@ -132,6 +132,12 @@ paths:
           schema:
             type: string
             example: http://local.broadinstitute.org/#fence-callback
+        - name: state
+          in: query
+          required: true
+          description: A URL encoded Base64 string representing a JSON object of state containing the nonce, as returned by the call to authorization-url.
+          schema:
+            type: string
       responses:
         '200':
           $ref: '#/components/responses/LinkInfoResponse'
