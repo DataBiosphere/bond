@@ -565,6 +565,71 @@ json_schema_test_exchange_auth_code_without_oauthcode_param = {
   }
 }
 
+json_schema_test_exchange_auth_code_invalid_nonce_param = {
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "required": [
+    "error"
+  ],
+  "properties": {
+    "error": {
+      "type": "object",
+      "required": [
+        "message",
+        "code",
+        "errors"
+      ],
+      "properties": {
+        "message": {
+          "type": "string",
+          "enum": [
+            "Invalid OAuth2 State: Invalid nonce"
+          ],
+        },
+        "code": {
+          "type": "integer",
+          "default": 0,
+          "enum": [
+            500
+          ]
+        },
+        "errors": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "reason",
+              "domain",
+              "message"
+            ],
+            "properties": {
+              "reason": {
+                "type": "string",
+                "enum": [
+                  "internalServerError"
+                ],
+              },
+              "domain": {
+                "type": "string",
+                "enum": [
+                  "global"
+                ],
+              },
+              "message": {
+                "type": "string",
+                "enum": [
+                  "Invalid OAuth2 State: Invalid nonce"
+                ],
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+
 """Json Schemas for LinkedUserTestCase tests"""
 json_schema_test_get_link_status = json_schema_test_exchange_auth_code
 json_schema_test_get_access_token = {

@@ -9,7 +9,6 @@ from urllib.parse import urlparse, parse_qs
 from mock import MagicMock
 from werkzeug import exceptions
 
-from bond_app.authentication import UserInfo
 from bond_app.bond import Bond, FenceKeys
 from bond_app.fence_api import FenceApi
 from bond_app.fence_token_vending import FenceTokenVendingMachine
