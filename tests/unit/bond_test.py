@@ -27,18 +27,6 @@ def encoded_state():
     return base64.b64encode(utf8_state)
 
 
-def get_url_state(url):
-    parsed_url = urlparse(url)
-    return parse_qs(parsed_url.query)['state'][0]
-
-
-def parse_nonce_from_url_state(url):
-    url_state = get_url_state(url)
-    decoded_state = base64.b64decode(url_state)
-    state_dict = json.loads(decoded_state)
-    return state_dict['nonce']
-
-
 class BondTestCase(unittest.TestCase):
 
     def encoded_state_with_nonce(self):
