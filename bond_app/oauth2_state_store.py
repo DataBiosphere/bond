@@ -32,7 +32,7 @@ class OAuth2StateStore:
 
     def save(self, user_id, provider, nonce):
         """
-        Persists a RefreshToken by creating a new entity or updating an existing entity with the same id
+        Persists a OAuth2State by creating a new entity or updating an existing entity with the same id
         :param user_id
         :param provider:
         :param nonce: random value for csrf protection
