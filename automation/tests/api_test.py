@@ -106,6 +106,9 @@ class AuthorizedBaseCase(BaseApiTestCase):
 class AuthorizedUnlinkedUser(AuthorizedBaseCase):
     """Base class for setting up test cases that need the user to be logged in but not linked in Bond"""
 
+    # {"foo":"bar"}
+    foo_bar_state = "eyJmb28iOiJiYXIifQ%3D%3D"
+
     def setUp(self):
         self.token = self.user_credentials[self.hermione_email].get_access_token()
         self.unlink(self.token)
@@ -122,7 +125,7 @@ class AuthorizationUrlApiTestCase(AuthorizedUnlinkedUser):
     """Tests Bond's authorization-url endpoints that now require a bearer token"""
 
     def test_get_auth_url(self):
-        url = self.bond_base_url + "/api/link/v1/" + self.provider + "/authorization-url" + "?scopes=openid&scopes=google_credentials&redirect_uri=http%3A%2F%2Flocal.broadinstitute.org%2F%23fence-callback&state=eyJmb28iOiJiYXIifQ%3D%3D"
+        url = self.bond_base_url + "/api/link/v1/" + self.provider + "/authorization-url" + "?scopes=openid&scopes=google_credentials&redirect_uri=http%3A%2F%2Flocal.broadinstitute.org%2F%23fence-callback&state=" + self.foo_bar_state
         r = requests.get(url, headers=self.bearer_token_header(self.token))
         self.assertEqual(200, r.status_code)
         response_json_dict = json.loads(r.text)
@@ -201,7 +204,7 @@ class ExchangeAuthCodeNegativeTestCase(AuthorizedUnlinkedUser):
     oauthcode, it only checks that it is present.
     """
     def test_exchange_auth_code_without_authz_header(self):
-        url = self.bond_base_url + "/api/link/v1/" + self.provider + "/oauthcode?oauthcode=IgnoredByMockProvider&redirect_uri=http%3A%2F%2Flocal.broadinstitute.org%2F%23fence-callback&state=eyJmb28iOiJiYXIifQ%3D%3D"
+        url = self.bond_base_url + "/api/link/v1/" + self.provider + "/oauthcode?oauthcode=IgnoredByMockProvider&redirect_uri=http%3A%2F%2Flocal.broadinstitute.org%2F%23fence-callback&state=" + self.foo_bar_state
         r = requests.post(url)
         self.assertEqual(401, r.status_code)
         response_json_dict = json.loads(r.text)
@@ -209,7 +212,7 @@ class ExchangeAuthCodeNegativeTestCase(AuthorizedUnlinkedUser):
         self.assertCorrectResponseHeaders(r)
 
     def test_exchange_auth_code_without_redirect_uri_param(self):
-        url = self.bond_base_url + "/api/link/v1/" + self.provider + "/oauthcode?oauthcode=IgnoredByMockProvider&state=eyJmb28iOiJiYXIifQ%3D%3D"
+        url = self.bond_base_url + "/api/link/v1/" + self.provider + "/oauthcode?oauthcode=IgnoredByMockProvider&state=" + self.foo_bar_state
         r = requests.post(url, headers=self.bearer_token_header(self.token))
         self.assertEqual(400, r.status_code)
         response_json_dict = json.loads(r.text)
@@ -217,7 +220,7 @@ class ExchangeAuthCodeNegativeTestCase(AuthorizedUnlinkedUser):
         self.assertCorrectResponseHeaders(r)
 
     def test_exchange_auth_code_without_oauthcode_param(self):
-        url = self.bond_base_url + "/api/link/v1/" + self.provider + "/oauthcode?redirect_uri=http%3A%2F%2Flocal.broadinstitute.org%2F%23fence-callback&state=eyJmb28iOiJiYXIifQ%3D%3D"
+        url = self.bond_base_url + "/api/link/v1/" + self.provider + "/oauthcode?redirect_uri=http%3A%2F%2Flocal.broadinstitute.org%2F%23fence-callback&state=" + self.foo_bar_state
         r = requests.post(url, headers=self.bearer_token_header(self.token))
         self.assertEqual(400, r.status_code)
         response_json_dict = json.loads(r.text)
