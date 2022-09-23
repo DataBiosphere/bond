@@ -74,7 +74,6 @@ paths:
       summary: Builds an OAuth authorization URL that a user must use to initiate the OAuth dance.
       tags: [ bond ]
       operationId: getProviderAuthUrl
-      security: [ ]
       parameters:
         - $ref: '#/components/parameters/providerParam'
         - name: redirect_uri
