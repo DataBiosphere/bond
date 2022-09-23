@@ -71,7 +71,7 @@ paths:
 
   /api/link/v1/{provider}/authorization-url:
     get:
-      summary: Builds an OAuth authorization URL that a user must use to initiate the OAuth dance.
+      summary: Builds an OAuth authorization URL that a user must use to initiate the OAuth dance. Creates a 1 time use link. There can only be 1 active link per user per provider. The last link created will invalidate any prior links.
       tags: [ bond ]
       operationId: getProviderAuthUrl
       parameters:
