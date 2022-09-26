@@ -1,3 +1,5 @@
+import base64
+import json
 from datetime import datetime
 import logging
 from .jwt_token import JwtToken
@@ -5,12 +7,16 @@ from .jwt_token import JwtToken
 from werkzeug import exceptions
 from dataclasses import dataclass
 
+from .oauth2_state_store import OAuth2StateStore
+
+
 class Bond:
     def __init__(self,
                  oauth_adapter,
                  fence_api,
                  cache_api,
                  refresh_token_store,
+                 oauth2_state_store,
                  fence_tvm,
                  provider_name,
                  user_name_path_expr,
@@ -20,25 +26,33 @@ class Bond:
         self.fence_api = fence_api
         self.cache_api = cache_api
         self.refresh_token_store = refresh_token_store
+        self.oauth2_state_store = oauth2_state_store
         self.fence_tvm = fence_tvm
         self.provider_name = provider_name
         self.user_name_path_expr = user_name_path_expr
         self.extra_authz_url_params = extra_authz_url_params
 
-    def build_authz_url(self, scopes, redirect_uri, state=None):
+    def build_authz_url(self, scopes, redirect_uri, sam_user_id, provider, state=None):
         """
         Builds an OAuth authorization URL that a user must use to initiate the OAuth dance.  Will automatically append
         all `self.extra_authz_url_params` to the resulting url.
         :param scopes: Array of scopes (0 to many) that the client requires
         :param redirect_uri: A URL encoded string representing the URI that the Authorizing Service will redirect the
         user to after the user successfully authorizes this client
+        :param sam_user_id: The Sam user of this request
+        :param provider: The OAuth Provider of this request
         :param state: A URL encoded Base64 string representing a JSON object of state information that the requester requires
         back with the redirect
         :return: A plain (not URL encoded) String
         """
-        return self.oauth_adapter.build_authz_url(scopes, redirect_uri, state, self.extra_authz_url_params)
+        encoded_state_with_nonce, nonce = self.oauth2_state_store.state_with_nonce(state)
+        authz_url = self.oauth_adapter.build_authz_url(scopes, redirect_uri, encoded_state_with_nonce,
+                                                       self.extra_authz_url_params)
+        # save nonce after creating authz_url so that we don't save states of invalid requests
+        self.oauth2_state_store.save(sam_user_id, provider, nonce)
+        return authz_url
 
-    def exchange_authz_code(self, authz_code, redirect_uri, sam_user_id):
+    def exchange_authz_code(self, authz_code, redirect_uri, sam_user_id, b64_state, provider):
         """
         Given an authz_code and user information, exchange that code for an OAuth Access Token and Refresh Token.  Store
         the refresh token for later, and return the datetime the token was issued along with the username for whom it
@@ -46,8 +60,17 @@ class Bond:
         :param authz_code: Authorization code from OAuth provider
         :param redirect_uri: redirect url that was used when generating the code - will use default if None
         :param sam_user_id: Id stored in Sam for user who initiated request
+        :param b64_state: Base64-encoded state with OAuth2State nonce
+        :param provider: OAuth provider
         :return: Two values: datetime when token was issued, username for whom the token was issued
         """
+        decoded_state = base64.b64decode(b64_state)
+        state = json.loads(decoded_state)
+        if 'nonce' not in state:
+            raise exceptions.InternalServerError("Invalid OAuth2 State: No nonce provided")
+        state_valid = self.oauth2_state_store.validate_and_delete(sam_user_id, provider, state['nonce'])
+        if not state_valid:
+            raise exceptions.InternalServerError("Invalid OAuth2 State: Invalid nonce")
         token_response = self.oauth_adapter.exchange_authz_code(authz_code, redirect_uri)
         jwt_token = JwtToken(token_response.get(FenceKeys.ID_TOKEN), self.user_name_path_expr)
         if FenceKeys.REFRESH_TOKEN not in token_response:

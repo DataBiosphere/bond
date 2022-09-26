@@ -1,8 +1,16 @@
-from collections import namedtuple
+from dataclasses import dataclass
+from datetime import datetime
+
 from google.cloud import ndb
 
+
 # Information associated with a tokens for refreshing service account credentials.
-RefreshTokenInfo = namedtuple('RefreshTokenInfo', ['token', 'issued_at', 'username'])
+@dataclass
+class RefreshTokenInfo:
+    token: str
+    issued_at: datetime
+    username: str
+
 
 class RefreshToken(ndb.Model):
     """

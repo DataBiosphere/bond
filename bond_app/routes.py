@@ -22,6 +22,7 @@ from .sam_api import SamApi
 from .oauth_adapter import OauthAdapter
 from .status import Status
 from .token_store import TokenStore
+from .oauth2_state_store import OAuth2StateStore
 import json
 import ast
 
@@ -111,6 +112,7 @@ def create_provider(provider_name):
                                         fence_api,
                                         cache_api,
                                         refresh_token_store,
+                                        oauth2_state_store,
                                         fence_tvm,
                                         provider_name,
                                         user_name_path_expr,
@@ -134,6 +136,7 @@ routes = Blueprint('bond', __name__)
 
 cache_api = DatastoreCacheApi()
 refresh_token_store = TokenStore()
+oauth2_state_store = OAuth2StateStore()
 
 bond_providers = {section_name: create_provider(section_name)
                   for section_name in config.sections() if is_provider(section_name)}
@@ -155,12 +158,13 @@ def list_providers():
 
 @routes.route(v1_link_route_base + '/<provider>/oauthcode', methods=["POST"], strict_slashes=False)
 @use_args({"oauthcode": fields.Str(required=True),
-           "redirect_uri": fields.Str(required=True)},
+           "redirect_uri": fields.Str(required=True),
+           "state": fields.Str(required=True)},
           locations=("querystring",))
 def oauthcode(args, provider):
     sam_user_id = auth.auth_user(request)
     issued_at, username = _get_provider(provider).bond.exchange_authz_code(args['oauthcode'], args['redirect_uri'],
-                                                                           sam_user_id)
+                                                                           sam_user_id, args['state'], provider)
     return json_response(LinkInfoResponse(issued_at=issued_at, username=username))
 
 
@@ -210,7 +214,9 @@ def service_account_accesstoken(args, provider):
            "state": fields.Str(missing=None)},
           locations=("querystring",))
 def authorization_url(args, provider):
-    authz_url = _get_provider(provider).bond.build_authz_url(args['scopes'], args['redirect_uri'], args['state'])
+    sam_user_id = auth.auth_user(request)
+    authz_url = _get_provider(provider).bond.build_authz_url(args['scopes'], args['redirect_uri'], sam_user_id,
+                                                             provider, args['state'])
     return json_response((AuthorizationUrlResponse(url=authz_url)))
 
 

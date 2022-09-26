@@ -1,7 +1,8 @@
-from collections import namedtuple
 import datetime
 import time
 import logging
+from dataclasses import dataclass
+
 from google.cloud import ndb
 
 logger = logging.getLogger(__name__)
@@ -9,8 +10,12 @@ logger = logging.getLogger(__name__)
 # How long to keep a fence service account key before expiring it.
 _FSA_KEY_LIFETIME = datetime.timedelta(days=5)
 
+
 # A tuple of a provider_name and user_id to use as a unique key for a user/provider combination.
-ProviderUser = namedtuple("ProviderUser", ["provider_name", "user_id"])
+@dataclass(unsafe_hash=True)
+class ProviderUser:
+    provider_name: str
+    user_id: str
 
 
 class FenceServiceAccount(ndb.Model):
