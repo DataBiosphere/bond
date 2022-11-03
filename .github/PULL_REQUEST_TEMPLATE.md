@@ -1,4 +1,14 @@
-\<your comments for this PR go here\>
+Why:
+
+\<Please describe in ~1 paragraph what the value of this PR is.\>
+
+
+How:
+
+\<Please describe in ~1 paragraph what this PR is doing.\>
+
+\<If the PR is big, please indicate where a reviewer should start reading it (i.e. which file or function).\>
+
 
 ---
 
