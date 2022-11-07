@@ -1,14 +1,16 @@
+What:
+
+\<For your reviewers' sake, please describe in a sentence or two what this PR is accomplishing (usually from the users' perspective, but not necessarily).\>
+
 Why:
 
-\<Please describe in ~1 paragraph what the value of this PR is.\>
-
+\<For your reviewers' sake, please describe in ~1 paragraph what the value of this PR is to our users or to ourselves.\>
 
 How:
 
-\<Please describe in ~1 paragraph what this PR is doing.\>
+\<For your reviewers' sake, please describe in ~1 paragraph how this PR accomplishes its goal.\>
 
 \<If the PR is big, please indicate where a reviewer should start reading it (i.e. which file or function).\>
-
 
 ---
 
