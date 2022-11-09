@@ -2,6 +2,8 @@ What:
 
 \<For your reviewers' sake, please describe in a sentence or two what this PR is accomplishing (usually from the users' perspective, but not necessarily).\>
 
+\<Also include a link to the Jira ticket, and don\'t forget to include the ticket number in the PR title.\>
+
 Why:
 
 \<For your reviewers' sake, please describe in ~1 paragraph what the value of this PR is to our users or to ourselves.\>
