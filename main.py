@@ -17,9 +17,7 @@ from bond_app.swagger_ui import swaggerui_blueprint, SWAGGER_URL
 
 SENTRY_DSN=os.environ.get("SENTRY_DSN")
 if SENTRY_DSN is not None:
-    sentry_sdk.init(
-        dsn="https://93af8286f1f8425cb305e88102b01b12@o54426.ingest.sentry.io/153297"
-    )
+    sentry_sdk.init(dsn=SENTRY_DSN)
 
 client = None
 if os.environ.get('DATASTORE_EMULATOR_HOST'):
