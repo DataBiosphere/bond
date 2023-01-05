@@ -60,7 +60,6 @@ jobs:
       - image: circleci/python:3.7.4
 
     environment:
-      QUAY_USER: databiosphere+bond_circle_bot
       IMAGE_NAME: quay.io/databiosphere/bond
 
     steps:
