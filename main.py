@@ -4,6 +4,7 @@ import os
 
 import flask
 import google.cloud.logging
+import sentry_sdk
 import yaml
 from flask_cors import CORS
 from google.auth.credentials import AnonymousCredentials
@@ -12,6 +13,11 @@ from google.cloud import ndb
 from bond_app import routes
 from bond_app.json_exception_handler import JsonExceptionHandler
 from bond_app.swagger_ui import swaggerui_blueprint, SWAGGER_URL
+
+
+SENTRY_DSN=os.environ.get("SENTRY_DSN")
+if SENTRY_DSN is not None:
+    sentry_sdk.init(dsn=SENTRY_DSN)
 
 client = None
 if os.environ.get('DATASTORE_EMULATOR_HOST'):
