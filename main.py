@@ -9,15 +9,27 @@ import yaml
 from flask_cors import CORS
 from google.auth.credentials import AnonymousCredentials
 from google.cloud import ndb
+from sentry_sdk.integrations.flask import FlaskIntegration
 
 from bond_app import routes
 from bond_app.json_exception_handler import JsonExceptionHandler
 from bond_app.swagger_ui import swaggerui_blueprint, SWAGGER_URL
 
-
-SENTRY_DSN=os.environ.get("SENTRY_DSN")
+SENTRY_DSN = os.environ.get("SENTRY_DSN")
+SENTRY_ENVIRONMENT = os.environ.get("SENTRY_ENVIRONMENT")
 if SENTRY_DSN is not None:
-    sentry_sdk.init(dsn=SENTRY_DSN)
+    sentry_sdk.init(
+        dsn=SENTRY_DSN,
+        environment=SENTRY_ENVIRONMENT,
+        integrations=[
+            FlaskIntegration(),
+        ],
+        # By default the SDK will try to use the SENTRY_RELEASE
+        # environment variable, or infer a git commit
+        # SHA as release, however you may want to set
+        # something more human-readable.
+        # release="myapp@1.0.0",
+    )
 
 client = None
 if os.environ.get('DATASTORE_EMULATOR_HOST'):
