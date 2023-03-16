@@ -16,7 +16,9 @@ from bond_app.json_exception_handler import JsonExceptionHandler
 from bond_app.swagger_ui import swaggerui_blueprint, SWAGGER_URL
 
 SENTRY_DSN = os.environ.get("SENTRY_DSN")
-SENTRY_ENVIRONMENT = os.environ.get("SENTRY_ENVIRONMENT")
+
+# https://cloud.google.com/appengine/docs/standard/python3/runtime#environment_variables
+SENTRY_ENVIRONMENT = os.environ.get("GOOGLE_CLOUD_PROJECT")
 if SENTRY_DSN is not None:
     sentry_sdk.init(
         dsn=SENTRY_DSN,
