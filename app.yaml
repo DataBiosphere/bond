@@ -7,6 +7,3 @@ handlers:
 - url: /.*
   secure: always
   script: auto
-
-env_variables:
-  SENTRY_DSN: "https://1b2a6b970e7c46478a156882f61d81a0@o54426.ingest.sentry.io/4504486815137792"
