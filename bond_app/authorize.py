@@ -1,14 +1,18 @@
 import configparser
 from requests_oauthlib import OAuth2Session
 import requests
-import json
+import os
 
 config = configparser.ConfigParser()
 config.read("config.ini")
 
 provider = 'fence'
-client_id = config.get(provider, 'CLIENT_ID')
-client_secret = config.get(provider, 'CLIENT_SECRET')
+if os.environ.get("BOND_ENV_SECRETS"):
+    client_id = os.environ.get(f"{provider}_CLIENT_ID")
+    client_secret = os.environ.get(f"{provider}_CLIENT_SECRET")
+else:
+    client_id = config.get(provider, 'CLIENT_ID')
+    client_secret = config.get(provider, 'CLIENT_SECRET')
 redirect_uri = "http://local.broadinstitute.org/#fence-callback"
 open_id_config_url = config.get(provider, 'OPEN_ID_CONFIG_URL')
 
