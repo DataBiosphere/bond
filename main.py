@@ -8,6 +8,7 @@ import sentry_sdk
 import yaml
 from flask_cors import CORS
 from google.auth.credentials import AnonymousCredentials
+from google.oauth2 import service_account
 from google.cloud import ndb
 from sentry_sdk.integrations.flask import FlaskIntegration
 
@@ -36,6 +37,14 @@ if os.environ.get('DATASTORE_EMULATOR_HOST'):
     # If we're running the datastore emulator, we should use anonymous credentials to connect to it.
     # The project should match the project given to the Datastore Emulator. See tests/datastore_emulator/run_emulator.sh
     client = ndb.Client(project="test", credentials=AnonymousCredentials())
+elif os.environ.get('DATASTORE_GOOGLE_PROJECT'):
+    project = os.environ.get('DATASTORE_GOOGLE_PROJECT')
+    credentials_path = os.environ.get("DATASTORE_GOOGLE_CREDENTIALS_PATH")
+
+    credentials = service_account.Credentials.from_service_account_file(credentials_path)
+
+    scoped_credentials = credentials.with_scopes(['https://www.googleapis.com/auth/datastore'])
+    client = ndb.Client(project, None, scoped_credentials)
 else:
     # Otherwise, create a client grabbing credentials normally from cloud environment variables.
     client = ndb.Client()
