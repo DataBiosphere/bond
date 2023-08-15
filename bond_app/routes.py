@@ -90,8 +90,12 @@ def is_provider(section_name):
 
 
 def create_provider(provider_name):
-    client_id = config.get(provider_name, 'CLIENT_ID')
-    client_secret = config.get(provider_name, 'CLIENT_SECRET')
+    if os.environ.get("BOND_ENV_SECRETS"):
+        client_id = os.environ.get(f"{provider_name}_CLIENT_ID")
+        client_secret = os.environ.get(f"{provider_name}_CLIENT_SECRET")
+    else:
+        client_id = config.get(provider_name, 'CLIENT_ID')
+        client_secret = config.get(provider_name, 'CLIENT_SECRET')
     open_id_config_url = config.get(provider_name, 'OPEN_ID_CONFIG_URL')
     fence_base_url = config.get(provider_name, 'FENCE_BASE_URL')
     user_name_path_expr = config.get(provider_name, 'USER_NAME_PATH_EXPR')
