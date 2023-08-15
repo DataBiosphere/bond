@@ -3,6 +3,7 @@ import re
 import sys
 import time
 import unittest
+import os
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -35,8 +36,12 @@ class OauthAdapterTestCase(unittest.TestCase):
         oauth_adapters = {}
         for section in config.sections():
             if section != "sam" and section != "bond_accepted":
-                client_id = config.get(section, 'CLIENT_ID')
-                client_secret = config.get(section, 'CLIENT_SECRET')
+                if os.environ.get("BOND_ENV_SECRETS"):
+                    client_id = os.environ.get(f"{section}_CLIENT_ID")
+                    client_secret = os.environ.get(f"{section}_CLIENT_SECRET")
+                else:
+                    client_id = config.get(section, 'CLIENT_ID')
+                    client_secret = config.get(section, 'CLIENT_SECRET')
                 open_id_config_url = config.get(section, 'OPEN_ID_CONFIG_URL')
                 open_id_config = OpenIdConfig(section, open_id_config_url, FakeCacheApi())
                 oauth_adapters[section] = OauthAdapter(client_id, client_secret, open_id_config, section)
