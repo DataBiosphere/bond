@@ -39,14 +39,7 @@ if os.environ.get('DATASTORE_EMULATOR_HOST'):
     client = ndb.Client(project="test", credentials=AnonymousCredentials())
 elif os.environ.get('DATASTORE_GOOGLE_PROJECT'):
     project = os.environ.get('DATASTORE_GOOGLE_PROJECT')
-
-    if os.environ.get('DATASTORE_GOOGLE_CREDENTIALS_PATH'):
-        credentials_path = os.environ.get("DATASTORE_GOOGLE_CREDENTIALS_PATH")
-        credentials = service_account.Credentials.from_service_account_file(credentials_path)
-        scoped_credentials = credentials.with_scopes(['https://www.googleapis.com/auth/datastore'])
-        client = ndb.Client(project, None, scoped_credentials)
-    else:
-        client = ndb.Client(project)
+    client = ndb.Client(project)
 else:
     # Otherwise, create a client grabbing credentials normally from cloud environment variables.
     client = ndb.Client()
