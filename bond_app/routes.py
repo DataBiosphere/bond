@@ -240,7 +240,13 @@ def get_status():
     status_service = Status(sam_api, providers, cache_api)
 
     subsystems = status_service.get()
-    ok = all(subsystem["ok"] for subsystem in subsystems)
+
+    subsystems_for_ok_status = subsystems.copy()
+    subsystems_to_ignore = os.environ.get('SUBSYSTEMS_TO_IGNORE', '').split(',')
+    for subsystem_to_ignore in subsystems_to_ignore:
+        subsystems_for_ok_status.remove(subsystem_to_ignore)
+
+    ok = all(subsystem["ok"] for subsystem in subsystems_for_ok_status)
     response = json_response(StatusResponse(ok=ok,
                                             subsystems=[SubSystemStatusResponse(ok=subsystem["ok"],
                                                                                 message=subsystem["message"],
