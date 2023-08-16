@@ -25,7 +25,7 @@ from .token_store import TokenStore
 from .oauth2_state_store import OAuth2StateStore
 import json
 import ast
-import util
+from .util import get_provider_secrets
 
 
 class Parser(FlaskParser):
@@ -91,7 +91,7 @@ def is_provider(section_name):
 
 
 def create_provider(provider_name):
-    client_id, client_secret = util.get_provider_secrets(config, provider_name)
+    client_id, client_secret = get_provider_secrets(config, provider_name)
     open_id_config_url = config.get(provider_name, 'OPEN_ID_CONFIG_URL')
     fence_base_url = config.get(provider_name, 'FENCE_BASE_URL')
     user_name_path_expr = config.get(provider_name, 'USER_NAME_PATH_EXPR')
