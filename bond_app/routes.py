@@ -1,6 +1,6 @@
 import logging
 
-from flask import Blueprint, request
+from flask import Blueprint, request, redirect
 import configparser
 import os
 from werkzeug import exceptions
@@ -255,3 +255,8 @@ def get_status():
     else:
         logging.warning("Bond status NOT OK:\n%s" % response[0])
         raise exceptions.InternalServerError(response[0])
+
+
+@routes.route('/', methods=["GET"], strict_slashes=False)
+def redirect_to_swagger():
+    return redirect('/api/docs')
