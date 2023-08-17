@@ -8,7 +8,6 @@ import sentry_sdk
 import yaml
 from flask_cors import CORS
 from google.auth.credentials import AnonymousCredentials
-from google.oauth2 import service_account
 from google.cloud import ndb
 from sentry_sdk.integrations.flask import FlaskIntegration
 
