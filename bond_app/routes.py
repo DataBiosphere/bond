@@ -1,6 +1,6 @@
 import logging
 
-from flask import Blueprint, request
+from flask import Blueprint, request, redirect
 import configparser
 import os
 from werkzeug import exceptions
@@ -25,6 +25,7 @@ from .token_store import TokenStore
 from .oauth2_state_store import OAuth2StateStore
 import json
 import ast
+from .util import get_provider_secrets
 
 
 class Parser(FlaskParser):
@@ -90,8 +91,7 @@ def is_provider(section_name):
 
 
 def create_provider(provider_name):
-    client_id = config.get(provider_name, 'CLIENT_ID')
-    client_secret = config.get(provider_name, 'CLIENT_SECRET')
+    client_id, client_secret = get_provider_secrets(config, provider_name)
     open_id_config_url = config.get(provider_name, 'OPEN_ID_CONFIG_URL')
     fence_base_url = config.get(provider_name, 'FENCE_BASE_URL')
     user_name_path_expr = config.get(provider_name, 'USER_NAME_PATH_EXPR')
@@ -240,7 +240,11 @@ def get_status():
     status_service = Status(sam_api, providers, cache_api)
 
     subsystems = status_service.get()
-    ok = all(subsystem["ok"] for subsystem in subsystems)
+
+    subsystems_to_ignore = os.environ.get('SUBSYSTEMS_TO_IGNORE', '').split(',')
+    subsystems_for_ok_status = [s for s in subsystems if s['subsystem'] not in subsystems_to_ignore]
+
+    ok = all(subsystem["ok"] for subsystem in subsystems_for_ok_status)
     response = json_response(StatusResponse(ok=ok,
                                             subsystems=[SubSystemStatusResponse(ok=subsystem["ok"],
                                                                                 message=subsystem["message"],
@@ -251,3 +255,8 @@ def get_status():
     else:
         logging.warning("Bond status NOT OK:\n%s" % response[0])
         raise exceptions.InternalServerError(response[0])
+
+
+@routes.route('/', methods=["GET"], strict_slashes=False)
+def redirect_to_swagger():
+    return redirect('/api/docs')

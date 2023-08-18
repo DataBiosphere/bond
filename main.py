@@ -36,6 +36,9 @@ if os.environ.get('DATASTORE_EMULATOR_HOST'):
     # If we're running the datastore emulator, we should use anonymous credentials to connect to it.
     # The project should match the project given to the Datastore Emulator. See tests/datastore_emulator/run_emulator.sh
     client = ndb.Client(project="test", credentials=AnonymousCredentials())
+elif os.environ.get('DATASTORE_GOOGLE_PROJECT'):
+    project = os.environ.get('DATASTORE_GOOGLE_PROJECT')
+    client = ndb.Client(project)
 else:
     # Otherwise, create a client grabbing credentials normally from cloud environment variables.
     client = ndb.Client()
