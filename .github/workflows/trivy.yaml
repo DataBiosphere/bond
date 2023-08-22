@@ -8,4 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+      # Change the working directory to the "docker" folder
+      - name: Change to docker directory
+        run: cd docker
       - uses: broadinstitute/dsp-appsec-trivy-action@v1
