@@ -3,7 +3,7 @@ FROM us.gcr.io/broad-dsp-gcr-public/base/python:3.10-debian
 # Prepare the image
 ENV DEBIAN_FRONTEND noninteractive
 RUN apt-get update \
-    && apt-get install -y -qq --no-install-recommends wget tar build-essential openssh-client python-openssl python3-pip \
+    && apt-get install -y -qq --no-install-recommends wget tar build-essential openssh-client python3-openssl python3-pip \
     && apt-get clean
 
 # Install the Google Cloud SDK
