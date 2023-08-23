@@ -2,7 +2,7 @@ import jwt
 from datetime import datetime
 import dpath.util
 import dpath.options
-from base64 import b64encode
+from base64 import b64decode
 
 
 class JwtToken:
