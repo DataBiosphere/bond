@@ -11,7 +11,7 @@ class JwtToken:
         :param encoded_str: encoded JWT
         :param user_name_path_expr: forward slash delimited path to user name within JWT
         """
-        self.raw_dict = jwt.decode(encoded_str, algorithms=['HS256'], options={'verify_signature': False})
+        self.raw_dict = jwt.decode(encoded_str, algorithms=['HS256'], options={'verify_signature': True})
         # See https://broadworkbench.atlassian.net/browse/CA-1341, needed for dpath to work when dict has "" keys
         dpath.options.ALLOW_EMPTY_STRING_KEYS = True
         self.username = dpath.util.get(self.raw_dict, user_name_path_expr)
