@@ -10,8 +10,10 @@ services:
       - "8080:8080"
     environment:
       DATASTORE_EMULATOR_HOST: datastore-emulator:8432
+    stdin_open: true
+    tty: true
   datastore-emulator:
-    image: google/cloud-sdk:276.0.0
+    image: google/cloud-sdk:443.0.0
     # Use local run_emulator.sh.
     volumes:
       - $PWD/tests/datastore_emulator/run_emulator.sh:/run_emulator.sh

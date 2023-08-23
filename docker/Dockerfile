@@ -32,4 +32,4 @@ COPY . .
 
 # Bond Endpoints available on port 8080.  Admin interface not exposed
 EXPOSE 8080
-CMD gunicorn -b :8080 main:app
+CMD gunicorn -t 3600 -b :8080 main:app
