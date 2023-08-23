@@ -24,5 +24,5 @@ loggers:
     level: DEBUG
 
 root:
-  level: INFO
+  level: DEBUG
   handlers: [console]
