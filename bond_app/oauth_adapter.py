@@ -56,7 +56,7 @@ class OauthAdapter:
         """
         token_dict = {'refresh_token': refresh_token_str}
         oauth = OAuth2Session(self.client_id, token=token_dict)
-        token = oauth.refresh_token(self.open_id_config.get_token_info_url(), auth=self.basic_auth)
+        token = oauth.refresh_token(self.open_id_config.get_token_info_url(), auth=self.basic_auth, refresh_token=refresh_token_str)
         oauth.close()
         return token
 
