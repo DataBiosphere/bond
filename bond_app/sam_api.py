@@ -44,6 +44,7 @@ class SamApi:
             else:
                 return True, ""
         except Exception as e:
+            logging.exception(e)
             return False, str(e)
 
 

@@ -1,3 +1,6 @@
+import logging
+
+
 class Status:
     def __init__(self, sam_api, provider_status_apis_by_name, cache_api):
         self.provider_status_apis_by_name = provider_status_apis_by_name
@@ -31,6 +34,7 @@ class Status:
                 self._cache_status(status)
             return status
         except Exception as e:
+            logging.error(e)
             # any exception at this point is the cache
             return [{"ok": False, "message": str(e), "subsystem": Subsystems.cache}]
 
@@ -47,6 +51,7 @@ class Status:
             stats.GlobalStat.query().get()
             return True, ""
         except Exception as e:
+            logging.exception(e)
             return False, str(e)
 
 
