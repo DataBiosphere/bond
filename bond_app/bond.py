@@ -2,6 +2,9 @@ import base64
 import json
 from datetime import datetime
 import logging
+
+from google.cloud import ndb
+
 from .jwt_token import JwtToken
 
 from werkzeug import exceptions
@@ -190,11 +193,10 @@ class FenceKeys:
     TOKEN_TYPE = 'token_type'
 
 
-@dataclass
-class FenceAccessToken:
+class FenceAccessToken(ndb.Model):
     """
     Simple data class for representing a Fence access token.
     """
-    value: str
-    expires_at: datetime
+    value = ndb.PickleProperty(indexed=False)
+    expires_at = ndb.DateTimeProperty()
 
