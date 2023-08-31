@@ -20,8 +20,8 @@ class RefreshToken(ndb.Model):
     tests.
     """
     token = ndb.TextProperty(indexed=False)
-    issued_at = ndb.DateTimeProperty()
-    username = ndb.StringProperty()
+    issued_at = ndb.DateTimeProperty(indexed=False)
+    username = ndb.TextProperty(indexed=False)
 
     @classmethod
     def kind_name(cls):

@@ -21,12 +21,12 @@ class ProviderUser:
 class FenceServiceAccount(ndb.Model):
     """Datastore model for storing fence service account json key and metadata for expiration and generation."""
     # The string json key token for the fence service account.
-    key_json = ndb.TextProperty()
+    key_json = ndb.TextProperty(indexed=False)
     # The datetime when to expire the service account key. Only set when the key_json is not None.
-    expires_at = ndb.DateTimeProperty()
+    expires_at = ndb.DateTimeProperty(indexed=False)
     # The datetime of when the current lock on updating this model expires. The model should only be updated by
     # a service that holds a lock. Only set when the key_json is not set or has expired.
-    update_lock_timeout = ndb.DateTimeProperty()
+    update_lock_timeout = ndb.DateTimeProperty(indexed=False)
 
 
 class ServiceAccountNotUpdatedException(Exception):
