@@ -10,7 +10,7 @@ _NO_EXPIRATION_DATETIME = datetime.datetime(year=3000, month=1, day=1)
 class CacheEntry(ndb.Model):
     """Datastore model for cache values and expirations."""
     # The value stored in the cache.
-    value = ndb.PickleProperty(exclude_from_indexes=True)
+    value = ndb.PickleProperty(indexed=False)
     # The datetime when to expire the cache entry, or _NO_EXPIRATION_DATETIME for no expiration.
     # Datastore docs warn against doing this at high write rates.
     # https://cloud.google.com/datastore/docs/best-practices#deletions
