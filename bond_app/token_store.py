@@ -19,7 +19,7 @@ class RefreshToken(ndb.Model):
     This is not used as the return type for TokenStore because it depends on ndb, which we want to stub out for unit
     tests.
     """
-    token = ndb.StringProperty()
+    token = ndb.TextProperty(exclude_from_indexes=True)
     issued_at = ndb.DateTimeProperty()
     username = ndb.StringProperty()
 
