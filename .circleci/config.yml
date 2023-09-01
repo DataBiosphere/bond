@@ -85,6 +85,31 @@ jobs:
             docker login -u="${QUAY_USER}" -p="${QUAY_USER_PW}" quay.io
             docker push ${IMAGE_NAME}
 
+  build-deploy-docker-image:
+    docker:
+      - image: circleci/python:3.7.4
+
+    environment:
+      IMAGE_NAME: quay.io/databiosphere/bond
+
+    steps:
+      - checkout
+
+      - setup_remote_docker
+      - run:
+          name: Build image
+          command: |
+            docker build -t ${IMAGE_NAME}:deploy_${CIRCLE_BRANCH} -f docker/Dockerfile-deploy .
+            if [[ ${CIRCLE_BRANCH} == "develop" ]]; then docker tag ${IMAGE_NAME}:deploy_${CIRCLE_BRANCH} ${IMAGE_NAME}:deploy_latest ; fi
+            if [[ ${CIRCLE_BRANCH} == "develop" ]]; then docker tag ${IMAGE_NAME}:deploy_${CIRCLE_BRANCH} ${IMAGE_NAME}:deploy_${CIRCLE_SHA1:0:12} ; fi
+
+      - run:
+          # By not specifying a tag in the `docker push` command, this will ensure that all tags/images for the ${IMAGE_NAME} will be pushed
+          name: Push image and tags to quay.io
+          command: |
+            docker login -u="${QUAY_USER}" -p="${QUAY_USER_PW}" quay.io
+            docker push ${IMAGE_NAME}
+
   tag:
     docker:
       - image: alpine/git
