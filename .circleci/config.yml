@@ -97,7 +97,7 @@ jobs:
 
       - setup_remote_docker
       - run:
-          name: Build image
+          name: Build deploy image
           command: |
             docker build -t ${IMAGE_NAME}:deploy_${CIRCLE_BRANCH} -f docker/Dockerfile-deploy .
             if [[ ${CIRCLE_BRANCH} == "develop" ]]; then docker tag ${IMAGE_NAME}:deploy_${CIRCLE_BRANCH} ${IMAGE_NAME}:deploy_latest ; fi
