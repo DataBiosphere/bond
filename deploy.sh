@@ -37,7 +37,7 @@ echo "Deploying branch '${GIT_BRANCH}' to ${ENVIRONMENT}"
 set -x
 
 GOOGLE_PROJECT=broad-bond-${ENVIRONMENT}
-BOND_IMAGE=quay.io/databiosphere/bond:${GIT_BRANCH}
+BOND_IMAGE=quay.io/databiosphere/bond:deploy_${GIT_BRANCH}
 
 #pull the credentials for the service account
 docker run --rm -e VAULT_TOKEN=${VAULT_TOKEN} broadinstitute/dsde-toolbox vault read --format=json "secret/dsde/bond/$ENVIRONMENT/deploy-account.json" | jq .data > deploy_account.json

@@ -74,6 +74,13 @@ jobs:
             if [[ ${CIRCLE_BRANCH} == "develop" ]]; then docker tag ${IMAGE_NAME}:${CIRCLE_BRANCH} ${IMAGE_NAME}:${CIRCLE_SHA1:0:12} ; fi
 
       - run:
+          name: Build deploy image
+          command: |
+            docker build -t ${IMAGE_NAME}:deploy_${CIRCLE_BRANCH} -f docker/Dockerfile-deploy .
+            if [[ ${CIRCLE_BRANCH} == "develop" ]]; then docker tag ${IMAGE_NAME}:deploy_${CIRCLE_BRANCH} ${IMAGE_NAME}:deploy_latest ; fi
+            if [[ ${CIRCLE_BRANCH} == "develop" ]]; then docker tag ${IMAGE_NAME}:deploy_${CIRCLE_BRANCH} ${IMAGE_NAME}:deploy_${CIRCLE_SHA1:0:12} ; fi
+
+      - run:
           name: Run functional tests
           command: |
             docker run --entrypoint /bin/bash --workdir "/app" ${IMAGE_NAME}:${CIRCLE_BRANCH} -c "./tests/functional_test.sh"
