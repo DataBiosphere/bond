@@ -153,6 +153,7 @@ v1_link_route_base = link_api_routes_base + api_version
 
 @routes.route(v1_link_route_base + '/providers', methods=["GET"], strict_slashes=False)
 def list_providers():
+    logging.debug("Listing providers")
     return json_response(ListProvidersResponse(providers=list(bond_providers.keys())))
 
 
@@ -163,6 +164,7 @@ def list_providers():
           locations=("querystring",))
 def oauthcode(args, provider):
     sam_user_id = auth.auth_user(request)
+    logging.info(f"Recieved OAuth Code for user {sam_user_id} from provider {provider}")
     issued_at, username = _get_provider(provider).bond.exchange_authz_code(args['oauthcode'], args['redirect_uri'],
                                                                            sam_user_id, args['state'], provider)
     return json_response(LinkInfoResponse(issued_at=issued_at, username=username))
@@ -171,6 +173,7 @@ def oauthcode(args, provider):
 @routes.route(v1_link_route_base + '/<provider>', methods=["GET"], strict_slashes=False)
 def link_info(provider):
     sam_user_id = auth.auth_user(request)
+    logging.debug(f"Retrieving link information for {sam_user_id} to provider {provider}")
     refresh_token = _get_provider(provider).bond.get_link_info(sam_user_id)
     if refresh_token:
         return json_response(LinkInfoResponse(issued_at=refresh_token.issued_at, username=refresh_token.username))
@@ -181,6 +184,7 @@ def link_info(provider):
 @routes.route(v1_link_route_base + '/<provider>', methods=["DELETE"], strict_slashes=False)
 def delete_link(provider):
     sam_user_id = auth.auth_user(request)
+    logging.info(f"Deleting link for user {sam_user_id} to provider {provider}")
     _get_provider(provider).bond.unlink_account(sam_user_id)
     return '', 204
 
@@ -189,12 +193,14 @@ def delete_link(provider):
 def accesstoken(provider):
     sam_user_id = auth.auth_user(request)
     access_token, expires_at = _get_provider(provider).bond.get_access_token(sam_user_id)
+    logging.info(f"Retrieving access token for user {sam_user_id} for provider {provider}")
     return json_response(AccessTokenResponse(token=access_token, expires_at=expires_at))
 
 
 @routes.route(v1_link_route_base + '/<provider>/serviceaccount/key', methods=["GET"], strict_slashes=False)
 def service_account_key(provider):
     sam_user_id = auth.auth_user(request)
+    logging.info(f"Retrieving service account key for user {sam_user_id} for provider {provider}")
     return json_response(ServiceAccountKeyResponse(data=json.loads(
         _get_provider(provider).fence_tvm.get_service_account_key_json(sam_user_id))))
 
@@ -204,6 +210,7 @@ def service_account_key(provider):
           locations=("querystring",))
 def service_account_accesstoken(args, provider):
     sam_user_id = auth.auth_user(request)
+    logging.info(f"Retrieving service account access token for user {sam_user_id} for provider {provider}")
     return json_response(ServiceAccountAccessTokenResponse(
         token=_get_provider(provider).fence_tvm.get_service_account_access_token(sam_user_id, args['scopes'])))
 
@@ -217,6 +224,7 @@ def authorization_url(args, provider):
     sam_user_id = auth.auth_user(request)
     authz_url = _get_provider(provider).bond.build_authz_url(args['scopes'], args['redirect_uri'], sam_user_id,
                                                              provider, args['state'])
+    logging.info(f"Retrieving authorization-url for user {sam_user_id} for provider {provider}")
     return json_response((AuthorizationUrlResponse(url=authz_url)))
 
 
@@ -233,18 +241,16 @@ def clear_expired_datastore_entries():
 def get_status():
     sam_base_url = config.get('sam', 'BASE_URL')
 
+    subsystems_to_ignore = os.environ.get('SUBSYSTEMS_TO_IGNORE', '').split(',')
     providers = {section_name: FenceApi(config.get(section_name, 'FENCE_BASE_URL'))
-                 for section_name in config.sections() if is_provider(section_name)}
+                 for section_name in config.sections() if is_provider(section_name) and section_name not in subsystems_to_ignore}
 
     sam_api = SamApi(sam_base_url)
     status_service = Status(sam_api, providers, cache_api)
 
     subsystems = status_service.get()
 
-    subsystems_to_ignore = os.environ.get('SUBSYSTEMS_TO_IGNORE', '').split(',')
-    subsystems_for_ok_status = [s for s in subsystems if s['subsystem'] not in subsystems_to_ignore]
-
-    ok = all(subsystem["ok"] for subsystem in subsystems_for_ok_status)
+    ok = all(subsystem["ok"] for subsystem in subsystems)
     response = json_response(StatusResponse(ok=ok,
                                             subsystems=[SubSystemStatusResponse(ok=subsystem["ok"],
                                                                                 message=subsystem["message"],
