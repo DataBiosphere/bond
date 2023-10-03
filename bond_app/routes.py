@@ -164,7 +164,7 @@ def list_providers():
           locations=("querystring",))
 def oauthcode(args, provider):
     sam_user_id = auth.auth_user(request)
-    logging.info(f"Recieved OAuth Code for user {sam_user_id} from provider {provider}")
+    logging.info(f"Received OAuth Code for user {sam_user_id} from provider {provider}")
     issued_at, username = _get_provider(provider).bond.exchange_authz_code(args['oauthcode'], args['redirect_uri'],
                                                                            sam_user_id, args['state'], provider)
     return json_response(LinkInfoResponse(issued_at=issued_at, username=username))
@@ -178,7 +178,7 @@ def link_info(provider):
     if refresh_token:
         return json_response(LinkInfoResponse(issued_at=refresh_token.issued_at, username=refresh_token.username))
     else:
-        raise exceptions.NotFound("{} link does not exist. Consider re-linking your account.".format(provider))
+        return protojson.encode_message(f"{provider} link does not exist. Consider re-linking your account."), 404, {'Content-Type': 'application/json'}
 
 
 @routes.route(v1_link_route_base + '/<provider>', methods=["DELETE"], strict_slashes=False)
