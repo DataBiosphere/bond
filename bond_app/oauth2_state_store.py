@@ -18,7 +18,7 @@ class OAuth2State(ndb.Model):
     This is not used as the return type for OAuth2StateStore because it depends on ndb, which we want to stub out for unit
     tests.
     """
-    nonce = ndb.StringProperty()
+    nonce = ndb.TextProperty(indexed=False)
 
     @classmethod
     def kind_name(cls):
