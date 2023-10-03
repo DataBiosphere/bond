@@ -76,6 +76,9 @@ class StatusResponse(messages.Message):
 class AuthorizationUrlResponse(messages.Message):
     url = messages.StringField(1)
 
+class LinkNotFoundResponse(messages.Message):
+    message = messages.StringField(1)
+
 
 def json_response(message):
     """Given a protorpc message, return a json response tuple understood by flask: (json, status code, headers)"""
@@ -178,7 +181,11 @@ def link_info(provider):
     if refresh_token:
         return json_response(LinkInfoResponse(issued_at=refresh_token.issued_at, username=refresh_token.username))
     else:
-        return protojson.encode_message(f"{provider} link does not exist. Consider re-linking your account."), 404, {'Content-Type': 'application/json'}
+        return protojson.encode_message(
+            LinkNotFoundResponse(message=f"{provider} link does not exist. Consider re-linking your account.")
+        ), \
+               404, \
+               {'Content-Type': 'application/json'}
 
 
 @routes.route(v1_link_route_base + '/<provider>', methods=["DELETE"], strict_slashes=False)
