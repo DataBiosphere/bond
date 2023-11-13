@@ -32,7 +32,6 @@ jobs:
           name: Install dependencies
           command: |
             source virtualenv/bin/activate
-#            apt-get -y install google-cloud-sdk-datastore-emulator
             pip3 install -r requirements.txt --ignore-installed
 
       - run:
