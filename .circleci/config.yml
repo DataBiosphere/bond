@@ -57,7 +57,7 @@ jobs:
 
   build-docker-image:
     docker:
-      - image: circleci/python:3.10.9
+      - image: circleci/python:3.9.2
 
     environment:
       IMAGE_NAME: quay.io/databiosphere/bond
