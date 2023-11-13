@@ -1,7 +1,7 @@
 # Bond
 
 Service for linking [Sam](https://github.com/broadinstitute/sam) User accounts with registered 3rd party services via
-Oauth2. Bond is a Flask application written in Python 3.10 deployed on Google App Engine.
+Oauth2. Bond is a Flask application written in Python 3.9 deployed on Google App Engine.
 
 # Swagger/OpenAPI Interface
 
@@ -29,7 +29,7 @@ authorization process.
 
 # Setup
 
-In order to run tests or run the local development app server, you need to install Python 3.10, Pip, and [Google Cloud SDK](https://cloud.google.com/sdk/install).
+In order to run tests or run the local development app server, you need to install Python 3.9, Pip, and [Google Cloud SDK](https://cloud.google.com/sdk/install).
 
 If you need to have multiple Python versions installed, we recommend using [pyenv](https://github.com/pyenv/pyenv).
 
@@ -42,13 +42,13 @@ At the time of this writing, it is recommended that M1 Mac users perform all of 
 project dependencies.  We recommend you setup Virtualenv for development and testing of Bond.  If you are using 
 [pyenv](https://github.com/pyenv/pyenv), be sure to specify to set that up prior to configuring virtualenv for Bond.  
 
-1. Verify that you have Python 3.10 installed: `python --version`
-(**Note**: The name of your Python 3.10 command may be something different like `python3` if you have multiple versions 
+1. Verify that you have Python 3.9 installed: `python --version`
+(**Note**: The name of your Python 3.9 command may be something different like `python3` if you have multiple versions 
 of Python installed)
 1. Install virtualenv: `pip install virtualenv`
 1. `cd` to the Bond root directory
 1. Set up virtualenv for Bond: `virtualenv -p python env` 
-(**Note**: Ensure that you pass the correct Python 3.10 executable to the [`-p` parameter](https://virtualenv.pypa.io/en/stable/reference/#cmdoption-p)) 
+(**Note**: Ensure that you pass the correct Python 3.9 executable to the [`-p` parameter](https://virtualenv.pypa.io/en/stable/reference/#cmdoption-p)) 
 1. Activate virtualenv: `source env/bin/activate`
 1. Install project dependencies: `pip install -r requirements.txt --ignore-installed`
 
