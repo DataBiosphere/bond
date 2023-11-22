@@ -6,13 +6,13 @@ version: 2
 jobs:
   test:
     docker:
-      - image: google/cloud-sdk:381.0.0
+      - image: google/cloud-sdk:454.0.0
 
     steps:
       - run:
           name: Check Python version
           command: |
-            export VER_REGEX="^Python 3\.7(\.[0-9]+)?$"
+            export VER_REGEX="^Python 3\.9(\.[0-9]+)?$"
             export PY_VER=$(python3 --version 2>&1)
             if ! [[ "$PY_VER" =~ $VER_REGEX ]] ; then echo "$PY_VER is not the expected version" && exit 1 ; fi
 
@@ -32,7 +32,6 @@ jobs:
           name: Install dependencies
           command: |
             source virtualenv/bin/activate
-            apt-get -y install google-cloud-sdk-datastore-emulator
             pip3 install -r requirements.txt --ignore-installed
 
       - run:
@@ -47,7 +46,7 @@ jobs:
           background: true
 
       - run:
-          name: Run Datastore Eumulator Tests
+          name: Run Datastore Emulator Tests
           # Sleep to let the emulator start up before running tests.
           command: |
             sleep 10
@@ -57,7 +56,7 @@ jobs:
 
   build-docker-image:
     docker:
-      - image: circleci/python:3.7.4
+      - image: circleci/python:3.9.2
 
     environment:
       IMAGE_NAME: quay.io/databiosphere/bond
