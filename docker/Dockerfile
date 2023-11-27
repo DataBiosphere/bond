@@ -1,4 +1,4 @@
-FROM us.gcr.io/broad-dsp-gcr-public/base/python:3.10-debian
+FROM us.gcr.io/broad-dsp-gcr-public/base/python:3.9-debian
 
 # Prepare the image
 ENV DEBIAN_FRONTEND noninteractive
