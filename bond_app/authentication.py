@@ -54,7 +54,7 @@ class Authentication:
             raise exceptions.Unauthorized('Malformed Authorization header, must be in the form of "bearer [token]".')
 
         token = auth_header_parts[1]
-        cache_key = hashlib.sha256(token).hexdigest()
+        cache_key = hashlib.sha256(str.encode(token)).hexdigest()
 
         # First check cache for Sam user info.
         sam_user_info = self.cache_api.get(namespace="SamUserInfo", key=cache_key)
