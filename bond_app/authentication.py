@@ -54,6 +54,7 @@ class Authentication:
             raise exceptions.Unauthorized('Malformed Authorization header, must be in the form of "bearer [token]".')
 
         token = auth_header_parts[1]
+        # SHA256 the token so that it's a consistent length guaranteed to be less that 1500 bytes.
         cache_key = hashlib.sha256(str.encode(token)).hexdigest()
 
         # First check cache for Sam user info.
