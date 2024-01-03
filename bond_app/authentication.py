@@ -1,3 +1,4 @@
+import hashlib
 import logging
 from .sam_api import SamKeys
 from werkzeug import exceptions
@@ -53,16 +54,17 @@ class Authentication:
             raise exceptions.Unauthorized('Malformed Authorization header, must be in the form of "bearer [token]".')
 
         token = auth_header_parts[1]
-    
+        cache_key = hashlib.sha256(token).hexdigest()
+
         # First check cache for Sam user info.
-        sam_user_info = self.cache_api.get(namespace="SamUserInfo", key=token)
-        
+        sam_user_info = self.cache_api.get(namespace="SamUserInfo", key=cache_key)
+
         # If cache lookup failed, call Sam.
         # Note this will raise Unauthorized errors as appropriate.
         if sam_user_info is None:
             sam_user_info = self.sam_api.user_info(token)
             # cache successful Sam responses for 10 minutes.
-            cache_result = self.cache_api.add(namespace="SamUserInfo", key=token,
+            cache_result = self.cache_api.add(namespace="SamUserInfo", key=cache_key,
                                               value=sam_user_info, expires_in=self.config.max_token_life)
             if not cache_result:
                 logging.warning('Unable to cache Sam lookup for user info: {}'.format(sam_user_info))
