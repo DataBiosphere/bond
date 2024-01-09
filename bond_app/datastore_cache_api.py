@@ -52,8 +52,12 @@ class DatastoreCacheApi(CacheApi):
     def delete_expired_entries():
         """Deletes the entries that have expired. This must be done periodically. """
         expired_entries = CacheEntry.query(CacheEntry.expires_at < datetime.datetime.now())
-        deletions = ndb.delete_multi([key for key in expired_entries.iter(keys_only=True)])
-        logging.info("Deleted %d cache entries.", len(deletions))
+        logging.info("Found %d expired cache entries.", expired_entries.count())
+        try:
+            deletions = ndb.delete_multi([key for key in expired_entries.iter(keys_only=True)])
+            logging.info("Deleted %d cache entries.", len(deletions))
+        except Exception as e:
+            logging.error("Failed to delete expired cache entries: %s", e)
 
     @staticmethod
     def _build_cache_key(key, namespace):
