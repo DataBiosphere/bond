@@ -89,14 +89,17 @@ def setup_logging():
                           .format(log_config_file_path))
 
     logging.config.dictConfig(logging_config)
+    logging.info("Logging configured")
 
 
 def create_app():
     """Initializes app."""
+    logging.info("Creating Flask app")
     flask_app = flask.Flask(__name__)
     flask_app.register_blueprint(routes.routes)
     flask_app.register_blueprint(swaggerui_blueprint, url_prefix=SWAGGER_URL)
     CORS(flask_app)
+    logging.info("Flask app created")
     return flask_app
 
 
