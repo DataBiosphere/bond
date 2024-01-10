@@ -257,6 +257,11 @@ def get_status():
                                                                                 message=subsystem["message"],
                                                                                 subsystem=subsystem["subsystem"])
                                                         for subsystem in subsystems]))
+
+    failing_subsystems = [subsystem for subsystem in subsystems if not subsystem["ok"]]
+    for failing_subsystem in failing_subsystems:
+        logging.warning("Subsystem %s is not OK: %s" % (failing_subsystem["subsystem"], failing_subsystem))
+
     if critical_subsystems_ok:
         return response
     else:
