@@ -13,30 +13,6 @@ class DatstoreCacheApiTestCase(unittest.TestCase, cache_api_test.CacheApiTest):
         datastore_emulator_utils.setUp(self)
         self.setUpCache(DatastoreCacheApi())
 
-    def test_delete_removes_expired_entries(self):
-        cache = DatastoreCacheApi()
-
-        cache.add("foo", "foo_value", expires_in=0.5)
-        cache.add("foo_namespace", "foo_namespace_value", expires_in=0.5, namespace="baz")
-        cache.add("not_expired", "not_expired_value", expires_in=100)
-        cache.add("no_expiration", "no_expiration_value")
-
-        foo_key = DatastoreCacheApi._build_cache_key("foo", None)
-        self.assertIsNotNone(foo_key.get())
-
-        time.sleep(1)
-
-        # Value expired, but entry is still present in Datastore.
-        self.assertIsNone(cache.get("foo"))
-        self.assertIsNotNone(foo_key.get())
-
-        cache.delete_expired_entries()
-
-        self.assertIsNone(foo_key.get())
-        self.assertIsNone(DatastoreCacheApi._build_cache_key("foo_namespace", "baz").get())
-        self.assertIsNotNone(DatastoreCacheApi._build_cache_key("not_expired", None).get())
-        self.assertIsNotNone(DatastoreCacheApi._build_cache_key("no_expiration", None).get())
-
     def test_large_keys(self):
         cache = DatastoreCacheApi()
 

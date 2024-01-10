@@ -235,15 +235,6 @@ def authorization_url(args, provider):
     return json_response((AuthorizationUrlResponse(url=authz_url)))
 
 
-@routes.route(v1_link_route_base + '/clear-expired-cache-datastore-entries', methods=["GET"], strict_slashes=False)
-def clear_expired_datastore_entries():
-    # Only allow Appengine cron to hit this endpoint.
-    if not request.headers.get("X-Appengine-Cron"):
-        raise exceptions.Forbidden('Missing required cron header.')
-    DatastoreCacheApi.delete_expired_entries()
-    return '', 204
-
-
 @routes.route('/api/status/v1/status', methods=["GET"], strict_slashes=False)
 def get_status():
     sam_base_url = config.get('sam', 'BASE_URL')
