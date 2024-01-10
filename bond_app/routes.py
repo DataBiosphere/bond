@@ -20,7 +20,7 @@ from . import fence_token_storage
 from .open_id_config import OpenIdConfig
 from .sam_api import SamApi
 from .oauth_adapter import OauthAdapter
-from .status import Status
+from .status import Status, Subsystems
 from .token_store import TokenStore
 from .oauth2_state_store import OAuth2StateStore
 import json
@@ -248,13 +248,16 @@ def get_status():
 
     subsystems = status_service.get()
 
-    ok = all(subsystem["ok"] for subsystem in subsystems)
-    response = json_response(StatusResponse(ok=ok,
+    critical_subsystems = [Subsystems.cache, Subsystems.datastore, Subsystems.sam]
+    critical_subsystems_ok = all(critical_subsystem["ok"] for critical_subsystem in subsystems if critical_subsystem["subsystem"] in critical_subsystems)
+
+    all_subsystems_ok = all(subsystem["ok"] for subsystem in subsystems)
+    response = json_response(StatusResponse(ok=all_subsystems_ok,
                                             subsystems=[SubSystemStatusResponse(ok=subsystem["ok"],
                                                                                 message=subsystem["message"],
                                                                                 subsystem=subsystem["subsystem"])
                                                         for subsystem in subsystems]))
-    if ok:
+    if critical_subsystems_ok:
         return response
     else:
         logging.warning("Bond status NOT OK:\n%s" % response[0])
