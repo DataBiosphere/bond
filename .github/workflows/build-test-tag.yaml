@@ -3,7 +3,7 @@ name: Build, test, and tag docker image
 on:
   push:
     branches:
-      - '*'
+      - '**'
     tags-ignore:
       - '**'
     paths-ignore:
