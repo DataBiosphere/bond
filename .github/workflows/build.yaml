@@ -90,7 +90,7 @@ jobs:
           echo "TAGS: ${TAGS}"
           echo "tags=${TAGS}" >> $GITHUB_OUTPUT
         shell: bash
-      - name: Build and push image
+      - name: Build and cache image
         uses: docker/build-push-action@v5
         with:
           context: .
