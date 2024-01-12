@@ -85,6 +85,7 @@ jobs:
           TAGS="${VERSION_TAG},${BRANCH_TAG}"
           echo "NAME: ${NAME}"
           echo "BRANCH_TAG: ${BRANCH_TAG}"
+          echo "VERSION_TAG: ${VERSION_TAG}"
           echo "branch-tag=${BRANCH_TAG}" >> $GITHUB_OUTPUT
           echo "TAGS: ${TAGS}"
           echo "tags=${TAGS}" >> $GITHUB_OUTPUT
