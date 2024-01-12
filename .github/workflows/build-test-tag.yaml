@@ -164,13 +164,11 @@ jobs:
         shell: bash
 
   tag:
-    if: github.ref_name != github.event.repository.default_branch
+    if: github.ref_name == github.event.repository.default_branch
     needs: [tag-build-publish, test]
     permissions:
       # Push changed tag.
       contents: 'write'
-      # Use OIDC -> IAP.
-      id-token: 'write'
     runs-on: ubuntu-latest
     steps:
       # Repo clone and git user config.
