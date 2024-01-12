@@ -1,9 +1,0 @@
-runtime: python39
-entrypoint: gunicorn -b :$PORT main:app
-basic_scaling:
-  max_instances: 100
-
-handlers:
-- url: /.*
-  secure: always
-  script: auto

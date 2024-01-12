@@ -1,7 +1,7 @@
 version: '2'
 services:
   bond-app:
-    # Image id from local docker build or remote image like 'quay.io/databiosphere/bond:{tag}'
+    # Image id from local docker build or remote image like 'us-central1-docker.pkg.dev/dsp-artifact-registry/bond/bond:{tag}'
     image: $IMAGE_ID
     volumes:
       # Use locally rendered config.ini file.

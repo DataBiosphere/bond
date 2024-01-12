@@ -177,7 +177,7 @@ A) To run an existing image:
 
 1) Render configs.
 2) Browse the available tags [here](https://quay.io/repository/databiosphere/bond?tag=latest&tab=tags)
-3) With your tag of choice (such as `develop`), run `IMAGE_ID=quay.io/databiosphere/bond:{TAG} docker-compose -f docker/local-docker-compose.yml up`
+3) With your tag of choice (such as `develop`), run `IMAGE_ID=us-central1-docker.pkg.dev/dsp-artifact-registry/bond/bond:{TAG} docker-compose -f docker/local-docker-compose.yml up`
 4) Check http://127.0.0.1:8080/api/status/v1/status to make sure you're up and running
 5) Navigate to http://127.0.0.1:8080/api/docs/ to interact with endpoints via Swagger
 
