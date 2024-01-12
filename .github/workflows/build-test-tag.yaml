@@ -2,8 +2,8 @@ name: Build, test, and tag docker image
 
 on:
   push:
-    branches:
-      - develop
+    tags-ignore:
+      - '**'
     paths-ignore:
       - .circleci
       - hooks
