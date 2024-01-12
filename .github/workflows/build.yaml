@@ -86,8 +86,8 @@ jobs:
           echo "NAME: ${NAME}"
           echo "image-name=${NAME}" >> $GITHUB_OUTPUT
           echo "BRANCH_TAG: ${BRANCH_TAG}"
-          echo "VERSION_TAG: ${VERSION_TAG}"
           echo "branch-tag=${BRANCH_TAG}" >> $GITHUB_OUTPUT
+          echo "VERSION_TAG: ${VERSION_TAG}"
           echo "TAGS: ${TAGS}"
           echo "tags=${TAGS}" >> $GITHUB_OUTPUT
         shell: bash
@@ -113,7 +113,7 @@ jobs:
           docker run --entrypoint /bin/bash --workdir "/app" ${{ steps.image-name.outputs.branch-tag }} -c "./tests/functional_test.sh"
       - name: Push image
         run: |
-          docker push ${{ steps.image-name.outputs.image-name }}
+          docker push -a ${{ steps.image-name.outputs.image-name }}
 
 #  # Report new semver versions to Sherlock (main branch only).
 #  report-to-sherlock:
