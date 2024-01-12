@@ -26,7 +26,7 @@ env:
 
 jobs:
   # Build Bond.
-  build-tag-publish:
+  tag-build-publish:
     permissions:
       # Use OIDC -> IAP.
       id-token: 'write'
@@ -114,6 +114,50 @@ jobs:
       - name: Push image
         run: |
           docker push -a ${{ steps.image-name.outputs.image-name }}
+
+  test:
+    needs: tag-build-publish
+    runs-on: ubuntu-latest
+    container: google/cloud-sdk:454.0.0
+    steps:
+      - name: Check Python version
+        run: |
+          export VER_REGEX="^Python 3\.9(\.[0-9]+)?$"
+          export PY_VER=$(python3 --version 2>&1)
+          if ! [[ "$PY_VER" =~ $VER_REGEX ]]; then
+            echo "$PY_VER is not the expected version" && exit 1
+          fi
+
+      - name: Checkout current code
+        uses: actions/checkout@v4
+
+      - name: Setup virtualenv
+        run: |
+          apt-get update
+          apt-get -y install python3-pip
+          pip3 install virtualenv
+          python3 -m virtualenv -p python3 virtualenv
+
+      - name: Install dependencies
+        run: |
+          source virtualenv/bin/activate
+          pip3 install -r requirements.txt --ignore-installed
+
+      - name: Run tests
+        run: |
+          source virtualenv/bin/activate
+          python -m unittest discover -s tests/unit -p "*_test.py"
+
+      - name: Start Datastore Emulator
+        run: |
+          ./tests/datastore_emulator/run_emulator.sh &
+
+      - name: Run Datastore Emulator Tests
+        run: |
+          # Sleep to let the emulator start up before running tests.
+          sleep 10
+          source virtualenv/bin/activate
+          ./tests/datastore_emulator/test.sh
 
 #  # Report new semver versions to Sherlock (main branch only).
 #  report-to-sherlock:
