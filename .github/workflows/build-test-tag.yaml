@@ -127,6 +127,7 @@ jobs:
           if ! [[ "$PY_VER" =~ $VER_REGEX ]]; then
             echo "$PY_VER is not the expected version" && exit 1
           fi
+        shell: bash
 
       - name: Checkout current code
         uses: actions/checkout@v4
