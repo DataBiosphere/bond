@@ -1,0 +1,129 @@
+name: Build docker image
+
+on:
+  push:
+    paths-ignore:
+      - .circleci
+      - hooks
+      - app.yaml
+      - CONTRIBUTING.md
+      - deploy.sh
+      - README.md
+      - release-checklist.md
+      - run_local.sh
+
+env:
+  # GCP project to write images to.
+  GOOGLE_PROJECT: dsp-artifact-registry
+  # Name of the app-specific Docker repository configured in GOOGLE_PROJECT.
+  REPOSITORY_NAME: ${{ github.event.repository.name }}
+  # Name of the image to make in REPOSITORY_NAME.
+  IMAGE_NAME: ${{ github.event.repository.name }}
+  # Region-specific Google Docker repository where GOOGLE_PROJECT/REPOSITORY_NAME can be found.
+  GOOGLE_DOCKER_REPOSITORY: us-central1-docker.pkg.dev
+  # Dockerfile location relative to the repo root.
+  DOCKERFILE: docker/Dockerfile
+
+jobs:
+  # Build Bond.
+  build:
+    permissions:
+      # Use OIDC -> IAP.
+      id-token: 'write'
+    outputs:
+      tag: ${{ steps.tag.outputs.tag }}
+      # This will be only one tag for the branch image and is only used for PR pre-merge checks.
+      branch-image: ${{ steps.image-tag.outputs.tags }}
+    runs-on: ubuntu-latest
+    steps:
+      # Repo clone and git user config.
+      - name: Checkout current code
+        uses: actions/checkout@v4
+      - name: Setup Git
+        shell: bash
+        run: |
+          git config --global user.name 'broadbot'
+          git config --global user.email 'broadbot@broadinstitute.org'
+
+      # GCP WI auth and Docker login.
+      - name: Auth to GCP
+        uses: google-github-actions/auth@v1
+        with:
+          # yamllint disable-line rule:line-length
+          workload_identity_provider: "projects/1038484894585/locations/global/workloadIdentityPools/github-wi-pool/providers/github-wi-provider"
+          service_account: "dsp-artifact-registry-push@dsp-artifact-registry.iam.gserviceaccount.com"
+      - name: Explicitly auth Docker for Artifact Registry
+        run: gcloud auth configure-docker $GOOGLE_DOCKER_REPOSITORY --quiet
+
+      # Setup multi-platform build.
+      - name: Setup QEMU
+        uses: docker/setup-qemu-action@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # Version bump.
+      - name: Bump version tag
+        uses: databiosphere/github-actions/actions/bumper@bumper-0.0.6
+        id: tag
+        env:
+          INITIAL_VERSION: 1.7.7
+          WITH_V: true
+          DEFAULT_BUMP: patch
+          RELEASE_BRANCHES: ${{ github.event.repository.default_branch }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Build and push Docker image and tags.
+      - name: Construct docker image name and tag
+        id: image-name
+        run: |
+          NAME="${GOOGLE_DOCKER_REPOSITORY}/${GOOGLE_PROJECT}/${REPOSITORY_NAME}/${IMAGE_NAME}"
+          if [ ${{ github.ref_name }} == ${{ github.event.repository.default_branch }} ]; then
+            TAGS="${NAME}:${{ steps.tag.outputs.tag }},${NAME}:latest"
+          else
+            TAGS="${NAME}:${{ github.ref_name }}"
+          fi
+          echo "NAME: ${NAME}"
+          echo "TAGS: ${TAGS}"
+          echo "tags=${TAGS}" >> $GITHUB_OUTPUT
+        shell: bash
+      - name: Build and push image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ${{ env.DOCKERFILE }}
+          platforms: linux/amd64   # ,linux/arm64  # More platforms can be added here.
+          push: false
+          tags: ${{ steps.image-name.outputs.tags }}
+          load: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - name: Run Trivy vulnerability scanner
+        # From https://github.com/broadinstitute/dsp-appsec-trivy-action
+        uses: broadinstitute/dsp-appsec-trivy-action@v1
+        with:
+          context: .
+          dockerfile: ${{ env.DOCKERFILE }}
+
+  # Run functional tests using the newly built image.
+  functional-tests:
+    needs: build
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    container:
+      image: ${{ needs.build.outputs.branch-image }}
+      options: --workdir /app
+    steps:
+      - name: Run functional tests
+        run: ./tests/functional_test.sh
+        shell: bash
+
+#  # Report new semver versions to Sherlock (main branch only).
+#  report-to-sherlock:
+#    uses: broadinstitute/sherlock/.github/workflows/client-report-app-version.yaml@main
+#    needs: build
+#    with:
+#      chart-name: "bond"
+#      new-version: ${{ needs.tag-build-publish.outputs.tag }}
+#    permissions:
+#      contents: "read"
+#      id-token: "write"

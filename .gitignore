@@ -86,3 +86,6 @@ automation/report.xml
 
 /env3/
 .vscode
+
+# Workload Identity creds
+gha-creds-*.json
