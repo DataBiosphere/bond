@@ -32,7 +32,6 @@ jobs:
       id-token: 'write'
     outputs:
       tag: ${{ steps.tag.outputs.tag }}
-      branch-tag: ${{ steps.image-tag.outputs.branch-tag }}
     runs-on: ubuntu-latest
     steps:
       # Repo clone and git user config.
@@ -121,8 +120,8 @@ jobs:
     steps:
       - name: Check Python version
         run: |
-          export VER_REGEX="^Python 3\.9(\.[0-9]+)?$"
-          export PY_VER=$(python3 --version 2>&1)
+          VER_REGEX="^Python 3\.9(\.[0-9]+)?$"
+          PY_VER=$(python3 --version 2>&1)
           if ! [[ "$PY_VER" =~ $VER_REGEX ]]; then
             echo "$PY_VER is not the expected version" && exit 1
           fi
@@ -163,6 +162,31 @@ jobs:
           source virtualenv/bin/activate
           ./tests/datastore_emulator/test.sh
         shell: bash
+
+  tag:
+    if: github.ref_name != github.event.repository.default_branch
+    permissions:
+      # Push changed tag.
+      contents: 'write'
+      # Use OIDC -> IAP.
+      id-token: 'write'
+    runs-on: ubuntu-latest
+    steps:
+      # Repo clone and git user config.
+      - name: Checkout current code
+        uses: actions/checkout@v4
+      - name: Setup Git
+        shell: bash
+        run: |
+          git config --global user.name 'broadbot'
+          git config --global user.email 'broadbot@broadinstitute.org'
+
+      - name: Tag dev_tests_passed commit
+        run: |
+          TAG_NAME=dev_tests_passed_$(date +%b_%d_%Y-%H_%M_%S)
+          # git tag $TAG_NAME
+          # git push origin $TAG_NAME
+          echo "current commit would be tagged as ${TAG_NAME}"
 
 #  # Report new semver versions to Sherlock (main branch only).
 #  report-to-sherlock:
