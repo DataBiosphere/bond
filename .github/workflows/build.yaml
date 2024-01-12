@@ -107,7 +107,7 @@ jobs:
   # Run functional tests using the newly built image.
   functional-tests:
     needs: build
-    if: github.event_name == 'pull_request'
+    if: ${{ github.event_name == 'pull_request' }}
     runs-on: ubuntu-latest
     container:
       image: ${{ needs.build.outputs.branch-image }}
