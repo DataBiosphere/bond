@@ -2,6 +2,10 @@ name: Build, test, and tag docker image
 
 on:
   push:
+    branches:
+      - '**'
+    tags-ignore:
+      - '**'
     paths-ignore:
       - .circleci
       - hooks
@@ -66,7 +70,6 @@ jobs:
         uses: databiosphere/github-actions/actions/bumper@bumper-0.0.6
         id: tag
         env:
-          INITIAL_VERSION: 1.7.7
           WITH_V: true
           DEFAULT_BUMP: patch
           RELEASE_BRANCHES: ${{ github.event.repository.default_branch }}
@@ -198,3 +201,17 @@ jobs:
     permissions:
       contents: "read"
       id-token: "write"
+
+  # Put new Bond version in Broad dev environment.
+  set-version-in-dev:
+    if: github.ref_name == github.event.repository.default_branch
+    uses: broadinstitute/sherlock/.github/workflows/client-set-environment-app-version.yaml@main
+    needs: [tag-build-publish, report-to-sherlock]
+    with:
+      new-version: ${{ needs.tag-build-publish.outputs.tag }}
+      chart-name: 'bond'
+      environment-name: 'dev'
+    secrets:
+      sync-git-token: ${{ secrets.BROADBOT_TOKEN }}
+    permissions:
+      id-token: 'write'
