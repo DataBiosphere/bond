@@ -28,6 +28,8 @@ jobs:
   # Build Bond.
   tag-build-publish:
     permissions:
+      # Push changed tag.
+      contents: 'write'
       # Use OIDC -> IAP.
       id-token: 'write'
     outputs:
@@ -187,13 +189,13 @@ jobs:
           # git push origin $TAG_NAME
           echo "current commit would be tagged as ${TAG_NAME}"
 
-#  # Report new semver versions to Sherlock (main branch only).
-#  report-to-sherlock:
-#    uses: broadinstitute/sherlock/.github/workflows/client-report-app-version.yaml@main
-#    needs: build
-#    with:
-#      chart-name: "bond"
-#      new-version: ${{ needs.tag-build-publish.outputs.tag }}
-#    permissions:
-#      contents: "read"
-#      id-token: "write"
+  # Report new semver versions to Sherlock (main branch only).
+  report-to-sherlock:
+    uses: broadinstitute/sherlock/.github/workflows/client-report-app-version.yaml@main
+    needs: build
+    with:
+      chart-name: "bond"
+      new-version: ${{ needs.tag-build-publish.outputs.tag }}
+    permissions:
+      contents: "read"
+      id-token: "write"
