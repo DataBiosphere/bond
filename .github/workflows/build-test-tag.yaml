@@ -12,6 +12,7 @@ on:
       - app.yaml
       - CONTRIBUTING.md
       - deploy.sh
+      - docker/local-docker-compose.yml
       - README.md
       - release-checklist.md
       - run_local.sh
