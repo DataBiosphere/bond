@@ -26,7 +26,7 @@ env:
 
 jobs:
   # Build Bond.
-  build:
+  build-tag-publish:
     permissions:
       # Use OIDC -> IAP.
       id-token: 'write'
@@ -84,6 +84,7 @@ jobs:
           fi
           TAGS="${VERSION_TAG},${BRANCH_TAG}"
           echo "NAME: ${NAME}"
+          echo "image-name=${NAME}" >> $GITHUB_OUTPUT
           echo "BRANCH_TAG: ${BRANCH_TAG}"
           echo "VERSION_TAG: ${VERSION_TAG}"
           echo "branch-tag=${BRANCH_TAG}" >> $GITHUB_OUTPUT
@@ -110,20 +111,9 @@ jobs:
       - name: Run functional tests
         run: |
           docker run --entrypoint /bin/bash --workdir "/app" ${{ steps.image-name.outputs.branch-tag }} -c "./tests/functional_test.sh"
-        shell: bash
-
-  # Run functional tests using the newly built image.
-#  functional-tests:
-#    needs: build
-#    runs-on: ubuntu-latest
-#    container:
-#      image: ${{ needs.build.outputs.branch-tag }}
-#      options: --workdir /app
-#    steps:
-#      - name: Run functional tests
-#        # if: ${{ github.event_name == 'pull_request' }}
-#        run: ./tests/functional_test.sh
-#        shell: bash
+      - name: Push image
+        run: |
+          docker push ${{ steps.image-name.outputs.image-name }}
 
 #  # Report new semver versions to Sherlock (main branch only).
 #  report-to-sherlock:
