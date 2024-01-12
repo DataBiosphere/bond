@@ -107,19 +107,23 @@ jobs:
         with:
           context: .
           dockerfile: ${{ env.DOCKERFILE }}
+      - name: Run functional tests
+        run: |
+          docker run --entrypoint /bin/bash --workdir "/app" ${{ steps.image-name.outputs.branch-tag }} -c "./tests/functional_test.sh"
+        shell: bash
 
   # Run functional tests using the newly built image.
-  functional-tests:
-    needs: build
-    runs-on: ubuntu-latest
-    container:
-      image: ${{ needs.build.outputs.branch-tag }}
-      options: --workdir /app
-    steps:
-      - name: Run functional tests
-        # if: ${{ github.event_name == 'pull_request' }}
-        run: ./tests/functional_test.sh
-        shell: bash
+#  functional-tests:
+#    needs: build
+#    runs-on: ubuntu-latest
+#    container:
+#      image: ${{ needs.build.outputs.branch-tag }}
+#      options: --workdir /app
+#    steps:
+#      - name: Run functional tests
+#        # if: ${{ github.event_name == 'pull_request' }}
+#        run: ./tests/functional_test.sh
+#        shell: bash
 
 #  # Report new semver versions to Sherlock (main branch only).
 #  report-to-sherlock:
