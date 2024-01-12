@@ -32,8 +32,7 @@ jobs:
       id-token: 'write'
     outputs:
       tag: ${{ steps.tag.outputs.tag }}
-      # This will be only one tag for the branch image and is only used for PR pre-merge checks.
-      branch-image: ${{ steps.image-tag.outputs.tags }}
+      branch-tag: ${{ steps.image-tag.outputs.branch-tag }}
     runs-on: ubuntu-latest
     steps:
       # Repo clone and git user config.
@@ -77,12 +76,16 @@ jobs:
         id: image-name
         run: |
           NAME="${GOOGLE_DOCKER_REPOSITORY}/${GOOGLE_PROJECT}/${REPOSITORY_NAME}/${IMAGE_NAME}"
+          VERSION_TAG="${NAME}:${{ steps.tag.outputs.tag }}"
           if [ ${{ github.ref_name }} == ${{ github.event.repository.default_branch }} ]; then
-            TAGS="${NAME}:${{ steps.tag.outputs.tag }},${NAME}:latest"
+            BRANCH_TAG="${NAME}:latest"
           else
-            TAGS="${NAME}:${{ github.ref_name }}"
+            BRANCH_TAG="${NAME}:${{ github.ref_name }}"
           fi
+          TAGS="${VERSION_TAG},${BRANCH_TAG}"
           echo "NAME: ${NAME}"
+          echo "BRANCH_TAG: ${BRANCH_TAG}"
+          echo "branch-tag=${BRANCH_TAG}" >> $GITHUB_OUTPUT
           echo "TAGS: ${TAGS}"
           echo "tags=${TAGS}" >> $GITHUB_OUTPUT
         shell: bash
@@ -107,13 +110,13 @@ jobs:
   # Run functional tests using the newly built image.
   functional-tests:
     needs: build
-    if: ${{ github.event_name == 'pull_request' }}
     runs-on: ubuntu-latest
     container:
-      image: ${{ needs.build.outputs.branch-image }}
+      image: ${{ needs.build.outputs.branch-tag }}
       options: --workdir /app
     steps:
       - name: Run functional tests
+        if: ${{ github.event_name == 'pull_request' }}
         run: ./tests/functional_test.sh
         shell: bash
 
