@@ -117,7 +117,7 @@ jobs:
       options: --workdir /app
     steps:
       - name: Run functional tests
-        if: ${{ github.event_name == 'pull_request' }}
+        # if: ${{ github.event_name == 'pull_request' }}
         run: ./tests/functional_test.sh
         shell: bash
 
