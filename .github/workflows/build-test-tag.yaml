@@ -192,7 +192,7 @@ jobs:
   # Report new semver versions to Sherlock (main branch only).
   report-to-sherlock:
     uses: broadinstitute/sherlock/.github/workflows/client-report-app-version.yaml@main
-    needs: build
+    needs: [tag-build-publish, test]
     with:
       chart-name: "bond"
       new-version: ${{ needs.tag-build-publish.outputs.tag }}
