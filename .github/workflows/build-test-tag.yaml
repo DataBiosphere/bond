@@ -137,20 +137,24 @@ jobs:
           apt-get -y install python3-pip
           pip3 install virtualenv
           python3 -m virtualenv -p python3 virtualenv
+        shell: bash
 
       - name: Install dependencies
         run: |
           source virtualenv/bin/activate
           pip3 install -r requirements.txt --ignore-installed
+        shell: bash
 
       - name: Run tests
         run: |
           source virtualenv/bin/activate
           python -m unittest discover -s tests/unit -p "*_test.py"
+        shell: bash
 
       - name: Start Datastore Emulator
         run: |
           ./tests/datastore_emulator/run_emulator.sh &
+        shell: bash
 
       - name: Run Datastore Emulator Tests
         run: |
@@ -158,6 +162,7 @@ jobs:
           sleep 10
           source virtualenv/bin/activate
           ./tests/datastore_emulator/test.sh
+        shell: bash
 
 #  # Report new semver versions to Sherlock (main branch only).
 #  report-to-sherlock:
