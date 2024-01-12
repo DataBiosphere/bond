@@ -116,7 +116,6 @@ jobs:
           docker push -a ${{ steps.image-name.outputs.image-name }}
 
   test:
-    needs: tag-build-publish
     runs-on: ubuntu-latest
     container: google/cloud-sdk:454.0.0
     steps:
