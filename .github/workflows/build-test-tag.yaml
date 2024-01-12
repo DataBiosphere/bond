@@ -204,6 +204,7 @@ jobs:
 
   # Put new Bond version in Broad dev environment.
   set-version-in-dev:
+    if: github.ref_name == github.event.repository.default_branch
     uses: broadinstitute/sherlock/.github/workflows/client-set-environment-app-version.yaml@main
     needs: [tag-build-publish, report-to-sherlock]
     with:
