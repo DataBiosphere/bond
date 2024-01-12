@@ -185,9 +185,8 @@ jobs:
       - name: Tag dev_tests_passed commit
         run: |
           TAG_NAME=dev_tests_passed_$(date +%b_%d_%Y-%H_%M_%S)
-          # git tag $TAG_NAME
-          # git push origin $TAG_NAME
-          echo "current commit would be tagged as ${TAG_NAME}"
+          git tag $TAG_NAME
+          git push origin $TAG_NAME
 
   # Report new semver versions to Sherlock (main branch only).
   report-to-sherlock:
