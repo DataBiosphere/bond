@@ -19,6 +19,8 @@ on:
   push:
     branches:
       - develop
+    tags-ignore:
+      - '**'
     paths-ignore:
       - .circleci
       - hooks
