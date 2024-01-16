@@ -236,7 +236,7 @@ deployment of the `develop` branch will be triggered if anyone commits or pushes
 
 Note: if you are deploying to non-prod envs as part of a prod release, then skip this section since these instructions are already included in the [Production Deployment Checklist](#production-deployment-checklist).
 
-1. Deploy to dev first, as alpha follows dev, staging follows alpha, and prod follow staging.
+1. Deploy to dev first, as staging follows dev, and prod follow staging.
 2. Log in to [Beehive](https://beehive.dsp-devops.broadinstitute.org/).
 3. Navigate to the [Environments](https://beehive.dsp-devops.broadinstitute.org/environments) section.
 4. In the left menu, click on the environment you want to deploy to.
