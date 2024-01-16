@@ -249,7 +249,7 @@ Note: if you are deploying to non-prod envs as part of a prod release, then skip
 ### Create a ticket and load the Bond Release Checklist template
 To perform a release, you are _required_ to create a Release Issue in [Jira](https://broadworkbench.atlassian.net/browse/CA).
 You should title the issue something like `Bond Release version x.x.x` (`x.x.x` is a placeholder that will get replaced).  After creating the issue, search for a way to add a "Checklist" (which may be a ☑ icon near the top of the ticket) and click on the ellipsis `...` icon for 
-that field and choose `Load templates`, select `Bond Release Checklist`, and click the `Load templates` button.  
+that field and choose `Load templates`, select `Independent Services Release Checklist`, and click the `Load templates` button.  
 
 When doing a production deployment, each step of the checklist **must** be performed.
 
