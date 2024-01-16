@@ -177,7 +177,7 @@ A) To run an existing image:
 
 1) Render configs.
 2) Browse the available tags [here](https://quay.io/repository/databiosphere/bond?tag=latest&tab=tags)
-3) With your tag of choice (such as `develop`), run `IMAGE_ID=quay.io/databiosphere/bond:{TAG} docker-compose -f docker/local-docker-compose.yml up`
+3) With your tag of choice (such as `develop`), run `IMAGE_ID=us-central1-docker.pkg.dev/dsp-artifact-registry/bond/bond:{TAG} docker-compose -f docker/local-docker-compose.yml up`
 4) Check http://127.0.0.1:8080/api/status/v1/status to make sure you're up and running
 5) Navigate to http://127.0.0.1:8080/api/docs/ to interact with endpoints via Swagger
 
@@ -223,8 +223,7 @@ logger.warning("I like turtles")
 
 # Deployment (for Broad only)
 
-Deployments to non-production and production environments are performed in Jenkins.  In order to access Jenkins, you
-will need to be on the Broad network or logged on to the Broad VPN.
+Deployments to non-production and production environments are performed in Beehive.
 
 ## Deploy to the "dev" environment
 
@@ -233,24 +232,24 @@ A deployment to `dev` environment will be automatically triggered every time the
 branch or tag to the `dev` environment, you can do so by following the instructions below, but be aware that a new
 deployment of the `develop` branch will be triggered if anyone commits or pushes to that branch.
 
-## Deploy to non-production environments
+## Deploy to other non-production environments
 
 Note: if you are deploying to non-prod envs as part of a prod release, then skip this section since these instructions are already included in the [Production Deployment Checklist](#production-deployment-checklist).
 
-1. Log in to [Jenkins](https://fc-jenkins.dsp-techops.broadinstitute.org/) 
-1. Navigate to the [bond-manual-deploy](https://fc-jenkins.dsp-techops.broadinstitute.org/view/Indie%20Deploys/job/bond-manual-deploy/)
-   job
-1. In the left menu, click [Build with Parameters](https://fc-jenkins.dsp-techops.broadinstitute.org/view/Indie%20Deploys/job/bond-manual-deploy/build?delay=0sec)
-   and select the `BRANCH_OR_TAG` that you want to deploy, the `TARGET` environment to which you want to deploy, and enter
-   the `SLACK_CHANNEL` that you would like to receive notifications of the deploy jobs success/failure  
-1. Click the `Build` button
+1. Deploy to dev first, as staging follows dev, and prod follow staging.
+2. Log in to [Beehive](https://beehive.dsp-devops.broadinstitute.org/).
+3. Navigate to the [Environments](https://beehive.dsp-devops.broadinstitute.org/environments) section.
+4. In the left menu, click on the environment you want to deploy to.
+5. Click on the Bond instance in the list.
+6. Click on "Change Versions" and then "Click to Refresh and Preview Changes". If the version of Bond you want to deploy is in dev already, you should see a diff, if not, go back to step 1.
+7. Apply the changes.
 
 ## Production Deployment Checklist
 
 ### Create a ticket and load the Bond Release Checklist template
 To perform a release, you are _required_ to create a Release Issue in [Jira](https://broadworkbench.atlassian.net/browse/CA).
 You should title the issue something like `Bond Release version x.x.x` (`x.x.x` is a placeholder that will get replaced).  After creating the issue, search for a way to add a "Checklist" (which may be a ☑ icon near the top of the ticket) and click on the ellipsis `...` icon for 
-that field and choose `Load templates`, select `Bond Release Checklist`, and click the `Load templates` button.  
+that field and choose `Load templates`, select `Independent Services Release Checklist`, and click the `Load templates` button.  
 
 When doing a production deployment, each step of the checklist **must** be performed.
 
@@ -258,9 +257,8 @@ When doing a production deployment, each step of the checklist **must** be perfo
 You must deploy to each tier one-by-one and [manually test](https://docs.google.com/document/d/1-SXw-tgt1tb3FEuNCGHWIZJ304POmfz5ragpphlq2Ng/edit?ts=5e964fbe#)
 in each tier after you deploy to it.  Your deployment to a tier should not be considered complete until you have 
 successfully executed each step of the [manual test](https://docs.google.com/document/d/1-SXw-tgt1tb3FEuNCGHWIZJ304POmfz5ragpphlq2Ng/edit?ts=5e964fbe#)
-on that tier.  To deploy the application code, navigate to the [Bond Manual Deploy](https://fc-jenkins.dsp-techops.broadinstitute.org/view/Indie%20Deploys/job/bond-manual-deploy/)
-job and click the "Build with Parameters" link.  Select the `TAG` that you just created during the preparation steps and
-the `TIER` to which you want to deploy:
+on that tier. To deploy the application code, navigate to [Beehive](https://beehive.dsp-devops.broadinstitute.org/) 
+and follow the non-prod deployment instructions above. Then do the same but for the prod environment.
  
 **NOTE:** 
 * It is important that you deploy to all tiers.  Because Bond is an "indie service", we should strive to make sure

@@ -1,9 +1,24 @@
 name: Build, test, and tag docker image
 
 on:
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - synchronize
+    paths-ignore:
+      - .circleci
+      - hooks
+      - app.yaml
+      - CONTRIBUTING.md
+      - deploy.sh
+      - docker/local-docker-compose.yml
+      - README.md
+      - release-checklist.md
+      - run_local.sh
   push:
     branches:
-      - '**'
+      - develop
     tags-ignore:
       - '**'
     paths-ignore:
@@ -12,6 +27,7 @@ on:
       - app.yaml
       - CONTRIBUTING.md
       - deploy.sh
+      - docker/local-docker-compose.yml
       - README.md
       - release-checklist.md
       - run_local.sh
@@ -84,7 +100,7 @@ jobs:
           if [ ${{ github.ref_name }} == ${{ github.event.repository.default_branch }} ]; then
             BRANCH_TAG="${NAME}:latest"
           else
-            BRANCH_TAG="${NAME}:${{ github.ref_name }}"
+            BRANCH_TAG="${NAME}:${GITHUB_HEAD_REF}"
           fi
           TAGS="${VERSION_TAG},${BRANCH_TAG}"
           echo "NAME: ${NAME}"
