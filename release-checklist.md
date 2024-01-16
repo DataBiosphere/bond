@@ -15,10 +15,7 @@
 >> * Perform the [manual test](https://docs.google.com/document/d/1-SXw-tgt1tb3FEuNCGHWIZJ304POmfz5ragpphlq2Ng/edit?ts=5e964fbe#)
 If desired, you can manually promote Bond through to whatever environments you want as follows, however, new Bond helm charts and versions are automatically released on merge to Bond and terra-helmfile and promoted with the monolith release, so this is for independent releases or hotfixes only:
 * [] Check the [Release Protection Window Calendar](https://calendar.google.com/calendar/u/0?cid=YnJvYWRpbnN0aXR1dGUub3JnX2ZrMGMxb2E0Ym5rY21rOXEyajY5ZWdtMjljQGdyb3VwLmNhbGVuZGFyLmdvb2dsZS5jb20)
-* [] Notify the [#workbench-release](https://broadinstitute.slack.com/archives/C6DTFUCDD) Slack channel that you will be releasing a new version of Bond to `alpha`, `staging`, and `prod` along with the link to the release version in Jira.
-* [] Deploy to `alpha` and perform manual test
->> * Navigate to [bond-alpha in Beehive](https://beehive.dsp-devops.broadinstitute.org/environments/alpha/chart-releases/bond), click on "Change Versions" and then "Click to Refresh and Preview Changes". Review the changeset, and if it looks good, apply it and wait for Alpha to be updated.
->> * Perform the [manual test](https://docs.google.com/document/d/1-SXw-tgt1tb3FEuNCGHWIZJ304POmfz5ragpphlq2Ng/edit?ts=5e964fbe#)
+* [] Notify the [#workbench-release](https://broadinstitute.slack.com/archives/C6DTFUCDD) Slack channel that you will be releasing a new version of Bond to `staging`, and `prod` along with the link to the release version in Jira.
 * [] Deploy to `staging` and perform manual test
 >> * Navigate to [bond-staging in Beehive](https://beehive.dsp-devops.broadinstitute.org/environments/staging/chart-releases/bond), click on "Change Versions" and then "Click to Refresh and Preview Changes". Review the changeset, and if it looks good, apply it and wait for Staging to be updated.
 >> * Perform the [manual test](https://docs.google.com/document/d/1-SXw-tgt1tb3FEuNCGHWIZJ304POmfz5ragpphlq2Ng/edit?ts=5e964fbe#)
