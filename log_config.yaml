@@ -15,7 +15,12 @@ formatters:
 handlers:
   console:
     class: logging.StreamHandler
-    level: NOTSET
+    level: DEBUG
+    formatter: simple
+    stream: ext://sys.stdout
+  error:
+    class: logging.StreamHandler
+    level: ERROR
     formatter: simple
     stream: ext://sys.stderr
 
@@ -27,4 +32,4 @@ loggers:
 
 root:
   level: INFO
-  handlers: [console]
+  handlers: [console, error]
