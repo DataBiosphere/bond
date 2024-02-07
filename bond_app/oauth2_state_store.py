@@ -1,5 +1,6 @@
 import base64
 import json
+import logging
 import secrets
 from google.cloud import ndb
 from dataclasses import dataclass
@@ -38,16 +39,24 @@ class OAuth2StateStore:
         :param nonce: random value for csrf protection
         """
         oauth2_nonce = OAuth2State(key=OAuth2StateStore._oauth2_state_store_key(user_id, provider), nonce=nonce)
+        logging.info(f"Saving OAuth2State for user {user_id} and provider {provider}")
         oauth2_nonce.put()
 
     def validate_and_delete(self, user_id, provider_name, nonce) -> bool:
         key = OAuth2StateStore._oauth2_state_store_key(user_id, provider_name)
         oauth2_state = key.get()
         if oauth2_state is None:
+            logging.warning(f"Could not find OAuth2State for user {user_id} and provider {provider_name}")
             return False
         else:
+            logging.info(f"Found OAuth2State for user {user_id} and provider {provider_name}. Deleting the state.")
             key.delete()
-            return oauth2_state.nonce == nonce
+            if oauth2_state.nonce != nonce:
+                logging.warning(f"Nonce mismatch for user {user_id} and provider {provider_name}")
+                return False
+            else:
+                logging.info(f"Nonce matched for user {user_id} and provider {provider_name}")
+                return True
 
     def state_with_nonce(self, state):
         if not state:
