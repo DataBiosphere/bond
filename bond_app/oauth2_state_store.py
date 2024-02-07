@@ -42,7 +42,7 @@ class OAuth2StateStore:
 
     def validate_and_delete(self, user_id, provider_name, nonce) -> bool:
         key = OAuth2StateStore._oauth2_state_store_key(user_id, provider_name)
-        oauth2_state = key.get()
+        oauth2_state = key.get(read_consistency=ndb.EVENTUAL)
         if oauth2_state is None:
             return False
         else:
